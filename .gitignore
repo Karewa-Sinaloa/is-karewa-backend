@@ -4,3 +4,4 @@ app/config.yml
 logs/
 httpdocs/statics/uploads/
 app/.keys/
+*.sql
