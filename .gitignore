@@ -5,3 +5,5 @@ logs/
 httpdocs/statics/uploads/
 app/.keys/
 *.sql
+app/resources/insomnia.json
+app/templates/views_c/
