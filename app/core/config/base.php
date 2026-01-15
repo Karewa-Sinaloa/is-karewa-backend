@@ -30,6 +30,7 @@ try {
  * Ubicación del archivo de logs de errores del API
  */
 define('DEBUG_LOG_PATH', $app_path . $_config->log->path);
+define('ERROR_LOG_FILE', $app_path . $_config->log->path . $_config->log->error);
 define('DEBUG_LOG_FILE', $app_path . $_config->log->path . $_config->log->debug);
 define('PAYPAL_LOG_FILE', $app_path . $_config->log->path . $_config->log->paypal);
 define('FRONTEND_LOG_FILE', $app_path . $_config->log->path . $_config->log->frontend);
@@ -122,4 +123,5 @@ define('MAILINGS_URL', $_config->mailings->url);
 define('MAILINGS_HASH', $_config->mailings->hash);
 
 define('HASH_AUTH_PASS', $_config->hash);
+
 ?>

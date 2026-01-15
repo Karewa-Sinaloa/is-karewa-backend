@@ -5,7 +5,7 @@ function api_modules() {
   /**
    * Valida que el modulo exista y lo llama
 	 */
-  $module_name = trim(strip_tags($_GET['m']));
+  $module_name = trim(strip_tags((string) $_GET['m']));
 	$module_dir = ROOT_PATH . 'api/' . $module_name;
 	$core_module_dir = CORE_PATH . 'modules/' . $module_name;
 
@@ -16,7 +16,7 @@ function api_modules() {
 		}
     return $module_dir;
   } else {
-		error_logs([MODULE, 404, 'No module found', __LINE__, __FILE__]);
+		error_logs(['MISSING MODULE', 404, 'No module found', __LINE__, __FILE__]);
 		ApiResponse::Set(900001);
   }
 }

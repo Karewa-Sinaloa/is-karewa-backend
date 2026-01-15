@@ -12,11 +12,11 @@ function error_logs(array $data, string $file = DEBUG_LOG_FILE) {
 		if(!is_dir(DEBUG_LOG_PATH)) {
 			mkdir(DEBUG_LOG_PATH, 0777);
 		}
-		$lfile = fopen($file, 'w');
+		$lfile = fopen($file, 'w') or die('Cannot open file:  ' . $file);
 		fclose($lfile);
 		chmod($lfile, 0777);
 	}
-	$user = (defined('USER_ID') && is_numeric(USER_ROLE) && USER_ID > 0) ? USER_ID : IDENTIFIER_UID;
+	$user = (defined('USER_ID') && defined('USER_ROLE') && is_numeric(USER_ROLE) && USER_ID > 0) ? USER_ID : (defined('IDENTIFIER_UID') ? IDENTIFIER_UID : 'Guest');
   $d    = '';
   $ip   = $_SERVER['REMOTE_ADDR'];
   $date = date('d-m-Y H:i:s');

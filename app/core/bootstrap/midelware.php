@@ -72,7 +72,7 @@ class BaseModel {
     }
     // Filtros de busqueda
     $get_filters = $this->getParamsFilters($params->search);
-		$this->entryId = trim(strip_tags($_GET['id']));
+		$this->entryId = trim(strip_tags((string) $_GET['id']));
 		if (!empty($params->filters)) {
 			foreach ($params->filters as $key => $filter) {
 				if($key == 'id') {
@@ -111,7 +111,7 @@ class BaseModel {
 
     $contactenated_string = trim($contactenated_string, ', ');
 
-    $string  = trim(strip_tags($_GET['search']));
+    $string  = trim(strip_tags((string) $_GET['search']));
     $ignore  = ['la', 'lo', 'el', 'y', 'de', 'a', 'en', 'que', 'un', 'una', 'se', 'las', 'los', 'por', 'o', 'como', 'para', 'cual', 'del', 'al', 'con', 'es', 'esa', 'este', 'son', 'su', 'esta', 'ese'];
     $accents = [
       'a' => 'á',
@@ -129,11 +129,11 @@ class BaseModel {
     ];
 
     foreach ($accents as $key => $value) {
-      $string = preg_replace('#' . $value . '+#i', $key, $string);
+      $string = preg_replace('#' . $value . '+#i', $key, (string) $string);
     }
     $string = strtolower($string);
-    $string = preg_replace("/[^a-z0-9\s]+/i", ' ', $string);
-    $string = preg_replace("/[\s]+/", ',', $string);
+    $string = preg_replace("/[^a-z0-9\s]+/i", ' ', (string) $string);
+    $string = preg_replace("/[\s]+/", ',', (string) $string);
     $string = trim($string, ',');
     $string = explode(',', $string);
 
@@ -151,13 +151,13 @@ class BaseModel {
    * ser obtener datos adicionales que se adjuntarán a la respuesta
    */
   protected function getEmbed() {
-    $embed = preg_replace("/([^a-zA-Z0-9,_\.]+)/", '', $_GET['embed']);
+    $embed = preg_replace("/([^a-zA-Z0-9,_\.]+)/", '', (string) $_GET['embed']);
     $embed = explode(',', $embed);
     return $embed;
   }
 
   private function getParamsFields() {
-    $fields_params = preg_replace("/([^a-zA-Z0-9,_\.]+)/", '', $_GET['fields']);
+    $fields_params = preg_replace("/([^a-zA-Z0-9,_\.]+)/", '', (string) $_GET['fields']);
     $fields_params = explode(',', $fields_params);
     $fields = [];
 
@@ -178,7 +178,7 @@ class BaseModel {
   }
 
   private function getParamsOrder() {
-    $sort_params = strip_tags($_GET['sort']);
+    $sort_params = strip_tags((string ) $_GET['sort']);
     $sort_params = explode(',', $sort_params);
 
 		$order_by = [];
@@ -227,7 +227,7 @@ class BaseModel {
 
     foreach ($this->availableFields as $key => $value) {
       if (isset($_GET[$key]) && $value['filter'] == true) {
-        $v = trim(strip_tags($_GET[$key]));
+        $v = trim(strip_tags((string) $_GET[$key]));
         $v = explode(':', $v);
         if (array_key_exists($v[0], $operators)) {
           $filters[$key] = [$value['field'], $v[1], $operators[$v[0]]];
@@ -320,7 +320,7 @@ class BaseModel {
 
 	public function post() {
 		$get_params = $this->init();
-		$table = preg_replace("/\s\w+?$/i", '', $get_params['table']);
+		$table = preg_replace("/\s\w+?$/i", '', (string) $get_params['table']);
 		$fields = $this->queryFields();
 		$validation = FieldsValidator::Validation($fields, $this->rules);
 		if ($validation) {

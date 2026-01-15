@@ -64,7 +64,7 @@ abstract class jwtToken {
   }
 
   public static function decode($jwt) {
-		$j = preg_replace('/Bearer /', '', $jwt);
+		$j = preg_replace('/Bearer /', '', (string) $jwt);
 		$tData  = null;
 		$status = false;
     if ($j && !empty($j)) {
