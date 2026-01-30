@@ -20,7 +20,7 @@ collection:
         meta:
           id: req_8ed4286b5b3b441887f0cc013faaf431
           created: 1677804848861
-          modified: 1769630373064
+          modified: 1769804589086
           isPrivate: false
           description: ""
           sortKey: -1677804848861
@@ -29,8 +29,8 @@ collection:
           mimeType: application/json
           text: |-
             {
-            	"email": "dev@criselgeek.com",
-            	"password": "*21JuLi07$"
+            	"email": "user@domain.tld",
+            	"password": "*************"
             }
         headers:
           - name: Content-Type
