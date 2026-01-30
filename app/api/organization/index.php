@@ -2,14 +2,13 @@
 use App\Auth\ModuleHandler;
 
 require_once __DIR__ . '/controller.php';
-$pages = new PagesComponent();
+$orgs = new OrganizationComponent();
 
 $accepted_methods = [
-  'index'   => [false, NULL],
+  'index'   => [true, [1,2,3]],
   'show'    => [false, NULL],
   'store'   => [true, [1, 2, 3]],
-  'update'  => [true, [1, 2, 3]],
-  'destroy' => [true, [1, 2, 3]],
+  'update'  => [true, [1, 2, 3]]
 ];
-ModuleHandler::Validate($accepted_methods, $pages);
+ModuleHandler::Validate($accepted_methods, $orgs);
 ?>

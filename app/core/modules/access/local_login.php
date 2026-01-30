@@ -29,7 +29,8 @@ class AppAccess extends BaseModel {
    * y datos necesarios en caso de respuesta correcta
    */
 	public function Login() {
-		$validation = FieldsValidator::Validation([
+		$fv = new FieldsValidator();
+		$validation = $fv->Validation([
 			"email" => ["email", $this->payload->email],
 			"password"	=> ["password", $this->payload->password],
 			"token"	=> ["token", $this->payload->token]
@@ -88,7 +89,8 @@ class AppAccess extends BaseModel {
    * y verificación para enviar el código de reseteo de la contraseña
    */
   public function Recovery() {
-		$validation = FieldsValidator::Validation([
+		$fv = new FieldsValidator();
+		$validation = $fv->Validation([
 			"email" => ["email", $this->payload->email]
 		], [
       'email' => 'required|email',
@@ -157,7 +159,8 @@ class AppAccess extends BaseModel {
    * de 6 dígitos que se envio al correo electrónico y el mismo correo electrónico
    */
 	public function Reset() {
-		$validation = FieldsValidator::Validation([
+		$fv = new FieldsValidator();
+		$validation = $fv->Validation([
 			'email' => ['email', $this->payload->email],
 			'code' => ['code', $this->payload->code],
 			'password'	=> ['password', $this->payload->password]

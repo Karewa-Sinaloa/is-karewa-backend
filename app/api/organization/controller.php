@@ -3,11 +3,13 @@ use App\Model\BaseModel;
 use App\Validation\FieldsValidator;
 use App\Model\Crud;
 
-class PagesComponent extends BaseModel {
+class organizationComponent extends BaseModel {
 
 	use Crud {
 		store as private storetrait;
 		update as private updatetrait;
+		index as private indextrait;
+		show as private showtrait;
 	}
 	
 	protected $moduleFields = [
@@ -29,16 +31,16 @@ class PagesComponent extends BaseModel {
 		'search' => []
 	];
 
-  protected $rules = [
-    'id' => 'required|numeric|unique:organization:id',
+	protected $rules = [
+		'id' => 'required|numeric|unique:organization:id',
 		'name' => 'required|max:100',
 		'shortname' => 'required|max:20',
 		'contact_email'	 => 'required|email|max:100',
 		'street' => 'max:150',
-    'colonia' => 'max:150',
-    'city' => 'max:100',
-    'state' => 'max:100',
-    'postal_code' => 'numeric|max:5',
+		'colonia' => 'max:150',
+		'city' => 'max:100',
+		'state' => 'max:100',
+		'postal_code' => 'numeric|max:5',
 	];
 
 	public function __construct() {
@@ -51,6 +53,14 @@ class PagesComponent extends BaseModel {
 	
 	public function update() {
 		$this->updatetrait();
+	}
+
+	public function index() {
+		$this->indextrait();
+	}
+
+	public function show() {
+		$this->showtrait();
 	}
 
 }
