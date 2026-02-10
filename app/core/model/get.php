@@ -8,7 +8,7 @@ abstract class DBGet {
   public static function Get(array $params, ?string $action = NULL ) : array|null {
     $limit_inf = 1;
     $table        = is_string($params['table']) ? $params['table'] : null;
-    $_filters     = (array_key_exists('filter', $params) && is_array($params['filters'])) ? $params['filters'] : [];
+    $_filters     = (array_key_exists('filters', $params) && is_array($params['filters'])) ? $params['filters'] : [];
     $_fields      = (array_key_exists('fields', $params) && is_array($params['fields'])) ? $params['fields'] : [];
     $_joins       = (array_key_exists('joins', $params) && is_array($params['joins'])) ? $params['joins'] : [];
     $_page        = (array_key_exists('page', $params) && is_numeric($params['page'])) ? (int) $params['page'] : 1;
@@ -16,9 +16,9 @@ abstract class DBGet {
     $_order_by    = (array_key_exists('order', $params) && is_array($params['order'])) ? $params['order'] : [];
     $_group_by    = (array_key_exists('group_by', $params) && is_array($params['group_by'])) ? $params['group_by'] : NULL;
     $_action      = $action;
-
+	
     $joins = self::get_joins($_joins);
-    $where = self::get_filters($_filters);
+	$where = self::get_filters($_filters);
 
     switch ($action) {
     case 'count':
@@ -200,9 +200,9 @@ abstract class DBGet {
   }
 
   private static function get_bind_data(array $filters, string $qry_str, int $max_results, int $limit_inf, ?string $action = NULL) :array|null {
-    $dbconn     = DB::connection();
+	$dbconn     = DB::connection();
     $db_results = [];
-    $pdoparam   = PDO::PARAM_STR;
+	$pdoparam   = PDO::PARAM_STR;
 		$qrySec     = 1;
 		try{
 			$qry = $dbconn->prepare($qry_str);

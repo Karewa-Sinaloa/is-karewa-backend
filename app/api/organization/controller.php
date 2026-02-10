@@ -7,7 +7,7 @@ class organizationComponent extends BaseModel {
 	use Crud;
 	
 	protected $moduleFields = [
-		'id' => ['field' => 'id', 'default' => 1, 'readonly' => true],
+		'id' => ['field' => 'id', 'default' => 1, 'readonly' => true, 'saved' => false],
 		'name' => ['field' => 'name'],
 		'shortname' => ['field' => 'shortname'],
 		'contact_email' => ['field' => 'contact_email'],

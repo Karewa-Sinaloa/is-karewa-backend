@@ -406,7 +406,8 @@ class BaseModel {
   protected function queryFields() {
     $vars   = [];
     foreach ($this->availableFields as $key => $field) {
-      $field_exists = array_key_exists($key, (array) $this->payload);
+	  $field_exists = array_key_exists($key, (array) $this->payload);
+		// Si el campo no existe y es opcional no se agrega
       if((!$field_exists && $field['optional']) || (REQUEST_TYPE == 'update' && (empty($this->payload->$key) || !$field_exists)) || ($field['roles'] && !in_array(USER_ROLE, $field['roles'])) || !$field['saved'] ) {
         // No action
       } else {

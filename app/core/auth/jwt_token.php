@@ -31,8 +31,11 @@ abstract class jwtToken {
   }
 
   public static function encode(array $data, bool $keep_session = false) {
-    $time = time();
+	// TODO: Implement session expiration on user inactivity during a short period of time
+	$time = time();
+		// Default expiration time for session, expires in 24 hours
 		$exp  = $time + SESSION_TIME;
+		// Extend expiration time if "remember me" is checked, exprires in 1 year
 		if($keep_session) {
 			$exp = $time + 31536000;
 		}

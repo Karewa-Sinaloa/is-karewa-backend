@@ -157,7 +157,9 @@ class FieldsValidator {
    * @param  string $index_field Name of the column that is going to act ID to be ignored
    * @return string				 Return a String if the value is not unique
    */
-  private function unique(string $table, string $field, string $value, $id, string $index_field) {
+  private function unique(string $table, string $field, string $value, int $id = null, string $index_field = ''): string {
+	$filter   = [];
+	$response = '';
 	if ($id || $id != 0) {
 	  $filter[] = [$index_field, $id, '<>'];
 	}
