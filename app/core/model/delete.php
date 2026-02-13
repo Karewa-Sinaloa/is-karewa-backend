@@ -6,9 +6,7 @@ use PDO;
 
 abstract class DBDelete {
 
-  private static $delete_filters;
-
-  public static function delete(string $table, array $filter, array $table_assoc = NULL) {
+  public static function delete(string $table, array $filter, ?array $table_assoc = NULL) {
     $filters    = self::delete_filters($filter);
     $qry_delete = 'DELETE FROM ' . MYSQL_PREFIX . $table . $filters;
 

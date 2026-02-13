@@ -1,6 +1,5 @@
 <?php
 use App\Model\BaseModel;
-use App\Validation\FieldsValidator;
 
 class AppConfig extends BaseModel {
 	

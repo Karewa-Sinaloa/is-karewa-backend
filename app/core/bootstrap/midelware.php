@@ -49,10 +49,13 @@ class BaseModel {
   ];
   protected $rules = [];
 
-  function __construct() {
-    global $_payload;
-    if($_payload) {
-      $this->payload = $_payload;
+  function __construct(array $additionalData = []) {
+	global $_payload;
+    if($_payload && count($additionalData) > 0) {
+	  $this->payload = $_payload;
+		foreach ($additionalData as $key => $value) {
+		  $this->payload->$key = $value;
+		}
     }
   }
 
@@ -390,6 +393,11 @@ class BaseModel {
   }
 
   public function delete() {
+	if(!ISSET($_GET['id']) || empty($_GET['id'])) {
+	  ApiResponse::Set(400002, [
+		'errors'  => ['id' => 'ID is required for delete']
+	  ]);
+	}
     $get_params = $this->init();
     try {
       $result = DBDelete::delete($get_params['table'], $get_params['filters'], $this->table_assoc);

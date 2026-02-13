@@ -22,7 +22,8 @@ class Roles extends BaseModel{
 	];
 	
 	function __construct() {
-		parent::__construct();
+		global $_payload;
+		parent::__construct($_payload);
 		$this->table_assoc = [
 			[
 				'table'  => 'users',

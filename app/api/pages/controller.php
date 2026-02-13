@@ -38,16 +38,5 @@ class PagesComponent extends BaseModel {
 	public function __construct() {
 		parent::__construct();
 	}
-
-	public function store() {
-		$this->payload->slug = toAlphanumeric($this->payload->title);
-		$this->storetrait();
-	}
-	
-	public function update() {
-		$this->payload->slug = toAlphanumeric($this->payload->title);
-		$this->updatetrait();
-	}
-
 }
 ?>

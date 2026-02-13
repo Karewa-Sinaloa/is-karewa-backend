@@ -1,6 +1,5 @@
 <?php
 use App\Model\BaseModel;
-use App\Validation\FieldsValidator;
 use App\Model\Crud;
 
 class PagesComponent extends BaseModel {
