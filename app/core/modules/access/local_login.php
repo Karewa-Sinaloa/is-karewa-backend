@@ -35,7 +35,7 @@ class AppAccess extends BaseModel {
 			"password"	=> ["password", $this->payload->password],
 			"token"	=> ["token", $this->payload->token]
 		], [
-      'email'    => 'required|email',
+			'email'    => 'required|email',
 			'password' => 'required|min:6',
 			'token'	=> 'required'
 		]);
@@ -165,10 +165,10 @@ class AppAccess extends BaseModel {
 			'code' => ['code', $this->payload->code],
 			'password'	=> ['password', $this->payload->password]
 		], [
-      'email'    => 'required|email',
-      'code'     => 'required|numeric|min_value:100000|max_value:999999',
-      'password' => 'required|min:8',
-    ]);
+		  'email'    => 'required|email',
+		  'code'     => 'required|numeric|min_value:100000|max_value:999999',
+		  'password' => 'required|min:8',
+		]);
 
 		if ($validation) {
 			ApiResponse::Set(400000, [
@@ -182,13 +182,13 @@ class AppAccess extends BaseModel {
 				['email', $this->payload->email, '='],
 				['status_id', 1, '='],
 			],
-    ];
-    $data = NULL;
-    try {
-      $data = DBGet::Get($get_data);
-}   catch(\AppException $e) {
-      ApiResponse::Set(902000);
-    }
+		];
+		$data = NULL;
+		try {
+		  $data = DBGet::Get($get_data);
+	}   catch(\AppException $e) {
+		  ApiResponse::Set(902000);
+		}
 		if(!$data) {
 			ApiResponse::Set(404000);
 		}

@@ -2,7 +2,7 @@
 use App\Model\BaseModel;
 use App\Model\Crud;
 
-class CProceduresComponent extends BaseModel {
+class MateriaComponent extends BaseModel {
 
 	use Crud;
 	
@@ -13,16 +13,16 @@ class CProceduresComponent extends BaseModel {
 	];
 
 	protected $get_params = [
-		'table' => 'c_procedures',
+		'table' => 'c_materia',
 		'filters' => [],
 		'joins' => [],
 		'search' => []
 	];
 
 	protected $rules = [
-		'id' => 'required|numeric|unique:c_procedures:id',
+		'id' => 'required|numeric|unique:c_materia:id',
 		'name' => 'required|max:50',
-		'slug' => 'required|max:50|unique:c_procedures:slug'
+		'slug' => 'required|max:50|unique:c_materia:slug'
 	];
 
 	public function __construct() {

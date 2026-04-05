@@ -6,6 +6,7 @@ use App\Model\DBGet;
 use App\Model\DBStore;
 use App\Model\DBUpdate;
 use App\Helpers\ApiResponse;
+use stdClass;
 
 trait Crud {
   public function show() {
@@ -37,7 +38,7 @@ class BaseModel {
   protected $entryId = NULL;
   protected array $table_assoc = [];
   protected $queryFields = NULL;
-  protected Object $payload;
+  protected object $payload;
   protected array $methodOptions = [
     'end' => true
   ];
@@ -51,12 +52,13 @@ class BaseModel {
 
   function __construct(array $additionalData = []) {
 	global $_payload;
+	$this->payload = new stdClass();
+	$this->payload = $_payload;
     if($_payload && count($additionalData) > 0) {
-	  $this->payload = $_payload;
 		foreach ($additionalData as $key => $value) {
 		  $this->payload->$key = $value;
 		}
-    }
+	}
   }
 
   protected function init() {
