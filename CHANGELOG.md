@@ -4,6 +4,21 @@ Todos los cambios relevantes de este proyecto se documentan en este archivo.
 
 ---
 
+## [Unreleased] — 2026-04-08 · rama `master`
+
+### Añadido
+- `orm_wiki.md` — Documentación completa del ORM personalizado del sistema: arquitectura, capas de base de datos (`DB`, `DBGet`, `DBStore`, `DBUpdate`, `DBDelete`), `BaseModel`, trait `Crud`, definición de `$moduleFields`, `$get_params`, `$rules`, operaciones CRUD, filtros URL, búsqueda de texto, paginación, ordenamiento, validación y ejemplo completo de módulo.
+- `app/api/contracts/` — Nuevo módulo para la gestión de contratos (`contratos`), con soporte completo CRUD.
+- `app/api/estatus-contrato/` — Nuevo módulo para el catálogo de estatus de contrato (`c_estatus`), con soporte completo CRUD y generación automática de slug.
+- `app/api/partidas/` — Nuevo módulo para el catálogo de partidas presupuestales (`c_partidas`), con soporte completo CRUD y generación automática de slug.
+- `app/api/tipo-contrato/` — Nuevo módulo para el catálogo de tipos de contrato (`c_tipo`), con soporte completo CRUD y generación automática de slug.
+- `app/api/unit-types/` — Nuevo módulo para el catálogo de tipos de unidad administrativa (`unit_types`), con soporte completo CRUD y generación automática de slug.
+
+### Modificado
+- `app/core/config/base.php` — Corrección en la validación CORS: se agrega el bloque `else` faltante que responde con error JSON (`CORS policy: This origin is not allowed`) cuando el origen de la petición no está en la lista de dominios permitidos; anteriormente la validación fallaba silenciosamente.
+
+---
+
 ## [Unreleased] — 2026-04-05 · rama `master`
 
 ### Añadido

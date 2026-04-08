@@ -55,6 +55,10 @@ if ($_config->cors->active) {
   $http_origin = $_SERVER['HTTP_ORIGIN'];
   if (in_array($http_origin, $_config->cors->domains)) {
     header('Access-Control-Allow-Origin: ' . $http_origin);
+  } else {
+	die(json_encode([
+		'message' => 'CORS policy: This origin is not allowed'
+	]));
   }
 }
 header('Access-Control-Allow-Methods: PUT, GET, POST, DELETE, OPTIONS');
