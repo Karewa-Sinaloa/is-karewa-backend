@@ -2,7 +2,7 @@
 use App\Auth\ModuleHandler;
 
 require_once __DIR__ . '/controller.php';
-$contracts = new contractsComponent();
+$cper = new CPeriodsComponent();
 
 $accepted_methods = [
   'index'   => [false],
@@ -11,5 +11,5 @@ $accepted_methods = [
   'update'  => [true, [1, 2, 3]],
   'destroy' => [true, [1, 2, 3]]
 ];
-ModuleHandler::Validate($accepted_methods, $contracts);
+ModuleHandler::Validate($accepted_methods, $cper);
 ?>

@@ -4,6 +4,17 @@ Todos los cambios relevantes de este proyecto se documentan en este archivo.
 
 ---
 
+## [Unreleased] — 2026-04-15 · rama `master`
+
+### Añadido
+- `app/api/periodos-contratos/` — Nuevo módulo para el catálogo de periodos de contrato (`c_periods`), con soporte completo CRUD y generación automática de slug.
+
+### Modificado
+- `app/api/contracts/controller.php` — Ajustes al módulo de contratos para alinear campos, joins y validaciones con el esquema actual: `reported_period` cambia a `period_id` con relación a `c_periods`, `partida_type_id` cambia a `partida_type`, `contract_updated_at` reemplaza `updated_at` como campo de negocio, se renombran respaldos a `contract_backup` y `announcement_backup`, y se exponen `created_at`/`updated_at` como campos de solo lectura fuera de persistencia.
+- `app/api/contracts/index.php` — Corrección de la variable enviada a `ModuleHandler::Validate()`: se usa la instancia real `$contracts` en lugar de la variable inexistente `$c_contracts`.
+
+---
+
 ## [Unreleased] — 2026-04-08 · rama `master`
 
 ### Añadido

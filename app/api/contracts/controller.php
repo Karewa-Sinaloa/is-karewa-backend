@@ -13,9 +13,9 @@ class contractsComponent extends BaseModel {
 		'admin_period_start' => ['field' => 'admin_period_start'],
 		'admin_period_end' => ['field' => 'admin_period_end'],
 		'fiscal_year' => ['field' => 'fiscal_year'],
-		'reported_period' => ['field' => 'reported_period'],
+		'period_id' => ['field' => 'period_id'],
 		'contract_id' => ['field' => 'contract_id'],
-		'partida_type_id' => ['field' => 'partida_type_id'],
+		'partida_type' => ['field' => 'partida_type'],
 		'partida_id' => ['field' => 'partida_id'],
 		'status_id' => ['field' => 'status_id'],
 		'call_link' => ['field' => 'call_link'],
@@ -37,14 +37,16 @@ class contractsComponent extends BaseModel {
 		'subtotal' => ['field' => 'subtotal', 'default' => 0],
 		'contract_link' => ['field' => 'contract_link'],
 		'area_in_charge' => ['field' => 'area_in_charge'],
-		'updated_at' => ['field' => 'updated_at'],
+		'contract_updated_at' => ['field' => 'contract_updated_at'],
 		'notes' => ['field' => 'notes'],
 		'organization_notes' => ['field' => 'organization_notes'],
 		'information_date' => ['field' => 'information_date'],
 		'amount_was_exceeded' => ['field' => 'amount_was_exceeded', 'default' => 0],
 		'amount_exceeded' => ['field' => 'amount_exceeded', 'default' => 0],
-		'contract_url_backup' => ['field' => 'contract_url_backup'],
-		'announcement_url_backup' => ['field' => 'announcement_url_backup']
+		'contract_backup' => ['field' => 'contract_backup'],
+		'announcement_backup' => ['field' => 'announcement_backup'],
+		'created_at' => ['field' => 'created_at', 'readonly' => true, 'saved' => false],
+		'updated_at' => ['field' => 'updated_at', 'readonly' => true, 'saved' => false]
 	];
 
 	protected $get_params = [
@@ -85,6 +87,9 @@ class contractsComponent extends BaseModel {
 			[
 				'table' => 'c_tipo ct',
 				'match' => ['c.contract_type_id', 'ct.id'],
+			],[
+				'table' => 'c_periods per',
+				'match' => ['c.period_id', 'per.id'],
 			]
 		],
 		'search' => []
@@ -97,9 +102,9 @@ class contractsComponent extends BaseModel {
 		'admin_period_start' => 'required|numeric|min:4|max:4',
 		'admin_period_end' => 'required|numeric|min:4|max:4',
 		'fiscal_year' => 'required|numeric|min:4|max:4',
-		'reported_period' => 'required|max:20',
+		'period_id' => 'required|max:11|numeric|unique:c_periods:id',
 		'contract_id' => 'required|max:50',
-		'partida_type_id' => 'required|numeric|max:11|unique:c_partidas:id',
+		'partida_type' => 'required|numeric|max:11|unique:c_partidas:id',
 		'partida_id' => 'max:20',
 		'status_id' => 'required|max:11|numeric|unique:c_estatus:id',
 		'call_link' => 'url',
@@ -120,12 +125,12 @@ class contractsComponent extends BaseModel {
 		'subtotal' => 'decimal',
 		'contract_link' => 'url',
 		'area_in_charge' => 'max:250',
-		'updated_at' => 'date_format:Y-m-d',
+		'contract_updated_at' => 'date_format:Y-m-d',
 		'information_date' => 'date_format:Y-m-d',
 		'amount_was_exceeded' => 'boolean',
 		'amount_exceeded' => 'decimal',
-		'contract_url_backup' => 'url',
-		'announcement_url_backup' => 'url'
+		'contract_backup' => 'url',
+		'announcement_backup' => 'url'
 	];
 
 	public function __construct() {
