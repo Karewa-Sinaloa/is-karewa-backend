@@ -26,6 +26,12 @@ try {
 		'message' => 'Error parsing configuration file: ' .$e->getMessage()
 	]));
 }
+if (!$_config || !is_object($_config)) {
+	http_response_code(500);
+	die(json_encode([
+		'message' => 'Error loading configuration file'
+	]));
+}
 /**
  * Ubicación del archivo de logs de errores del API
  */
@@ -78,14 +84,14 @@ define('ROOT_DIR', $root_dir);
 /**
  * MYSQL DATA
  */
-define('MYSQL_HOST', $_config->database->host);
+define('MYSQL_HOST', $_config->database->host ?? 'localhost');
 define('MYSQL_DB', $_config->database->database);
 define('MYSQL_USER', $_config->database->user);
 define('MYSQL_PSWD', $_config->database->password);
-define('MYSQL_PORT', $_config->database->port);
-define('MYSQL_PREFIX', $_config->database->prefix);
-define('MYSQL_CHARSET', $_config->database->charset);
-define('MYSQL_COLLATION', $_config->database->collation);
+define('MYSQL_PORT', $_config->database->port ?? 3306);
+define('MYSQL_PREFIX', $_config->database->prefix ?? '');
+define('MYSQL_CHARSET', $_config->database->charset ?? 'utf8mb4');
+define('MYSQL_COLLATION', $_config->database->collation ?? 'utf8mb4_unicode_ci');
 /**
  * MESSAGE Mensaje que se agrega al Token JTW
  */

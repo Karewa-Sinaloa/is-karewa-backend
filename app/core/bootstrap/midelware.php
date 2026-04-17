@@ -285,7 +285,7 @@ class BaseModel {
     try {
       $data['data'] = DBGet::Get($get_params, $result_type);
     } catch(\AppException $e) {
-      ApiResponse::Set($e->errorCode());
+	  ApiResponse::Set($e->errorCode());
     }
     if (!$data['data']) {
       if(!$this->methodOptions['end']) {
@@ -296,15 +296,15 @@ class BaseModel {
     } else {
       $this->embeded = $this->getEmbed();
       if (in_array('pagination', $this->embeded)) {
+        $count = NULL;
         $pagination_params = [
           'table'   => $get_params['table'],
           'filters' => $get_params['filters'],
           'joins'   => $get_params['joins'],
         ];
-        if(count($get_params['group_by']) > 0) {
+        if(in_array('group_by', $get_params) && count($get_params['group_by']) > 0) {
           $pagination_params['group_by'] = $get_params['group_by'];
           $result = DBGet::Get($pagination_params, 'list');
-          $count = NULL;
           if($result) {
             $count = [
               'results' => count($result)

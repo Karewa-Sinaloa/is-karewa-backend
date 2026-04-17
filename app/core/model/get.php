@@ -45,7 +45,7 @@ abstract class DBGet {
   private static function get_joins(array $joins) {
     $join_qry = '';
     if (!empty($joins)) {
-      foreach ($joins as $key => $value) {
+      foreach ($joins as $value) {
         switch ($value['match'][2]) {
         case 'LEFT':
           $join_type = 'LEFT JOIN';
@@ -60,7 +60,7 @@ abstract class DBGet {
           $join_type = 'LEFT JOIN';
           break;
         }
-        $join_qry .= $join_type . ' ' . $value['table'] . ' ON ' . $value['match'][0] . '=' . $value['match'][1] . ' ';
+         $join_qry .= $join_type . ' ' . MYSQL_PREFIX . $value['table'] . ' ON ' . $value['match'][0] . '=' . $value['match'][1] . ' ';
       }
     }
     return $join_qry;

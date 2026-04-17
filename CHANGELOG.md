@@ -4,6 +4,16 @@ Todos los cambios relevantes de este proyecto se documentan en este archivo.
 
 ---
 
+## [Unreleased] — 2026-04-17 · rama `development`
+
+### Modificado
+- `app/api/contracts/controller.php` — Se califican los campos del módulo con el alias `c`, se corrige el catálogo relacionado en `partida_type`, se renombra `amount_exceeded` a `exceeded_amount` y se agregan campos de solo lectura para exponer nombres descriptivos de proveedor, unidades administrativas, tipo de contrato, periodo, procedimiento, materia, tipo de partida y estatus en las consultas.
+- `app/core/bootstrap/midelware.php` — Se corrige el cálculo de paginación cuando no existe `group_by`, inicializando el contador antes de evaluar embebidos y evitando el acceso a índices inexistentes.
+- `app/core/config/base.php` — Se agrega una validación explícita cuando la configuración no se carga como objeto y se definen valores por defecto seguros para `MYSQL_HOST`, `MYSQL_PORT`, `MYSQL_PREFIX`, `MYSQL_CHARSET` y `MYSQL_COLLATION`.
+- `app/core/model/get.php`, `app/core/model/update.php`, `app/core/model/delete.php` — Se aplica `MYSQL_PREFIX` a joins, updates y verificaciones de asociaciones para mantener compatibilidad con tablas prefijadas en operaciones de lectura, actualización y borrado.
+
+---
+
 ## [Unreleased] — 2026-04-15 · rama `master`
 
 ### Añadido

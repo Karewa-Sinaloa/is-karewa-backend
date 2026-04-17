@@ -22,7 +22,7 @@ abstract class DBUpdate {
     $join = '';
     if (count($joins) > 0) {
       foreach ($joins as $key => $table) {
-        $join .= 'JOIN ' . $table['table'] . ' ON ' . $table['match'][0] . ' = ' . $table['match'][1] . ' ';
+        $join .= 'JOIN ' . MYSQL_PREFIX . $table['table'] . ' ON ' . $table['match'][0] . ' = ' . $table['match'][1] . ' ';
       }
     }
     return $join;

@@ -41,7 +41,7 @@ abstract class DBDelete {
     if (count($table_assoc) > 0 && is_array($table_assoc)) {
       foreach ($table_assoc as $key => $value) {
         $params = [
-          'table'   => $value['table'],
+          'table'   => MYSQL_PREFIX . $value['table'],
           'filters' => [
             [$value['column'], $value['value'], '='],
           ],
