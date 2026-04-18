@@ -4,6 +4,23 @@ Todos los cambios relevantes de este proyecto se documentan en este archivo.
 
 ---
 
+## [Unreleased] — 2026-04-18 · rama `master`
+
+### Añadido
+- `app/core/bootstrap/routes.php` — Se centraliza el catálogo de rutas válidas del API en un archivo dedicado para resolver módulos permitidos antes de cargar su controlador.
+- `phpunit.xml`, `tests/RoutesTest.php` — Se agrega configuración de PHPUnit en la raíz del repositorio y una prueba para validar la resolución de rutas mediante `moduleManager`.
+
+### Modificado
+- `composer.json`, `composer.lock`, `composer.phar` — Se reubican los artefactos de Composer a la raíz del repositorio para unificar dependencias y autoload fuera de `app/core/third_party/`.
+- `app/core/bootstrap/init.php` — Se actualiza la carga de `vendor/autoload.php`, se integra `routes.php` al bootstrap y se ajusta el orden de inicialización de métodos, payload y módulos.
+- `app/core/bootstrap/methods.php` — Se toma el mapeo de métodos desde `$_config->valid_requests`, se endurece la validación del método HTTP y se simplifica la detección de peticiones con `id`.
+- `app/core/bootstrap/modules.php` — Se reemplaza la resolución directa del módulo por la clase `moduleManager`, validando rutas permitidas y buscando módulos tanto en `app/api/` como en `app/core/modules/`.
+- `app/core/bootstrap/post_params.php` — Se sustituye `cleanData()` por `payload_decode()` y la decodificación del body solo se ejecuta en operaciones `store` y `update`.
+- `app/core/helpers/api_response.php` — Se normaliza la construcción de respuestas con arreglos asociativos y opciones opcionales de metadatos para evitar inconsistencias al mezclar datos adicionales.
+- `tests/ValidationTest.php`, `.gitignore` — Se actualiza la suite de pruebas para usar el autoload de la raíz y se ignoran `vendor/` y `.phpunit.result.cache` generados localmente.
+
+---
+
 ## [Unreleased] — 2026-04-17 · rama `development`
 
 ### Modificado
