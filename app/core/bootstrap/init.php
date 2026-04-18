@@ -1,5 +1,5 @@
 <?php
-require_once __DIR__ . '/../third_party/vendor/autoload.php';
+require_once __DIR__ . '/../../../vendor/autoload.php';
 require_once __DIR__ . '/../config/base.php';
 require_once CORE_PATH . 'helpers/log.manager.php';
 require_once CORE_PATH . 'helpers/custom_exceptions.php';
@@ -23,7 +23,8 @@ require_once CORE_PATH . 'components/image_upload/create_file_folder.php';
 require_once CORE_PATH . 'components/image_upload/imageUpload.php';
 require_once CORE_PATH . 'helpers/phpmailer.php';
 
-require_once CORE_PATH . 'bootstrap/post_params.php';
 require_once CORE_PATH . 'bootstrap/methods.php';
+require_once CORE_PATH . 'bootstrap/post_params.php';
 require_once CORE_PATH . 'bootstrap/modules.php';
+require_once CORE_PATH . 'bootstrap/routes.php';
 ?>
