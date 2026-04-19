@@ -1,6 +1,17 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <phpunit bootstrap="vendor/autoload.php" colors="true">
-    <testsuite name="Test directory">
-        <directory>tests</directory>
-    </testsuite>
+  <testsuite name="Test directory">
+    <directory>tests</directory>
+  </testsuite>
+  <logging>
+    <junit outputFile="logs/junit.xml"/>
+    <teamcity outputFile="logs/teamcity.txt"/>
+    <testdoxHtml outputFile="logs/testdox.html"/>
+    <testdoxText outputFile="logs/testdox.txt"/>
+  </logging>
+  <php>
+    <const name="ROOT_PATH" value="/var/www/vhosts/karewa/backend/app/core/"/>
+    <const name="CORE_PATH" value="/var/www/vhosts/karewa/backend/app/"/>
+    <const name="MODULE" value="notexists"/>
+  </php>
 </phpunit>

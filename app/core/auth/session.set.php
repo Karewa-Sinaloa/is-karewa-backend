@@ -31,7 +31,7 @@ abstract class SessionSet {
     ];
   }
 
-  public static function Validate(string $access_token = NULL) {
+  public static function Validate(?string $access_token = NULL) : bool {
     $access_granted = false;
 
 		$jwt_validation = jwtToken::decode($access_token);

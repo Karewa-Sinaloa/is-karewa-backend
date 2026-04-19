@@ -2,14 +2,7 @@
 use PHPUnit\Framework\TestCase;
 use PHPUnit\Framework\Attributes\DataProvider;
 
-require_once __DIR__ . '/../vendor/autoload.php';
 require_once __DIR__ . '/../app/core/bootstrap/modules.php';
-
-define('CORE_PATH', '/var/www/vhosts/karewa/backend/app/core/');
-define('ROOT_PATH', '/var/www/vhosts/karewa/backend/app/');
-
-// Set a non-existent module to test error handling
-define('MODULE', 'notexists');
 require_once __DIR__ . '/../app/core/helpers/custom_exceptions.php';
 
 function error_logs($data) {

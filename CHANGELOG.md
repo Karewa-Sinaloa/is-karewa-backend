@@ -4,6 +4,16 @@ Todos los cambios relevantes de este proyecto se documentan en este archivo.
 
 ---
 
+## [Unreleased] — 2026-04-18 · rama `development`
+
+### Modificado
+- `app/core/bootstrap/routes.php`, `app/core/bootstrap/init.php`, `app/core/bootstrap/methods.php` — Se limpia la integración del nuevo resolutor de rutas, se carga antes la validación de sesión/método y `REQUEST_TYPE` se calcula con retorno explícito, descartando peticiones `OPTIONS` antes de validar el resto del flujo.
+- `app/core/helpers/api_response.php`, `app/core/auth/session.set.php`, `app/core/bootstrap/midelware.php`, `app/core/helpers/custom_exceptions.php` — Se agregan tipos de retorno y firmas más estrictas en autenticación, respuestas y excepciones para estabilizar contratos internos en PHP 8.4.
+- `phpunit.xml`, `tests/RoutesTest.php`, `tests/ValidationTest.php` — Se centraliza en PHPUnit el bootstrap, constantes globales y salidas de reportes, eliminando configuración duplicada dentro de las pruebas.
+- `app/api/proveedores/controller.php` — El módulo de proveedores expone `slug` en lugar de `shortname` para alinearse con el campo persistido por el catálogo.
+
+---
+
 ## [Unreleased] — 2026-04-18 · rama `master`
 
 ### Añadido
