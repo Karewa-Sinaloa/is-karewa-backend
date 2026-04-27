@@ -1,7 +1,8 @@
 <?php
 class AppException extends Exception {
 	function __destruct() {
-		error_logs([MODULE, 'Message: ' . $this->getMessage(), 'Line: ' . $this->getLine(), 'File: ' . $this->getFile(), 'Code: ' . $this->getCode()]);
+		$module  = !defined('MODULE') ? 'UNKNOWN MODULE' : MODULE;
+		error_logs([$module, 'Message: ' . $this->getMessage(), 'Line: ' . $this->getLine(), 'File: ' . $this->getFile(), 'Code: ' . $this->getCode()]);
 	}
 
 	public function errorMessage() : string {

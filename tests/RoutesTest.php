@@ -2,8 +2,8 @@
 use PHPUnit\Framework\TestCase;
 use PHPUnit\Framework\Attributes\DataProvider;
 
-require_once __DIR__ . '/../app/core/bootstrap/modules.php';
-require_once __DIR__ . '/../app/core/helpers/custom_exceptions.php';
+require_once CORE_PATH . 'bootstrap/modules.php';
+require_once CORE_PATH . 'helpers/custom_exceptions.php';
 
 function error_logs($data) {
 	// This is a placeholder for the actual error logging implementation

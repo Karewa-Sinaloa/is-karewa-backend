@@ -4,6 +4,18 @@ Todos los cambios relevantes de este proyecto se documentan en este archivo.
 
 ---
 
+## [Unreleased] — 2026-04-26 · rama `development`
+
+### Añadido
+- `tests/JWTKeyEncodeTest.php` — Se agrega una prueba dedicada para validar la estructura del payload generado por `jwtToken::encode()`, cubriendo expiración, mensaje y datos básicos del usuario.
+
+### Modificado
+- `app/core/auth/jwt_token.php` — Se tipan de forma explícita los métodos de manejo JWT, se corrige la captura de `UnexpectedValueException` y `encode()` ahora expone el payload crudo junto con el token para facilitar validaciones automatizadas.
+- `phpunit.xml`, `tests/RoutesTest.php` — Se corrigen las constantes globales usadas por la suite, se agregan parámetros de JWT para pruebas y se actualizan los requires para depender de `CORE_PATH`.
+- `app/core/config/base.php`, `app/core/helpers/custom_exceptions.php` — Se endurece la carga de configuración inicializando `$_config` como objeto vacío y se evita que `AppException` falle al registrar errores cuando `MODULE` todavía no está definido.
+
+---
+
 ## [Unreleased] — 2026-04-18 · rama `development`
 
 ### Modificado
