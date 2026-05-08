@@ -203,56 +203,56 @@ abstract class DBGet {
 	$dbconn     = DB::connection();
     $db_results = [];
 	$pdoparam   = PDO::PARAM_STR;
-		$qrySec     = 1;
-		try{
-			$qry = $dbconn->prepare($qry_str);
+	$qrySec     = 1;
+	try{
+		$qry = $dbconn->prepare($qry_str);
 
-			if (!empty($filters)) {
-				foreach ($filters as $key => $value) {
-					if ($value[2] == 'LIKE') {
-						$val  = '%' . $value[1] . '%';
-						$wVal = preg_replace("/[\.\s\,]+/", '_', $value[0] . $qrySec);
-						$qry->bindParam($wVal, $val, $pdoparam);
-					} elseif ($value[2] == 'IS_NULL' || $value[2] == 'NOT_NULL') {
-						//
-					}
-					/**
-					 * IN: crea un parametro similar a WHERE `Column Name` IN (`value1`,`value2`...) donde por lo general estos ultimos son numericos, al crear el array se deben agregar de esta manera $filter[['column name', 'value1, value2, ..', 'IN'] ...];
-					 */
-					elseif ($value[2] == 'IN') {
-						$ids = explode(',', $value[1]);
-						foreach ($ids as $key => $value_param) {
-							$wVal = ':' . preg_replace("/[\.]+/", '_', $value[0] . $qrySec . '_' . $key);
-							$qry->bindValue($wVal, $value_param, $pdoparam);
-						}
-					} elseif ($value[2] == 'OR') {
-						$o = 1;
-						foreach ($value[0] as $key => $value_or) {
-							$wVal = ':' . preg_replace("/[\.]+/", '_', $value_or . $qrySec);
-							$qry->bindParam($wVal, $value[1][$key], $pdoparam);
-							$o++;
-						}
-					} else {
-						$wVal = ':' . preg_replace("/[\.]+/", '_', $value[0] . $qrySec);
-						$qry->bindParam($wVal, $value[1], $pdoparam);
-					}
-					$qrySec++;
+		if (!empty($filters)) {
+			foreach ($filters as $key => $value) {
+				if ($value[2] == 'LIKE') {
+					$val  = '%' . $value[1] . '%';
+					$wVal = preg_replace("/[\.\s\,]+/", '_', $value[0] . $qrySec);
+					$qry->bindParam($wVal, $val, $pdoparam);
+				} elseif ($value[2] == 'IS_NULL' || $value[2] == 'NOT_NULL') {
+					//
 				}
-			}
-			if ($max_results > 0 && $action == 'list') {
-				$qry->bindParam(':limitInf', $limit_inf, PDO::PARAM_INT);
-				$qry->bindParam(':maxResults', $max_results, PDO::PARAM_INT);
-			}
-			$qry->execute();
-			if ($action == 'list') {
-				while ($row = $qry->fetch(PDO::FETCH_ASSOC)) {
-					$db_results[] = $row;
+				/**
+				 * IN: crea un parametro similar a WHERE `Column Name` IN (`value1`,`value2`...) donde por lo general estos ultimos son numericos, al crear el array se deben agregar de esta manera $filter[['column name', 'value1, value2, ..', 'IN'] ...];
+				 */
+				elseif ($value[2] == 'IN') {
+					$ids = explode(',', $value[1]);
+					foreach ($ids as $key => $value_param) {
+						$wVal = ':' . preg_replace("/[\.]+/", '_', $value[0] . $qrySec . '_' . $key);
+						$qry->bindValue($wVal, $value_param, $pdoparam);
+					}
+				} elseif ($value[2] == 'OR') {
+					$o = 1;
+					foreach ($value[0] as $key => $value_or) {
+						$wVal = ':' . preg_replace("/[\.]+/", '_', $value_or . $qrySec);
+						$qry->bindParam($wVal, $value[1][$key], $pdoparam);
+						$o++;
+					}
+				} else {
+					$wVal = ':' . preg_replace("/[\.]+/", '_', $value[0] . $qrySec);
+					$qry->bindParam($wVal, $value[1], $pdoparam);
 				}
-			} else {
-				$db_results = $qry->fetch(PDO::FETCH_ASSOC);
+				$qrySec++;
 			}
-		} catch(\Exception $e) {
-			throw new \AppException($e->getMessage(), 902000);
+		}
+		if ($max_results > 0 && $action == 'list') {
+			$qry->bindParam(':limitInf', $limit_inf, PDO::PARAM_INT);
+			$qry->bindParam(':maxResults', $max_results, PDO::PARAM_INT);
+		}
+		$qry->execute();
+		if ($action == 'list') {
+			while ($row = $qry->fetch(PDO::FETCH_ASSOC)) {
+				$db_results[] = $row;
+			}
+		} else {
+			$db_results = $qry->fetch(PDO::FETCH_ASSOC);
+		}
+	} catch(\Exception $e) {
+		throw new \AppException($e->getMessage(), 902000);
     }
     if ($db_results === false || $db_results === NULL || empty($db_results) || $db_results == [] || count( (array) $db_results) == 0) {
       return NULL;

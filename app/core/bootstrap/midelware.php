@@ -276,7 +276,7 @@ class BaseModel {
     }
   }
 
-  public function get() {
+  public function get() : array {
     $get_params = $this->init();
     $result_type = isset($_GET['id']) ? NULL : 'list';
     $data = [

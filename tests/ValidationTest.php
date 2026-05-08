@@ -1,7 +1,6 @@
 <?php
 use PHPUnit\Framework\TestCase;
 use App\Validation\FieldsValidator;
-require_once __DIR__ . '/../vendor/autoload.php';
 require_once __DIR__ . '/../app/core/validation/fields.php';
 
 final class ValidationTest extends TestCase

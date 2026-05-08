@@ -9,7 +9,7 @@ class proveedoresComponent extends BaseModel {
 	protected $moduleFields = [
 		'id' => ['field' => 'id','readonly' => true, 'saved' => false],
 		'name' => ['field' => 'name'],
-		'shortname' => ['field' => 'shortname'],
+		'slug' => ['field' => 'slug'],
 		'rfc' => ['field' => 'rfc'],
 		'comments' => ['field' => 'comments']
 	];

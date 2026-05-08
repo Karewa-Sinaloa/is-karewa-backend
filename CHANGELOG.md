@@ -4,6 +4,28 @@ Todos los cambios relevantes de este proyecto se documentan en este archivo.
 
 ---
 
+## [Unreleased] — 2026-04-26 · rama `development`
+
+### Añadido
+- `tests/JWTKeyEncodeTest.php` — Se agrega una prueba dedicada para validar la estructura del payload generado por `jwtToken::encode()`, cubriendo expiración, mensaje y datos básicos del usuario.
+
+### Modificado
+- `app/core/auth/jwt_token.php` — Se tipan de forma explícita los métodos de manejo JWT, se corrige la captura de `UnexpectedValueException` y `encode()` ahora expone el payload crudo junto con el token para facilitar validaciones automatizadas.
+- `phpunit.xml`, `tests/RoutesTest.php` — Se corrigen las constantes globales usadas por la suite, se agregan parámetros de JWT para pruebas y se actualizan los requires para depender de `CORE_PATH`.
+- `app/core/config/base.php`, `app/core/helpers/custom_exceptions.php` — Se endurece la carga de configuración inicializando `$_config` como objeto vacío y se evita que `AppException` falle al registrar errores cuando `MODULE` todavía no está definido.
+
+---
+
+## [Unreleased] — 2026-04-18 · rama `development`
+
+### Modificado
+- `app/core/bootstrap/routes.php`, `app/core/bootstrap/init.php`, `app/core/bootstrap/methods.php` — Se limpia la integración del nuevo resolutor de rutas, se carga antes la validación de sesión/método y `REQUEST_TYPE` se calcula con retorno explícito, descartando peticiones `OPTIONS` antes de validar el resto del flujo.
+- `app/core/helpers/api_response.php`, `app/core/auth/session.set.php`, `app/core/bootstrap/midelware.php`, `app/core/helpers/custom_exceptions.php` — Se agregan tipos de retorno y firmas más estrictas en autenticación, respuestas y excepciones para estabilizar contratos internos en PHP 8.4.
+- `phpunit.xml`, `tests/RoutesTest.php`, `tests/ValidationTest.php` — Se centraliza en PHPUnit el bootstrap, constantes globales y salidas de reportes, eliminando configuración duplicada dentro de las pruebas.
+- `app/api/proveedores/controller.php` — El módulo de proveedores expone `slug` en lugar de `shortname` para alinearse con el campo persistido por el catálogo.
+
+---
+
 ## [Unreleased] — 2026-04-18 · rama `master`
 
 ### Añadido

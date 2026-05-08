@@ -8,7 +8,7 @@ $root_dir = $_SERVER['DOCUMENT_ROOT'] . '/';
 $app_path = preg_replace('/core\/config\/?/m', '', __DIR__);
 $core_path = preg_replace('/config\/?/m', '', __DIR__);
 // GLOBALS
-$_config = NULL;
+$_config = new stdClass();
 $_payload = NULL;
 $_apiConfig = NULL;
 // EOF GLOBALS
@@ -26,7 +26,7 @@ try {
 		'message' => 'Error parsing configuration file: ' .$e->getMessage()
 	]));
 }
-if (!$_config || !is_object($_config)) {
+if (empty((array) $_config) || !is_object($_config)) {
 	http_response_code(500);
 	die(json_encode([
 		'message' => 'Error loading configuration file'
