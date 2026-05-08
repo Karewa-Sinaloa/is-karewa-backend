@@ -15,6 +15,7 @@ abstract class jwtToken {
 		if(!file_exists($publicKey) || !file_exists($privateKey)) {
 			throw new \AppException('Public and/or private key does not exist or file has incorrect permissions', 901007);
 		}
+		$key = '';
 		switch ($keyType) {
 		case 'private':
 			$key = file_get_contents($privateKey);
@@ -57,7 +58,7 @@ abstract class jwtToken {
 		try {
 			$token = JWT::encode($token_data, $public, JWT_ENCODING);
 		} catch(\Exception $e) {
-			throw new \AppException('Could not encode JWT token', 901000);
+			throw new \AppException('Could not encode JWT token: ' . $e->getMessage(), 901000);
 		}
 		return (object) [
 			'token'      => $token,
@@ -66,8 +67,8 @@ abstract class jwtToken {
 		];
 	}
 
-	public static function decode($jwt) : object {
-		$j = preg_replace('/Bearer /', '', (string) $jwt);
+	public static function decode(string $jwt = '') : object {
+		$j = preg_replace('/Bearer /', '', $jwt);
 		$tData  = null;
 		$status = false;
 		if ($j && !empty($j)) {

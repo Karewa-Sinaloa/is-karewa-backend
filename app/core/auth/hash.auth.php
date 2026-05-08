@@ -11,7 +11,7 @@ abstract class HashAuth {
 	 * Se retira del string resultante la parte inicial que siempre es igual en los generados por password_hash() para de este modo darle mas seguridad al hash y no pueda ser identificada la forma de encriptacion
 	 * Finalmente se pasa por la funcion base64_encode() para que los caracteres sean mas amigables con la url
 	 */
-	public static function Create ($hashArray) {
+	public static function Create(array $hashArray = []) : string {
 		$hashString = implode($hashArray);
 		$hash = password_hash(HASH_AUTH_PASS . $hashString, PASSWORD_BCRYPT);
 		$string = preg_replace('/^\$2y\$10\$/', '', $hash);
@@ -20,7 +20,7 @@ abstract class HashAuth {
 		return $str;
 	}
 
-	public static function Validate($hashArray) {
+	public static function Validate(array $hashArray = []) : bool {
 		$hashString = implode('', $hashArray);
 		if(!isset($_GET['_key']) || empty($_GET['_key'])) {
 			return false;

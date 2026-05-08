@@ -12,6 +12,7 @@ abstract class SessionSet {
    * @return array  Datos de inicio de session junto al Token
    */
 	public static function Login(array $session_data, bool $keep_session = false) {
+		$jwt = null;
 		try {
 			$jwt = jwtToken::encode($session_data, $keep_session);
 		} catch(\AppException $e) {

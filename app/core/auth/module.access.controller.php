@@ -28,11 +28,11 @@ abstract class ModuleHandler {
 		$class->{$method}();
 	}
 
-	private static function Authenticate($auth, $roles, $hash): bool {
+	private static function Authenticate($auth, array $roles = [], string $hash = ''): bool {
 		$authenticated = false;
 		// Verifica si se permite autenticación alternativa por hash, como en webhooks
 		$altAuth = null;
-		if ($hash) {
+		if (!empty($hash)) {
 			$altAuth = HashAuth::Validate($hash);
 		}
 		$headers = apache_request_headers();
@@ -59,7 +59,7 @@ abstract class ModuleHandler {
 		} catch(\AppException $e) {
 			ApiResponse::Set($e->errorCode());
 		}
-		$authenticated = $access_granted && (defined('USER_ROLE') && ($roles === NULL || (in_array(USER_ROLE, $roles))));
+		$authenticated = $access_granted && (defined('USER_ROLE') && (count($roles) == 0 || (in_array(USER_ROLE, $roles))));
 		
 		if(!$authenticated) {
 			error_logs([MODULE, 403, 'No access allowed', __LINE__, __FILE__]);
