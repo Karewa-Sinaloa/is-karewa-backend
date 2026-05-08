@@ -49,3 +49,9 @@ Al contribuir a este proyecto, aceptas seguir el código de conducta del proyect
 
 ## Wiki
 Para más detalles sobre el desarrollo y la arquitectura del proyecto, por favor consulta la [Wiki del proyecto](https://wiki.github.com/Karewa-Sinaloa/is-karewa-backend).
+
+## Implementación para desarrollo
+
+### Cloudflared
+
+Si se necesita utilizar un tunel para realizar pruebas del API se puede utilizar Cloudflared Tunnel, para colaboradores se puede solicitar el acceso como miembro a nuestra cuenta de Cloudflare

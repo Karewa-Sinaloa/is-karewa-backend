@@ -5,8 +5,11 @@ logs/
 httpdocs/statics/uploads/
 app/.keys/
 *.sql
+composer.phar
 app/resources/insomnia.json
 app/templates/views_c/
 app/core/third_party/vendor/
 /vendor/
 /.phpunit.result.cache
+setup.sh
+resources/cloudflared_tunnel.yml

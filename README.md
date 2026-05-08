@@ -61,8 +61,3 @@ Este proyecto está licenciado bajo la Licencia MIT. Consulta el archivo LICENSE
 
 ## Contacto
 Para cualquier consulta o soporte, por favor contacta a [Karewa Sinaloa](dev@karewa.org.mx).
-
-
-
-
-
