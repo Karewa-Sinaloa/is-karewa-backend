@@ -177,13 +177,27 @@ class FieldsValidator {
 	return $response;
   }
 
-  private function date_format($date) {
-	$date = explode('-', $date);
-	if (!checkdate($date[1], $date[2], $date[0])) {
-	  $response = 'Date format is incorrect';
+	private function date_format(string $date_string = '') : string|bool {
+		$response = false;
+		if(empty($date_string)){
+			$response = 'Date format is incorrect: empty value';
+			return $response;
+		}
+		$date = explode('-', $date_string);
+		if(count($date) != 3){
+			$response = 'Date format is incorrect: wrong number of date parts';
+			return $response;
+		}
+		// If not numeric any of the date parts, return error
+		if(!is_numeric($date[0]) || !is_numeric($date[1]) || !is_numeric($date[2])){
+			$response = "Date format is incorrect: non-numeric date parts: {$date_string}";
+			return $response;
+		}
+		if (!checkdate((int) $date[1], (int) $date[2], (int) $date[0])) {
+			$response = 'Date format is incorrect: invalid date';
+		}
+		return $response;
 	}
-	return $response;
-  }
 
   private function time_format($value) {
 	$reg = preg_match("/^([0-1][0-9]|2[0-3])((\:[0-5][0-9]){2})$/", $value);
@@ -217,20 +231,22 @@ class FieldsValidator {
 	return $response;
   }
 
-  private function rfc(string $rfc) {
-	$regex = '/^([a-zA-Z]{3,4})([0-9]{2})([0][1-9]|[1][0-2])([0][1-9]|[1-2][0-9]|[3][0-2])([a-zA-Z0-9]{3})$/';
-	if (!preg_match($regex, $rfc)) {
-	  $response = 'RFC Format incorrect';
+	private function rfc(string $rfc) : string|bool {
+		$response = false;
+		$regex = '/^([a-zA-Z]{3,4})([0-9]{2})([0][1-9]|[1][0-2])([0][1-9]|[1-2][0-9]|[3][0-2])([a-zA-Z0-9]{3})$/';
+		if (!preg_match($regex, $rfc)) {
+			$response = 'RFC Format incorrect';
+		}
+		return $response;
 	}
-	return $response;
-  }
 
-  private function url(string $url) {
-	if (!filter_var($url, FILTER_VALIDATE_URL)) {
-	  $response = 'URL Format incorrect';
+	private function url(string $url) : string|bool {
+		$response = false;
+		if (!filter_var($url, FILTER_VALIDATE_URL)) {
+			$response = 'URL Format incorrect';
+		}
+		return $response;
 	}
-	return $response;
-  }
 
   private function boolean($value) {
 	$response = false;

@@ -6,7 +6,7 @@ class contractsComponent extends BaseModel {
 
 	use Crud;
 	
-	protected $moduleFields = [
+	protected array $moduleFields = [
 		'id' => ['field' => 'c.id','readonly' => true, 'saved' => false],
 		'procedure_id' => ['field' => 'c.procedure_id'],
 		'subject_id' => ['field' => 'c.subject_id'],
@@ -43,8 +43,8 @@ class contractsComponent extends BaseModel {
 		'information_date' => ['field' => 'c.information_date'],
 		'amount_was_exceeded' => ['field' => 'c.amount_was_exceeded', 'default' => 0],
 		'exceeded_amount' => ['field' => 'c.exceeded_amount', 'default' => 0],
-		'contract_backup' => ['field' => 'c.contract_backup'],
-		'announcement_backup' => ['field' => 'c.announcement_backup'],
+		'contract_backup' => ['field' => 'c.contract_backup', 'saved' => false],
+		'announcement_backup' => ['field' => 'c.announcement_backup', 'saved' => false],
 		'created_at' => ['field' => 'c.created_at', 'readonly' => true, 'saved' => false],
 		'updated_at' => ['field' => 'c.updated_at', 'readonly' => true, 'saved' => false],
 		'provider_name' => ['field' => 'pr.name', 'readonly' => true, 'saved' => false],
@@ -107,40 +107,38 @@ class contractsComponent extends BaseModel {
 	];
 
 	protected $rules = [
-		'id' => 'required|numeric|unique:contratos:id',
-		'procedure_id' => 'required|max:11:unique:c_procedures:id',
-		'subject_id' => 'required|max:100|unique:c_materia:id',
+		'procedure_id' => 'required|max:11:exist:c_procedures:id',
+		'subject_id' => 'required|max:100|exist:c_materia:id',
 		'admin_period_start' => 'required|numeric|min:4|max:4',
 		'admin_period_end' => 'required|numeric|min:4|max:4',
 		'fiscal_year' => 'required|numeric|min:4|max:4',
-		'period_id' => 'required|max:11|numeric|unique:c_periods:id',
+		'period_id' => 'required|max:11|numeric|exist:c_periods:id',
 		'contract_id' => 'required|max:50',
-		'partida_type' => 'required|numeric|max:11|unique:c_partidas:id',
+		'partida_type' => 'required|numeric|max:11|exist:c_partidas:id',
 		'partida_id' => 'max:20',
-		'status_id' => 'required|max:11|numeric|unique:c_estatus:id',
+		'status_id' => 'required|max:11|numeric|exist:c_estatus:id',
 		'call_link' => 'url',
-		'call_date' => 'date_format:Y-m-d',
-		'clarification_meeting_date' => 'date_format:Y-m-d',
+		'call_date' => 'date_format',
+		'clarification_meeting_date' => 'date_format',
 		'porposals_url' => 'url',
 		'proposal_url' => 'url',
-		'provider_id' => 'required|max:11|numeric|unique:proveedores:id',
-		'organizer_admin_unit_id' => 'required|max:11|numeric|unique:admin_units:id',
-		'applicant_admin_unit_id' => 'required|max:11|numeric|unique:admin_units:id',
-		'admin_unit_type_id' => 'required|max:11|numeric|unique:unit_types:id',
+		'provider_id' => 'required|max:11|numeric|exist:proveedores:id',
+		'organizer_admin_unit_id' => 'required|max:11|numeric|exist:admin_units:id',
+		'applicant_admin_unit_id' => 'required|max:11|numeric|exist:admin_units:id',
+		'admin_unit_type_id' => 'required|max:11|numeric|exist:unit_types:id',
 		'contract_number' => 'required|max:100',
-		'contract_date' => 'date_format:Y-m-d',
-		'contract_type_id' => 'required|max:11|numeric|unique:c_tipo:id',
+		'contract_date' => 'date_format',
+		'contract_type_id' => 'required|max:11|numeric|exist:c_tipo:id',
 		'total_amount' => 'decimal',
 		'min_amount' => 'decimal',
 		'max_amount' => 'decimal',
 		'subtotal' => 'decimal',
 		'contract_link' => 'url',
 		'area_in_charge' => 'max:250',
-		'contract_updated_at' => 'date_format:Y-m-d',
-		'information_date' => 'date_format:Y-m-d',
+		'contract_updated_at' => 'date_format',
+		'information_date' => 'date_format',
 		'amount_was_exceeded' => 'boolean',
-		'exceeded_amount' => 'decimal',
-		'contract_backup' => 'url',
+		'exceeded_amount' => 'decimal'
 	];
 
 	public function __construct() {
