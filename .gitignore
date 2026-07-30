@@ -13,3 +13,4 @@ app/core/third_party/vendor/
 /.phpunit.result.cache
 setup.sh
 resources/cloudflared_tunnel.yml
+.env
