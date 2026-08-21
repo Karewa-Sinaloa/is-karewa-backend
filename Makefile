@@ -12,7 +12,7 @@ help:
 	@printf "  shell-php        Open bash shell in php container\n"
 	@printf "  shell-db         Open shell in db container\n"
 	@printf "  db-cli           Open MariaDB client as root\n"
-	@printf "  composer-install Install PHP deps (app/core/third_party)\n"
+	@printf "  composer-install Install PHP deps (repo root)\n"
 	@printf "  test             Run PHPUnit tests\n"
 	@printf "  tunnel-up        Start cloudflared profile\n"
 	@printf "  tunnel-down      Stop cloudflared profile\n"
@@ -49,10 +49,10 @@ db-cli:
 	docker compose exec db mariadb -uroot -p$$DB_ROOT_PASSWORD
 
 composer-install:
-	docker compose exec php bash -lc "cd app/core/third_party && composer install"
+	docker compose exec php bash -lc "composer install"
 
 test:
-	docker compose exec php bash -lc "cd app/core/third_party && ./vendor/bin/phpunit ../../tests"
+	docker compose exec php bash -lc "./vendor/bin/phpunit"
 
 tunnel-up:
 	docker compose --profile cloudflared up -d --build

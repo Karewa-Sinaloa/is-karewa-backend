@@ -3,7 +3,6 @@ services:
     build:
       context: .
       dockerfile: docker/php-fpm/Dockerfile
-    restart: unless-stopped
     working_dir: /var/www/html
     environment:
       APP_ENV: ${APP_ENV:-local}
@@ -29,14 +28,14 @@ services:
 
   nginx:
     image: nginx:1.26-alpine
-    restart: unless-stopped
     depends_on:
       php:
         condition: service_healthy
     volumes:
       - ./docker/nginx/default.conf:/etc/nginx/conf.d/default.conf:ro
     healthcheck:
-      test: ["CMD-SHELL", "wget -q -O /dev/null http://127.0.0.1/healthz || exit 1"]
+      test:
+        ["CMD-SHELL", "wget -q -O /dev/null http://127.0.0.1/healthz || exit 1"]
       interval: 15s
       timeout: 5s
       retries: 5
@@ -46,7 +45,6 @@ services:
 
   db:
     image: mariadb:11.4
-    restart: unless-stopped
     environment:
       MARIADB_DATABASE: ${DB_DATABASE}
       MARIADB_USER: ${DB_USERNAME}
@@ -69,7 +67,6 @@ services:
 
   mailpit:
     image: axllent/mailpit:v1.21
-    restart: unless-stopped
     healthcheck:
       test:
         ["CMD-SHELL", "wget -q -O /dev/null http://127.0.0.1:8025/ || exit 1"]
@@ -83,7 +80,6 @@ services:
   cloudflared:
     image: cloudflare/cloudflared:latest
     user: "0:0"
-    restart: unless-stopped
     profiles: ["cloudflared"]
     depends_on:
       nginx:

@@ -78,11 +78,11 @@ make test
 ### Backend (PHP)
 - Install dependencies in project path used by this repo:
   ```bash
-  docker compose exec php bash -lc "cd app/core/third_party && composer install"
+  docker compose exec php bash -lc "composer install"
   ```
 - Run tests:
   ```bash
-  docker compose exec php bash -lc "./vendor/bin/phpunit ../../tests"
+  docker compose exec php bash -lc "./vendor/bin/phpunit"
   ```
 
 ### Database (MariaDB)

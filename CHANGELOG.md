@@ -6,6 +6,22 @@ Todos los cambios relevantes de este proyecto se documentan en este archivo.
 
 ## [Unreleased] — 2026-04-26 · rama `development`
 
+### Pendientes
+
+#### Producción
+- P1: Implement JWT refresh-token rotation plus server-side revocation for compromised sessions.
+- P1: Add rate limiting and temporary lockouts to login, recovery, and other auth-sensitive endpoints.
+- P1: Replace permissive CORS behavior with an environment-driven origin allowlist.
+- P2: Remove `0777` filesystem permissions from logs/uploads and enforce least-privilege ownership/modes.
+- P2: Add audit logging for create/update/delete actions on sensitive modules.
+- P2: Validate uploaded file content with `finfo`/image inspection, not MIME type alone.
+
+#### Desarrollo
+- P1: Replace `mt_rand()` with `random_int()` for recovery codes and other security-sensitive values.
+- P2: Reduce duplicate query-builder logic in `get.php`, `store.php`, `update.php`, and `delete.php`.
+- P2: Standardize exception wrapping so internal SQL details are not propagated to clients.
+- P3: Tighten typing, defaults, and null handling in helper classes and validators.
+
 ### Añadido
 - `tests/JWTKeyEncodeTest.php` — Se agrega una prueba dedicada para validar la estructura del payload generado por `jwtToken::encode()`, cubriendo expiración, mensaje y datos básicos del usuario.
 

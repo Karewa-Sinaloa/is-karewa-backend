@@ -29,21 +29,12 @@ En el sistema inicial habian algunos problemas para escalar el proyecto, tambié
    ```bash
    cd is-karewa-backend
    ```
-3. Instala las dependencias de PHP utilizando Composer, estas se encuentran en el directorio `app/core/third_party`:
+3. Instala las dependencias de PHP utilizando Composer desde la raiz del proyecto:
    ```bash
-   composer install firebase/php-jwt
-   composer install phpmailer/phpmailer
-   composer install symfony/yaml
-   composer install curl/curl
-   composer install ramsey/uuid
-   composer install smarty/smarty
-   ```
-   Adicionalmente se puede instalar la dependencia `phpunit` para pruebas unitarias:
-   ```bash
-   composer install --dev phpunit/phpunit
+   composer install
    ```
 4. Configura la base de datos MySQL y crea una base de datos para Monitor Karewa.
-5. Importa el archivo `database/karewa_monitor.sql` en tu base de datos MySQL para crear las tablas necesarias.
+5. Importa el archivo `resources/karewa_dev.sql` en tu base de datos MySQL para crear las tablas necesarias.
 6. Configura el archivo de configuración `app/config.yml` con los detalles de tu base de datos y otras configuraciones necesarias. Se deja un archivo de ejemplo `app/config.example.yml` que puedes copiar y renombrar a `config.yml` para facilitar la configuración.
 7. Configura tu servidor web (Apache/Nginx) para que apunte al directorio `public` del proyecto.
 
