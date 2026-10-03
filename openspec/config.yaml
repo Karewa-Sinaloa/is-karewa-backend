@@ -2,33 +2,38 @@ schema: spec-driven
 githubCopilot:
   cloudAgent: false
 
-# Project context (optional)
-# This is shown to AI when creating artifacts.
-# Add your tech stack, conventions, style guides, domain knowledge, etc.
-# Example:
-#   context: |
-#     Tech stack: TypeScript, React, Node.js
-#     We use conventional commits
-#     Domain: e-commerce platform
+context: |
+  Monitor Karewa Backend: a custom PHP 8.4+ REST API built on a vanilla, in-house
+  micro-framework (not Laravel/Symfony). Data layer is a custom PDO-based ORM.
+  Database is MySQL 8.0+ / MariaDB 11.4. Frontend is Vue.js (separate repository).
 
-# Per-artifact rules (optional)
-# Add custom rules for specific artifacts.
-# Example:
-#   rules:
-#     proposal:
-#       - Keep proposals under 500 words
-#       - Always include a "Non-goals" section
-#     tasks:
-#       - Break tasks into chunks of max 2 hours
+  Entry point: httpdocs/api.php -> app/core/bootstrap/init.php.
+  Request flow: rewrite -> api.php -> init.php -> midelware.php -> modules.php ->
+  routes.php -> module index.php -> controller.php.
 
-# Per-operation guidance (optional)
-# Add advisory guidance for how apply and archive work should be conducted.
-# This is separate from artifact rules above.
-# Example:
-#   operations:
-#     apply:
-#       guidance:
-#         - Keep test summaries concise
-#     archive:
-#       guidance:
-#         - Summarize the archive outcome before finishing
+  Canonical technical knowledge lives under openspec/specs/:
+  architecture, module-conventions, authentication-and-authorization, validation,
+  query-conventions, api-responses, configuration-and-logging, testing,
+  development-setup. Read the relevant specs before creating artifacts.
+
+  See AGENTS.md for the operating guide and process rules.
+
+rules:
+  proposal:
+    - Reference the relevant spec capabilities the change affects.
+    - Mark breaking changes explicitly.
+  specs:
+    - Write behavior contracts, not implementation details.
+    - Every requirement must have at least one WHEN/THEN scenario.
+  tasks:
+    - State how each task is verified (test, command, or observable behavior).
+    - Land tests and documentation in the group whose work calls for them.
+
+operations:
+  apply:
+    guidance:
+      - Read the affected specs before editing code.
+      - Run the relevant PHPUnit tests and then the full suite.
+  archive:
+    guidance:
+      - Summarize which specs the change updated before finishing.
