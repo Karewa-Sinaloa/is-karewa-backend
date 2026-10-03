@@ -7,6 +7,23 @@ use Symfony\Component\Yaml\Exception\ParseException;
 
 abstract class ApiResponse
 {
+    /**
+     * Extra headers emitted with the next response.
+     *
+     * @var array<string, string>
+     */
+    private static array $extraHeaders = [];
+
+    /**
+     * Queue an HTTP header to be emitted with the next response. Lets callers
+     * (for example the rate limiter) attach a Retry-After header while still
+     * routing the body through the single response path.
+     */
+    public static function SetHeader(string $name, string $value): void
+    {
+        self::$extraHeaders[$name] = $value;
+    }
+
     public static function Set(string $code, ?array $data = null, ?array $response_options = null): void
     {
         $options = $response_options ?? ['meta' => true];
@@ -55,6 +72,10 @@ abstract class ApiResponse
             ];
         }
         http_response_code($response->http_code);
+        foreach (self::$extraHeaders as $name => $value) {
+            header($name . ': ' . $value);
+        }
+        self::$extraHeaders = [];
         die(json_encode($response));
     }
 }

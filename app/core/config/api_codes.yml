@@ -122,3 +122,7 @@ DELETED:
   message: Directory could not be created
   code: APP_FOLDER_NOT_CREATED
   http_code: 500
+429000:
+  message: Too many requests
+  code: APP_RATE_LIMIT_EXCEEDED
+  http_code: 429

@@ -55,23 +55,56 @@ date_default_timezone_set($_config->timezone);
  * Configuracion de los headers del API
  */
 header('Access-Control-Allow-Headers: X-Requested-With, Authorization, Content-Type, X-PINGOTHER, X-Identifier');
-if ($_config->cors->active) {
-  header('Access-Control-Allow-Origin: *');
-} else {
-  $http_origin = $_SERVER['HTTP_ORIGIN'];
-  if (in_array($http_origin, $_config->cors->domains)) {
-    header('Access-Control-Allow-Origin: ' . $http_origin);
-  } else {
-	die(json_encode([
-		'message' => 'CORS policy: This origin is not allowed'
-	]));
-  }
-}
 header('Access-Control-Allow-Methods: PUT, GET, POST, DELETE, OPTIONS');
 header('Pragma: no-cache');
 header('Content-Type: application/json; charset=utf8mb4');
 header("P3P: CP='IDC DSP COR CURa ADMa OUR IND PHY ONL COM STA'");
-header('Access-Control-Allow-Credentials: true');
+
+/**
+ * CORS con lista blanca explicita.
+ *
+ * - Solo se conceden los origenes listados en cors.domains.
+ * - Nunca se combina el comodin "*" con Access-Control-Allow-Credentials.
+ * - Un origen no permitido se rechaza con un estado HTTP real.
+ * - El modo de desarrollo (cors.wildcard) permite cualquier origen pero
+ *   desactiva las credenciales.
+ */
+$http_origin   = $_SERVER['HTTP_ORIGIN'] ?? '';
+$allowed_hosts = (array) ($_config->cors->domains ?? []);
+$wildcard      = (bool) ($_config->cors->wildcard ?? false);
+$origin_ok     = false;
+
+if ($http_origin !== '' && in_array($http_origin, $allowed_hosts, true)) {
+  header('Access-Control-Allow-Origin: ' . $http_origin);
+  header('Access-Control-Allow-Credentials: true');
+  header('Vary: Origin');
+  $origin_ok = true;
+} elseif ($wildcard) {
+  // Desarrollo: cualquier origen, sin credenciales.
+  header('Access-Control-Allow-Origin: *');
+} elseif ($http_origin !== '') {
+  // Origen presente pero no listado: rechazo con estado HTTP.
+  http_response_code(403);
+  die(json_encode([
+    'message'   => 'CORS policy: This origin is not allowed',
+    'code'      => 'APP_CORS_ORIGIN_DENIED',
+    'http_code' => 403,
+  ]));
+}
+
+/**
+ * Cabeceras de seguridad estandar, emitidas de forma central.
+ */
+header('X-Content-Type-Options: nosniff');
+header('X-Frame-Options: ' . (string) ($_config->security->headers->frame_options ?? 'DENY'));
+header('Referrer-Policy: ' . (string) ($_config->security->headers->referrer_policy ?? 'no-referrer'));
+$is_https = (!empty($_SERVER['HTTPS']) && strtolower((string) $_SERVER['HTTPS']) !== 'off')
+  || (($_SERVER['HTTP_X_FORWARDED_PROTO'] ?? '') === 'https')
+  || (($_config->https ?? false) && ($_config->security->headers->hsts ?? false));
+if ($is_https && ($_config->security->headers->hsts ?? true)) {
+  $hsts_max_age = (int) ($_config->security->headers->hsts_max_age ?? 31536000);
+  header('Strict-Transport-Security: max-age=' . $hsts_max_age . '; includeSubDomains');
+}
 /** Dirección donde se encuentran las claves privadas y publicas para encriptar el token JWT
  */
 define('JWTKEYS_PATH', $app_path . '.keys/');
@@ -121,7 +154,18 @@ if ($_config->development == true) {
 	define('DEVELOPMENT', $_config->development);
 }
 // URLS
-define('API_URL', $_config->api);
+// The api node is a map (url + https); build an absolute URL string from it.
+$api_node = $_config->api ?? null;
+if (is_object($api_node)) {
+	$api_url    = (string) ($api_node->url ?? '');
+	$api_scheme = !empty($api_node->https) ? 'https' : 'http';
+	if ($api_url !== '' && !str_contains($api_url, '://')) {
+		$api_url = $api_scheme . '://' . $api_url;
+	}
+} else {
+	$api_url = (string) $api_node;
+}
+define('API_URL', $api_url);
 define('SITE_URL', $_config->domain);
 define('CMS_URL', $_config->cms);
 // STATIC FILES URI PATH

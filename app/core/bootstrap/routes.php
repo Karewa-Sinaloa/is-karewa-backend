@@ -8,6 +8,7 @@ try {
         'users' => 'users',
         'access' => 'access',
         'roles' => 'roles',
+        'docs' => 'docs',
         'pages' => 'pages',
         'mailings' => 'mailings',
         'image-upload' => 'image-upload',
@@ -30,6 +31,9 @@ try {
     $module_name = $modules->name();
     define('MODULE', $module_name);
     $module_dir = $modules->path();
+    // Enforce rate limiting once the endpoint is resolved and before the
+    // module runs ModuleHandler::Validate() and its controller method.
+    \RateLimit::Enforce();
 } catch (\AppException $e) {
     ApiResponse::Set($e->getCode());
 }

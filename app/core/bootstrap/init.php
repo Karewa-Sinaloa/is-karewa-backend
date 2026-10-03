@@ -14,6 +14,7 @@ require_once CORE_PATH . 'model/update.php';
 require_once CORE_PATH . 'model/store.php';
 require_once CORE_PATH . 'model/delete.php';
 require_once CORE_PATH . 'model/get.php';
+require_once CORE_PATH . 'helpers/rate_limit.php';
 require_once CORE_PATH . 'helpers/api_configuration.php';
 require_once CORE_PATH . 'helpers/curl.php';
 require_once CORE_PATH . 'helpers/hcaptcha.php';
