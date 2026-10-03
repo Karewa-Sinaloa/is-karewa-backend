@@ -26,13 +26,12 @@ class Users extends BaseModel {
 		'first_name'         => ['field' => 'u.first_name'],
 		'last_name'          => ['field' => 'u.last_name'],
 		'recovery_code'      => ['field' => 'u.recovery_code', 'filter' => false, 'listed' => false, 'optional' => true],
-		'recovery_date'      => ['field' => 'u.recovery_datetime'],
+		'recovery_date'      => ['field' => 'u.recovery_date'],
 		'phone'              => ['field' => 'u.phone'],
-		'phone_country_code' => ['field' => 'u.phone_country_code'],
-		'photo'              => ['field' => 'u.photo'],
 		'phone_verified'     => ['field' => 'u.phone_verified'],
-		'email_verified'     => ['field' => 'u.email_verified'],
 		'facebook_id'        => ['field' => 'u.facebook_id'],
+		'middle_name'        => ['field' => 'u.middle_name'],
+		'second_last_name'   => ['field' => 'u.second_last_name'],
 	];
 
 	protected $get_params = [
@@ -40,11 +39,11 @@ class Users extends BaseModel {
 		'filters' => [],
 		'joins'   => [
 			[
-				'table' => 'user_roles r',
+				'table' => 'roles r',
 				'match' => ['r.id', 'u.role_id'],
 			],
 			[
-				'table' => 'user_status s',
+				'table' => 'users_status s',
 				'match' => ['s.id', 'u.status_id'],
 			],
 		],
@@ -53,14 +52,12 @@ class Users extends BaseModel {
 
 	protected $rules = [
 		'email'              => 'required|unique:users:email|email',
-		'status_id'          => 'numeric|min_value:1|max:4|exist:user_status:id',
-		'role_id'            => 'numeric|min_value:1|max:4|exist:user_roles:id',
+		'status_id'          => 'numeric|min_value:1|max:4|exist:users_status:id',
+		'role_id'            => 'numeric|min_value:1|max:4|exist:roles:id',
 		'first_name'         => 'required|min:3|max:100',
 		'last_name'          => 'required|min:3|max:100',
 		'phone'              => 'min:10|max:20|numeric|unique:users:phone',
-		'phone_country_code' => 'numeric|max:4|min:1|exist:countries:phone_code',
 		'phone_verified'     => 'boolean',
-		'email_verified'     => 'boolean',
 		'dob'                => 'date_format',
 		'facebook_id'        => 'min:6|max:20|numeric',
 		'password'           => 'min:6',

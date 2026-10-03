@@ -12,7 +12,7 @@ class Roles extends BaseModel{
 	];
 
 	protected $get_params = [
-		'table' => 'user_roles',
+		'table' => 'roles',
 		'search' => ['name']
 	];
 

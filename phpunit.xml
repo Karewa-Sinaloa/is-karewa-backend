@@ -16,5 +16,14 @@
     <const name="JWT_ENCODING" value="HS256"/>
     <const name="JWTKEYS_PATH" value="/var/www/vhosts/karewa/app/.keys/"/>
     <const name="SESSION_TIME" value="86400"/>
+    <const name="IDENTIFIER_UID" value="test-uid"/>
+    <const name="MYSQL_HOST" value="127.0.0.1"/>
+    <const name="MYSQL_DB" value="test"/>
+    <const name="MYSQL_USER" value="test"/>
+    <const name="MYSQL_PSWD" value="test"/>
+    <const name="MYSQL_PORT" value="3306"/>
+    <const name="MYSQL_PREFIX" value=""/>
+    <const name="MYSQL_CHARSET" value="utf8mb4"/>
+    <const name="MYSQL_COLLATION" value="utf8mb4_unicode_ci"/>
   </php>
 </phpunit>

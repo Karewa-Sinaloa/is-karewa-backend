@@ -220,6 +220,8 @@ protected $get_params = [
 ];
 ```
 
+> **Usa los nombres base canónicos, sin prefijo.** `DBGet` aplica `MYSQL_PREFIX` una sola vez, así que `table` y cada `joins[].table` deben indicar el nombre base real de la tabla (por ejemplo `roles`, `users_status`), nunca un nombre ya prefijado ni un alias histórico como `user_roles`. Un nombre que no exista tras aplicar el prefijo falla con error de base de datos `902000` (`Table '...' doesn't exist`).
+
 ### Tabla con alias
 
 ```php
@@ -233,11 +235,11 @@ Cada JOIN es un array con `table` y `match`. El tercer elemento de `match` defin
 ```php
 'joins' => [
     [
-        'table' => 'user_roles r',
+        'table' => 'roles r',
         'match' => ['r.id', 'u.role_id'],           // LEFT JOIN por defecto
     ],
     [
-        'table' => 'user_status s',
+        'table' => 'users_status s',
         'match' => ['s.id', 'u.status_id', 'INNER'], // INNER JOIN
     ],
 ],
@@ -274,7 +276,7 @@ Define las reglas que se aplican a los campos en POST y PUT. El formato es una c
 protected $rules = [
     'email'    => 'required|email|unique:users:email',
     'name'     => 'required|min:3|max:100',
-    'role_id'  => 'numeric|exist:user_roles:id',
+    'role_id'  => 'numeric|exist:roles:id',
     'password' => 'min:8',
 ];
 ```

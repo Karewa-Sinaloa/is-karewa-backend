@@ -16,7 +16,7 @@ class AppAccess extends BaseModel {
 		'email'         => ['field' => 'email'],
 		'password'      => ['field' => 'password'],
 		'recovery_code' => ['field' => 'recovery_code'],
-		'recovery_date' => ['field' => 'recovery_datetime'],
+		'recovery_date' => ['field' => 'recovery_date'],
 		'id'            => ['field' => 'id'],
 		'first_name'    => ['field' => 'first_name'],
 		'last_name'     => ['field' => 'last_name'],
@@ -127,7 +127,7 @@ class AppAccess extends BaseModel {
 		$rec_code  = mt_rand(100000, 999999);
 		$db_code   = password_hash($rec_code, PASSWORD_DEFAULT);
 		$fields    = [
-			['recovery_datetime', $rec_date],
+			['recovery_date', $rec_date],
 			['recovery_code', $db_code],
 		];
 		$filters = [
@@ -177,7 +177,7 @@ class AppAccess extends BaseModel {
 		}
 		$get_data = [
 			'table'   => $this->db_table,
-			'fields'  => ['recovery_code', 'recovery_datetime', 'first_name', 'last_name', 'role_id', 'id'],
+			'fields'  => ['recovery_code', 'recovery_date', 'first_name', 'last_name', 'role_id', 'id'],
 			'filters' => [
 				['email', $this->payload->email, '='],
 				['status_id', 1, '='],
@@ -194,7 +194,7 @@ class AppAccess extends BaseModel {
 		}
 		$now             = time();
 		$user_id         = $data['id'];
-		$expiration_date = strtotime($data['recovery_datetime']) + REC_CODE_TIME;
+		$expiration_date = strtotime($data['recovery_date']) + REC_CODE_TIME;
 		$password        = password_hash($this->payload->password, PASSWORD_DEFAULT);
 
 		if(!is_numeric($expiration_date) || $now > $expiration_date) {
@@ -207,9 +207,8 @@ class AppAccess extends BaseModel {
 			['id', $user_id, '='],
 		];
 		$fields = [
-			['recovery_datetime', NULL],
+			['recovery_date', NULL],
 			['recovery_code', NULL],
-			['email_verified', 1],
 			['password', $password],
 		];
 		try {
