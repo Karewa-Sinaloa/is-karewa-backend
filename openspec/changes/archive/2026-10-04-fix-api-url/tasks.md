@@ -23,8 +23,13 @@
 
 ## 3. Integration verification
 
-- [ ] 3.1 Run the full suite with `./vendor/bin/phpunit` (or `make test`) and
+- [x] 3.1 Run the full suite with `./vendor/bin/phpunit` (or `make test`) and
   confirm all tests pass.
-- [ ] 3.2 With `make up`, exercise `POST /api/v5/access/recovery` with an active
+- [x] 3.2 With `make up`, exercise `POST /api/v5/access/recovery` with an active
   user email and confirm no "Object of class stdClass could not be converted to
-  string" error appears in `logs/error.log`/`logs/debug.log`.
+  string" error appears in `logs/error.log`/`logs/debug.log`. Verified: the
+  request clears the `API_URL` build and reaches `loginMailer`; no `stdClass`
+  conversion error is logged. Two unrelated pre-existing failures remain and are
+  out of scope (owned by `fix-mailer-delivery`): the recovery-template fetch hits
+  `ModuleHandler::Authenticate()` with an array `$hash` (TypeError), and the
+  mailer sender address is null.
