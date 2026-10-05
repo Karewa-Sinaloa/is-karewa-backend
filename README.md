@@ -35,7 +35,7 @@ En el sistema inicial habian algunos problemas para escalar el proyecto, tambié
    ```
 4. Configura la base de datos MySQL y crea una base de datos para Monitor Karewa.
 5. Importa el archivo `resources/karewa_dev.sql` en tu base de datos MySQL para crear las tablas necesarias.
-6. Configura el archivo de configuración `app/config.yml` con los detalles de tu base de datos y otras configuraciones necesarias. Se deja un archivo de ejemplo `app/config.example.yml` que puedes copiar y renombrar a `config.yml` para facilitar la configuración.
+6. Configura el archivo de configuración `app/config.yml` (ignorado por git) con los detalles de tu base de datos y demás ajustes necesarios. En el stack Docker local, las variables `MAIL_*` de `.env` sobrescriben la sección `mailing`; consulta `DEV_ENV_MANUAL.md`.
 7. Configura tu servidor web (Apache/Nginx) para que apunte al directorio `public` del proyecto.
 
 ## Uso
@@ -68,6 +68,73 @@ por usuario que **solo funciona para cuentas con rol administrador** (`role_id =
 > Advertencia: este mecanismo está pensado solo para pruebas y clientes de
 > confianza. No lo uses en producción ni compartas el secreto; si se filtra,
 > rótalo de inmediato.
+
+## Autenticación alternativa por hash
+
+Además del JWT, un módulo puede declarar autenticación alternativa por hash para
+métodos concretos (por ejemplo webhooks o enlaces compartidos). El token va
+ligado al payload del recurso y expira, de modo que un token acuñado para un
+recurso no sirve para otro.
+
+- **Formato del token:** `<payload>.<firma>`, donde `<payload>` es el JSON del
+  recurso (incluida su expiración) codificado en base64url y `<firma>` es el
+  HMAC-SHA256 de ese payload con el secreto `hash` de la configuración, también
+  en base64url. Ambas partes se construyen con un único helper, por lo que no
+  pueden divergir.
+- **Expiración:** el token incluye `exp` (marca de tiempo Unix) derivada de la
+  ventana configurable `hash_expiration` en `app/config.yml` (por defecto
+  `3600` segundos). Un token expirado se rechaza.
+- **Presentación del token:** se envía en el header `X-Hash-Auth` o, como
+  respaldo para enlaces existentes, en el parámetro `?_key=`.
+
+```bash
+# Acuñar un token para el recurso {'id': 42}
+php -r 'require "app/core/auth/hash.auth.php"; echo App\Auth\HashAuth::Create(["id" => 42]);'
+
+# Presentarlo en un header
+curl https://<api>/api/v5/<modulo> -H "X-Hash-Auth: <token>"
+
+# O con el respaldo de query string
+curl "https://<api>/api/v5/<modulo>?_key=<token>"
+```
+
+Al validar, el módulo debe aportar el mismo payload con el que se acuñó el token;
+si el payload no coincide, la validación falla.
+
+## Envío de correo (mailer)
+
+`App\Helpers\ApiMailer::Send()` ensambla y envía un mensaje usando las
+credenciales SMTP de la sección `mailing` de `app/config.yml`
+(`host`, `port`, `security`, `user`, `password`, `from_email`, `from_name`). Los
+campos opcionales se aplican solo cuando están presentes y no vacíos, de modo
+que un mensaje mínimo no falla.
+
+```php
+App\Helpers\ApiMailer::Send([
+    // Obligatorios
+    'from'      => ['email' => 'dev@chavodigital.com', 'name' => 'Chavo Digital'],
+    'to'        => [['email' => 'user@example.com', 'name' => 'User']],
+    'subject'   => 'Código de recuperación',
+    'html_body' => '<p>Hola</p>',
+    'text_body' => 'Hola',
+    // Opcionales: se usan solo si se envían con contenido
+    'reply_to'    => ['email' => 'reply@example.com', 'name' => 'Reply'],
+    'cc'          => [['email' => 'cc@example.com']],
+    'bcc'         => [['email' => 'bcc@example.com']],
+    'attachments' => [['file' => '/ruta/al/archivo.pdf', 'name' => 'archivo.pdf']],
+]);
+```
+
+- **Remitente:** `from.email` y `from.name` los aporta quien llama; el flujo de
+  recuperación de acceso usa `mailing.from_email` / `mailing.from_name`.
+- **Sobrescritura local:** en el stack Docker, las variables `MAIL_HOST`,
+  `MAIL_PORT`, `MAIL_SECURITY`, `MAIL_USER`, `MAIL_PASSWORD`, `MAIL_AUTH`,
+  `MAIL_FROM_EMAIL` y `MAIL_FROM_NAME` de `.env` sobrescriben la sección `mailing`.
+  `.env.example` las deja apuntando al servicio Mailpit, por lo que el correo local
+  se captura en `http://localhost:8025`.
+- **Contenido:** el asunto y el cuerpo se envían como UTF-8.
+- **Fallos:** si el transporte rechaza el mensaje, el helper lanza
+  `AppException` con código `903000` y el contexto del mensaje.
 
 ## Estatus del proyecto
 El proyecto se encuentra en desarrollo activo. Se están implementando nuevas funcionalidades y mejoras continuamente. El proyecto aun se encuentra en fase temprana, por lo que se recomienda utilizarlo con precaución en entornos de producción.

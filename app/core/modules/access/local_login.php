@@ -305,9 +305,8 @@ class AppAccess extends BaseModel {
 	}
 
 	private function loginMailer($email, $name, $subject, $code, $role) {
-		global $_apiConfig;
-		$mailingAddresses = json_decode($_apiConfig->mailing_addresses);
-		$system = $mailingAddresses->system;
+		global $_config;
+		$mailing = $_config->mailing;
 		$key = HashAuth::Create([$code]);
 		$hash = base64_encode(
 			json_encode([
@@ -322,7 +321,7 @@ class AppAccess extends BaseModel {
 			ApiResponse::Set(909000);
 		}
 		$params = [
-			'from' => ['email' => $system->email, $system->name],
+			'from' => ['email' => $mailing->from_email, 'name' => $mailing->from_name],
 			'to' => [
 				['email' => $email, 'name' => $name]
 			],

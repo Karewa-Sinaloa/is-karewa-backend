@@ -94,6 +94,15 @@ make test
 ### Mail testing (Mailpit)
 - UI: `http://localhost:${MAILPIT_UI_PORT}` (default `8025`)
 - SMTP endpoint for app: `mailpit:${MAILPIT_SMTP_PORT}` inside Docker network
+- The application targets Mailpit through the mail environment variables in `.env`
+  (see `.env.example`): `MAIL_HOST`, `MAIL_PORT`, `MAIL_SECURITY`, `MAIL_USER`,
+  `MAIL_PASSWORD`, `MAIL_AUTH`, `MAIL_FROM_EMAIL`, `MAIL_FROM_NAME`. They override the
+  `mailing` section of `app/config.yml` for the `php` container.
+- Existing `.env` files created before this feature must add these keys: the `php`
+  service always passes them, so a missing key resolves to empty and blanks the mail
+  settings. Copy the block from `.env.example` and restart the stack.
+- Verify delivery: trigger a flow that sends mail (for example the login recovery)
+  and open the Mailpit UI to read the captured message.
 
 ## 6) Optional profiles
 - `cloudflared`: expose local API through Cloudflare Tunnel (named tunnel mode)

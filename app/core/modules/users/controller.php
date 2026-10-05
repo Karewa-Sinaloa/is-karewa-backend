@@ -74,7 +74,7 @@ class Users extends BaseModel {
 			[
 				'table' => 'customers',
 				'column' => 'user_id',
-				'value' => $id
+				'value' => $_GET['id']
 			]
 		];
 		if(in_array(REQUEST_TYPE, ['update', 'destroy'])) {

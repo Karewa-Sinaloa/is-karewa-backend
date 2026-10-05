@@ -22,8 +22,8 @@ See `proposal.md - Why`.
 ## Decisions
 
 - **Guard optional fields with presence checks.** Wrap each of `cc`, `bcc`, `attachments`, and `reply_to` in `if (isset(...) && is_array(...) && $params[...])`. Alternative rejected: defaulting them to empty arrays in every caller, which leaves the helper fragile for future callers.
-- **Configure from `$_apiConfig->mailing`.** Read host/port/security/user/password/sender from the `mailing` section, which is the populated source. Alternative rejected: keeping `smtp_auth` JSON, which no config provides.
-- **Fix the sender shape at the caller.** Pass `['email' => ..., 'name' => ...]` so both keys exist, and keep the helper reading `from.email`/`from.name`. Alternative rejected: making the helper guess index `0` as the name, which is brittle.
+- **Configure from `$_config->mailing`.** Read host/port/security/user/password/sender from the `mailing` section of `app/config.yml` (global `$_config`), which is the populated source. `$_apiConfig` is built from the DB `config` table and holds no `mailing` slug. Alternative rejected: keeping `smtp_auth` JSON, which no config provides.
+- **Fix the sender shape at the caller.** Pass `['email' => ..., 'name' => ...]` so both keys exist, and keep the helper reading `from.email`/`from.name`. The caller sources the sender from `$_config->mailing->from_email`/`from_name`, since the legacy `mailing_addresses` config slug is absent. Alternative rejected: making the helper guess index `0` as the name, which is brittle.
 - **Drop `utf8_decode`; set `CharSet = 'UTF-8'`.** Modern PHPMailer handles UTF-8 directly. Alternative rejected: `mb_convert_encoding` to ISO-8859-1, which would mangle content.
 - **Keep throwing on failure, but include context.** Retain the `903000` code and the message/recipient context already appended, so callers keep working.
 

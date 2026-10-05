@@ -363,6 +363,12 @@ $this->table_assoc = [
 ];
 ```
 
+El nombre de la tabla asociada se declara **sin prefijo** (igual que en `$get_params['table']`);
+`DBGet` es el único componente que aplica `MYSQL_PREFIX`, por lo que `is_asociated()` no debe
+anteponerlo. Con el prefijo configurado `dev_`, declarar `'table' => 'facturas'` consulta
+`dev_facturas`; declarar `'table' => 'dev_facturas'` produce una consulta inválida contra
+`dev_dev_facturas`.
+
 Si la tabla referenciada tiene registros asociados, lanza `AppException` con código `902002` antes de ejecutar el DELETE.
 
 ---

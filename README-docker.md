@@ -23,6 +23,20 @@
 - Mailpit UI: `http://localhost:8025`
 - MariaDB (desktop client): `127.0.0.1:3307` (o el puerto definido en `DB_HOST_PORT`)
 
+## Local mail (Mailpit)
+
+The `php` container sends outgoing mail to the `mailpit` service through the mail
+variables in `.env`: `MAIL_HOST=mailpit`, `MAIL_PORT=1025`, `MAIL_SECURITY=`,
+`MAIL_AUTH=false`, and `MAIL_USER`, `MAIL_PASSWORD`, `MAIL_FROM_EMAIL`,
+`MAIL_FROM_NAME`. They override the `mailing` section of `app/config.yml` for the
+container.
+
+- Captured mail is visible in the Mailpit UI: `http://localhost:${MAILPIT_UI_PORT}`
+  (default `8025`).
+- The `php` service passes these variables unconditionally, so a `.env` created before
+  this feature must add the keys from `.env.example`; a missing key resolves to empty
+  and blanks the mail settings.
+
 ## Cloudflared (optional profile)
 After completing tunnel creation and env values:
 ```bash

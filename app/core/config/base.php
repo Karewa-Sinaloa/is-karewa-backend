@@ -1,6 +1,7 @@
 <?php
 use Symfony\Component\Yaml\Yaml;
 use Symfony\Component\Yaml\Exception\ParseException;
+require_once __DIR__ . '/mail_env.php';
 /**
  * Direccion del directorio ROOT
  */
@@ -32,6 +33,13 @@ if (empty((array) $_config) || !is_object($_config)) {
 		'message' => 'Error loading configuration file'
 	]));
 }
+/**
+ * Los ajustes de correo pueden sobrescribirse con variables de entorno para
+ * que un entorno local apunte a Mailpit sin editar config.yml.
+ */
+$_config->mailing = apply_mail_env_overrides(
+	is_object($_config->mailing ?? null) ? $_config->mailing : new stdClass()
+);
 /**
  * Ubicación del archivo de logs de errores del API
  */
@@ -179,5 +187,10 @@ define('MAILINGS_URL', $_config->mailings->url);
 define('MAILINGS_HASH', $_config->mailings->hash);
 
 define('HASH_AUTH_PASS', $_config->hash);
+/**
+ * HASH_AUTH_EXP ventana de validez, en segundos, de los tokens de autenticación
+ * alternativa por hash. Un valor ausente en config.yml usa 3600 (una hora).
+ */
+define('HASH_AUTH_EXP', (int) ($_config->hash_expiration ?? 3600));
 
 ?>
