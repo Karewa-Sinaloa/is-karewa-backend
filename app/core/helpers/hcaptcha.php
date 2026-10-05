@@ -27,10 +27,18 @@ namespace App\Helpers;
  *curl_close($ch);
  */
 abstract class HCaptcha {
+	/**
+	 * Seam for the upstream HTTP call. Defaults to CurlRequest::Init; tests may
+	 * replace it to avoid the network. Kept public on purpose for that override.
+	 * @var callable|null
+	 */
+	public static $transport = null;
+
 	static public function Validate(String $token) {
 		global $_config;
 		$url =	$_config->hcaptcha->url;
-		$response = CurlRequest::Init([
+		$transport = self::$transport ?? [CurlRequest::class, 'Init'];
+		$response = $transport([
 			CURLOPT_URL	=> $url,
 			CURLOPT_POST => 1,
 			CURLOPT_RETURNTRANSFER => 1,
@@ -39,9 +47,19 @@ abstract class HCaptcha {
 				'secret' => $_config->hcaptcha->secret
 			]
 		]);
-		$body = json_decode($response['body']);
-		if(!$body->success) {
-			throw new \AppException($response['body'], 905000);
+		return self::HandleResponse($response);
+	}
+
+	/**
+	 * Acepta la respuesta del servicio solo cuando es un payload de éxito bien
+	 * formado; de lo contrario falla en cerrado con el código de error de
+	 * terceros (905000), sin acceder a un cuerpo nulo o mal decodificado.
+	 */
+	static public function HandleResponse(array $response) {
+		$raw  = $response['body'] ?? '';
+		$body = is_string($raw) ? json_decode($raw) : null;
+		if (!is_object($body) || ($body->success ?? false) !== true) {
+			throw new \AppException(is_string($raw) ? $raw : '', 905000);
 		}
 		return $response;
 	}

@@ -6,6 +6,7 @@ use Firebase\JWT\ExpiredException;
 use Firebase\JWT\JWT;
 use Firebase\JWT\Key;
 use Firebase\JWT\SignatureInvalidException;
+use Ramsey\Uuid\Uuid;
 
 abstract class jwtToken {
 
@@ -45,6 +46,7 @@ abstract class jwtToken {
 		$token_data = [
 			'iat'     => $time,
 			'exp'     => $exp,
+			'jti'     => Uuid::uuid4()->toString(),
 			'message' => MESSAGE,
 			'data'    => [
 				'id'         => $data['id'],
@@ -63,6 +65,7 @@ abstract class jwtToken {
 		return (object) [
 			'token'      => $token,
 			'expiration' => $exp,
+			'jti'        => $token_data['jti'],
 			'raw'	  => $token_data,
 		];
 	}

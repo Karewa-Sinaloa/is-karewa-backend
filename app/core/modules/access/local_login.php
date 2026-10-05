@@ -1,5 +1,6 @@
 <?php
 use App\Auth\SessionSet;
+use App\Auth\jwtToken;
 use App\Model\BaseModel;
 use App\Model\DBGet;
 use App\Model\DBUpdate;
@@ -30,29 +31,31 @@ class AppAccess extends BaseModel {
    */
 	public function Login() {
 		$fv = new FieldsValidator();
-		$validation = $fv->Validation([
+		$bypass_header = $this->bypassHeader();
+		$fields = [
 			"email" => ["email", $this->payload->email],
 			"password"	=> ["password", $this->payload->password],
-			"token"	=> ["token", $this->payload->token]
-		], [
+		];
+		$rules = [
 			'email'    => 'required|email',
 			'password' => 'required|min:6',
-			'token'	=> 'required'
-		]);
+		];
+		// El token de hCaptcha solo es obligatorio cuando no se presenta el
+		// header de bypass; con un bypass válido la verificación se omite.
+		if (empty($bypass_header)) {
+			$fields['token'] = ["token", $this->payload->token ?? NULL];
+			$rules['token']	= 'required';
+		}
+		$validation = $fv->Validation($fields, $rules);
 
 		if ($validation) {
 			ApiResponse::Set(400000, [
 				'errors' => $validation
 			]);
 		}
-		try {
-			HCaptcha::Validate($this->payload->token);
-		} catch(AppException $e) {
-			ApiResponse::Set($e->errorCode());
-		}
 		$params = [
 			'table'   => $this->db_table,
-			'fields'  => ['password', 'role_id', 'first_name', 'last_name', 'id'],
+			'fields'  => ['password', 'role_id', 'first_name', 'last_name', 'id', 'hcaptcha_bypass'],
 			'filters' => [
 				['status_id', 1, '='],
 				['email', $this->payload->email, '='],
@@ -65,8 +68,18 @@ class AppAccess extends BaseModel {
       ApiResponse::Set(902000);
     }
 
-    $db_pass = $user_data['password'];
-    
+		// Se salta hCaptcha solo cuando el header de bypass coincide con el
+		// secreto guardado de un administrador habilitado.
+		if (!self::IsBypassGranted($user_data, $bypass_header)) {
+			try {
+				HCaptcha::Validate($this->payload->token ?? '');
+			} catch(AppException $e) {
+				ApiResponse::Set($e->errorCode());
+			}
+		}
+
+    $db_pass = is_array($user_data) ? ($user_data['password'] ?? NULL) : NULL;
+
     if ($user_data && password_verify($this->payload->password, (string) $db_pass)) {
 			$login_data = [
 				'id'         => $user_data['id'],
@@ -84,6 +97,36 @@ class AppAccess extends BaseModel {
 			ApiResponse::Set(901004);
 		}
   }
+
+	/**
+	 * Devuelve el valor del header X-HCaptcha-Bypass si fue enviado.
+	 */
+	private function bypassHeader() : ?string {
+		$headers = function_exists('apache_request_headers') ? apache_request_headers() : [];
+		$value   = $headers['X-HCaptcha-Bypass']
+			?? $headers['x-hcaptcha-bypass']
+			?? ($_SERVER['HTTP_X_HCAPTCHA_BYPASS'] ?? '');
+		return is_string($value) && $value !== '' ? $value : NULL;
+	}
+
+	/**
+	 * Determina si el header de bypass puede omitir hCaptcha: solo para un
+	 * usuario habilitado con rol administrador (role_id = 1) cuyo hash guardado
+	 * coincida con el secreto enviado.
+	 */
+	public static function IsBypassGranted(?array $user_data, ?string $secret) : bool {
+		if (empty($secret) || !is_array($user_data)) {
+			return false;
+		}
+		if ((int) ($user_data['role_id'] ?? 0) !== 1) {
+			return false;
+		}
+		$stored = $user_data['hcaptcha_bypass'] ?? NULL;
+		if (!is_string($stored) || $stored === '') {
+			return false;
+		}
+		return password_verify($secret, $stored);
+	}
   /**
    * Inicia la verificación de los datos del POST para proceder a la validación
    * y verificación para enviar el código de reseteo de la contraseña
@@ -146,10 +189,36 @@ class AppAccess extends BaseModel {
 		ApiResponse::Set('SUCCESS');
   }
   /**
-   * destruir la sesión actual del usuario
+   * destruir la sesión actual del usuario: cancela la sesión activa y agrega
+   * el token presentado a la lista negra para que no pueda reutilizarse.
   */
-  // TODO: Pendiente de implementar el manejo de tokens para invalidar el token actual
   public function Logout() {
+    $headers = function_exists('apache_request_headers') ? apache_request_headers() : [];
+    $token   = $headers['Authorization']
+      ?? $headers['authorization']
+      ?? ($_SERVER['HTTP_AUTHORIZATION'] ?? '');
+    $token   = is_string($token) ? $token : '';
+
+    // Sin token no hay nada que revocar; el logout sigue siendo exitoso.
+    if (trim(preg_replace('/Bearer /', '', $token)) !== '') {
+      try {
+        $decoded = jwtToken::decode($token);
+        if ($decoded->status) {
+          $jti     = $decoded->token_data->jti ?? NULL;
+          $user_id = (int) $decoded->token_data->data->id;
+          $exp     = (int) $decoded->token_data->exp;
+
+          SessionManager::cancel($user_id);
+          if (is_string($jti) && $jti !== '') {
+            SessionManager::blacklist($jti, $user_id, $exp, 'logout');
+          }
+        }
+      } catch (\AppException $e) {
+        // Un token inválido o expirado ya no es utilizable; el logout procede.
+        error_logs([MODULE, 'Logout with non-usable token: ' . $e->getMessage(), __LINE__, __FILE__]);
+      }
+    }
+
     ApiResponse::Set('SUCCESS', [
       'data' => 'Logged out successfully'
     ]);

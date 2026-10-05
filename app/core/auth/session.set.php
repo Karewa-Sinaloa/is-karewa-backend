@@ -3,6 +3,7 @@
 namespace App\Auth;
 
 require_once __DIR__ . '/jwt_token.php';
+require_once __DIR__ . '/../helpers/session_manager.php';
 use App\Auth\jwtToken;
 use Ramsey\Uuid\Uuid;
 use App\Helpers\ApiResponse;
@@ -23,7 +24,18 @@ abstract class SessionSet
             ApiResponse::Set($e->errorCode());
         }
 
-        define('USER_ROLE', $session_data['role_id']);
+        // Registra esta como la única sesión activa del usuario; cualquier
+        // sesión previa queda superseded por la última escritura.
+        \SessionManager::replace(
+            (int) $session_data['id'],
+            $jwt->jti,
+            time(),
+            (int) $jwt->expiration
+        );
+
+        if (!defined('USER_ROLE')) {
+            define('USER_ROLE', $session_data['role_id']);
+        }
 
         return [
             'access_token' => $jwt->token,
@@ -48,17 +60,70 @@ abstract class SessionSet
 
         $access_granted = false;
         if ($jwt_validation->status) {
-            $access_granted = $jwt_validation->status;
-            define('USER_ROLE', $jwt_validation->token_data->data->role_id);
-            define('USER_ID', $jwt_validation->token_data->data->id);
-            define('USER_NAME', $jwt_validation->token_data->data->first_name);
-            define('USER_LASTNAME', $jwt_validation->token_data->data->last_name);
-            define('USER_EMAIL', $jwt_validation->token_data->data->email);
-            define('EXPIRATION', $jwt_validation->token_data->exp);
+            $token_data = $jwt_validation->token_data;
+            $jti        = $token_data->jti ?? null;
+            $user_id    = (int) $token_data->data->id;
+
+            // Un token sin jti (emitido antes de esta función) o que no sea la
+            // sesión activa, o que esté en la lista negra, es sospechoso: se
+            // cancela la sesión activa y se pone el token presentado en la
+            // lista negra antes de rechazar la petición.
+            $blacklisted = is_string($jti) && $jti !== '' && \SessionManager::isBlacklisted($jti);
+            $is_active   = is_string($jti) && $jti !== '' && \SessionManager::isActive($user_id, $jti);
+
+            if (!$is_active || $blacklisted) {
+                self::RejectSuspiciousToken($user_id, $jti, (int) $token_data->exp);
+            }
+
+            $access_granted = true;
+            if (!defined('USER_ROLE')) {
+                define('USER_ROLE', $token_data->data->role_id);
+            }
+            if (!defined('USER_ID')) {
+                define('USER_ID', $token_data->data->id);
+            }
+            if (!defined('USER_NAME')) {
+                define('USER_NAME', $token_data->data->first_name);
+            }
+            if (!defined('USER_LASTNAME')) {
+                define('USER_LASTNAME', $token_data->data->last_name);
+            }
+            if (!defined('USER_EMAIL')) {
+                define('USER_EMAIL', $token_data->data->email);
+            }
+            if (!defined('EXPIRATION')) {
+                define('EXPIRATION', $token_data->exp);
+            }
+            if (is_string($jti) && $jti !== '' && !defined('USER_JTI')) {
+                define('USER_JTI', $jti);
+            }
         } else {
-            define('USER_ID', IDENTIFIER_UID);
+            if (!defined('USER_ID')) {
+                define('USER_ID', IDENTIFIER_UID);
+            }
         }
         return $access_granted;
+    }
+
+    /**
+     * Reacciona ante un token no activo, superseded o en la lista negra:
+     * cancela la sesión activa del usuario y registra el token presentado.
+     * Termina la petición con APP_AUTH_SESSION_REVOKED (901008).
+     */
+    private static function RejectSuspiciousToken(int $user_id, ?string $jti, int $exp): void
+    {
+        try {
+            if ($user_id > 0) {
+                \SessionManager::cancel($user_id);
+            }
+            if (is_string($jti) && $jti !== '') {
+                \SessionManager::blacklist($jti, $user_id, $exp, 'superseded');
+            }
+        } catch (\AppException $e) {
+            ApiResponse::Set($e->errorCode());
+        }
+
+        ApiResponse::Set(901008);
     }
 
     public static function UniqueIdentifierId()

@@ -5,9 +5,11 @@ use PHPUnit\Framework\Attributes\DataProvider;
 require_once CORE_PATH . 'bootstrap/modules.php';
 require_once CORE_PATH . 'helpers/custom_exceptions.php';
 
-function error_logs($data) {
-	// This is a placeholder for the actual error logging implementation
-	// In a real application, this would log to a file or monitoring system
+if (!function_exists('error_logs')) {
+	function error_logs($data) {
+		// This is a placeholder for the actual error logging implementation
+		// In a real application, this would log to a file or monitoring system
+	}
 }
 
 final class RoutesTest extends TestCase

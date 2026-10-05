@@ -7,6 +7,7 @@ try {
     $modules->routes = [
         'users' => 'users',
         'access' => 'access',
+        'hcaptcha' => 'hcaptcha',
         'roles' => 'roles',
         'docs' => 'docs',
         'pages' => 'pages',

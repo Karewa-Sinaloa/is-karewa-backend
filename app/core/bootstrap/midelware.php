@@ -52,8 +52,7 @@ class BaseModel {
 
   function __construct(array $additionalData = []) {
 	global $_payload;
-	$this->payload = new stdClass();
-	$this->payload = $_payload;
+	$this->payload = is_object($_payload) ? $_payload : new stdClass();
     if($_payload && count($additionalData) > 0) {
 		foreach ($additionalData as $key => $value) {
 		  $this->payload->$key = $value;

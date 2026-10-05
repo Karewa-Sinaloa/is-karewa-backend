@@ -21,12 +21,8 @@ function payload_decode() {
 				$_payload->{$k} = $value;
 			}
 		}
-		if(empty($params) || !$_payload) {
-			error_logs([MODULE, 'No payload received', __FILE__, __LINE__]);
-			ApiResponse::Set(400001);
-		}
-		return $_payload;
 	}
+	return $_payload;
 }
 $_payload = new stdClass();
 if(in_array(REQUEST_TYPE, ['update', 'store'])) {

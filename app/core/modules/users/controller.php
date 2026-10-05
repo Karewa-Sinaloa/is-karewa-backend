@@ -32,6 +32,7 @@ class Users extends BaseModel {
 		'facebook_id'        => ['field' => 'u.facebook_id'],
 		'middle_name'        => ['field' => 'u.middle_name'],
 		'second_last_name'   => ['field' => 'u.second_last_name'],
+		'hcaptcha_bypass'    => ['field' => 'u.hcaptcha_bypass', 'filter' => false, 'listed' => false, 'saved' => false],
 	];
 
 	protected $get_params = [

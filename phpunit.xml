@@ -13,7 +13,7 @@
     <const name="ROOT_PATH" value="/var/www/vhosts/karewa/app/"/>
     <const name="CORE_PATH" value="/var/www/vhosts/karewa/app/core/"/>
     <const name="MODULE" value="notexists"/>
-    <const name="JWT_ENCODING" value="HS256"/>
+    <const name="JWT_ENCODING" value="RS256"/>
     <const name="JWTKEYS_PATH" value="/var/www/vhosts/karewa/app/.keys/"/>
     <const name="SESSION_TIME" value="86400"/>
     <const name="IDENTIFIER_UID" value="test-uid"/>

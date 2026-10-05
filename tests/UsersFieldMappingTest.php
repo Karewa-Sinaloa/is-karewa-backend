@@ -19,6 +19,7 @@ final class UsersFieldMappingTest extends TestCase
         'id', 'email', 'password', 'first_name', 'middle_name', 'last_name',
         'second_last_name', 'phone', 'phone_verified', 'facebook_id',
         'recovery_code', 'recovery_date', 'role_id', 'status_id',
+        'hcaptcha_bypass',
     ];
 
     protected function setUp(): void

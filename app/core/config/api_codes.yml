@@ -66,6 +66,10 @@ DELETED:
   message: Public and / or private files not found
   code: APP_AUTH_NO_KEYS
   http_code: 500
+901008:
+  message: Session revoked or superseded
+  code: APP_AUTH_SESSION_REVOKED
+  http_code: 401
 400000:
   message: Error validating payload data
   code: APP_PAYLOAD_VALIDATION

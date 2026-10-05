@@ -136,6 +136,12 @@ define('JWT_ENCODING', $_config->jwt->encoding);
 define('SESSION_TIME', $_config->session->time);
 define('UID_PREFIX', $_config->session->prefix);
 /**
+ * SESSION_BLACKLIST_RETENTION segundos adicionales que se conserva una entrada
+ * de la lista negra después de la expiración del token; 0 conserva solo hasta la
+ * expiración.
+ */
+define('SESSION_BLACKLIST_RETENTION', (int) ($_config->session->blacklist_retention ?? 0));
+/**
  * REC_CODE_TIME Tiempo de expiración del código de recuperacíon de acceso o validación de correo electrónico
  */
 define('REC_CODE_TIME', $_config->access->code_expiration_time);

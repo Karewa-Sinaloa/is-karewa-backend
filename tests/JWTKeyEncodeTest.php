@@ -24,8 +24,12 @@ final class JWTKeyEncodeTest extends TestCase
 			$this->assertIsArray($token);
 			$this->assertArrayHasKey('iat', $token);
 			$this->assertArrayHasKey('exp', $token);
+			$this->assertArrayHasKey('jti', $token);
 			$this->assertArrayHasKey('message', $token);
 			$this->assertArrayHasKey('data', $token);
+			$this->assertNotEmpty($token['jti']);
+			$this->assertSame($token['jti'], $token_data->jti);
+			$this->assertNotSame('', (string) $token_data->jti);
 			$this->assertEquals(MESSAGE, $token['message']);
 			$this->assertIsArray($token['data']);
 			$this->assertArrayHasKey('id', $token['data']);
@@ -39,6 +43,27 @@ final class JWTKeyEncodeTest extends TestCase
 		} catch (\AppException $e) {
 			$this->assertInstanceOf(\AppException::class, $e);
 		}
+	}
+
+	public function testJWTKeyEncodeAssignsDistinctJtiAndDecodes() : void {
+		$data = [
+			'id' => 1,
+			'first_name' => 'John',
+			'last_name' => 'Doe',
+			'email' => 'user@domain.com',
+			'role_id' => 1,
+		];
+
+		$first  = jwtToken::encode($data);
+		$second = jwtToken::encode($data);
+
+		$this->assertNotEmpty($first->jti);
+		$this->assertNotEmpty($second->jti);
+		$this->assertNotSame($first->jti, $second->jti);
+
+		$decoded = jwtToken::decode($first->token);
+		$this->assertTrue($decoded->status);
+		$this->assertSame($first->jti, $decoded->token_data->jti);
 	}
 }
 ?>

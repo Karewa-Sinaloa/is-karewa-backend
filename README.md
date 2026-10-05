@@ -41,6 +41,34 @@ En el sistema inicial habian algunos problemas para escalar el proyecto, tambié
 ## Uso
 El sistema esta disponible para su uso libre de quien lo desee implementar. El fin de este proyecto es ayudar a mejorar la transparencia y la rendición de cuentas en las instituciones públicas.
 
+## Bypass de hCaptcha (solo administradores)
+
+El inicio de sesión normalmente exige un token válido de hCaptcha. Para pruebas o
+para iniciar sesión desde clientes de API como Postman existe un secreto de bypass
+por usuario que **solo funciona para cuentas con rol administrador** (`role_id = 1`).
+
+1. Obtén tu secreto (se muestra una sola vez):
+   ```bash
+   curl -X POST https://<api>/api/v5/hcaptcha \
+     -H "Authorization: Bearer <tu_access_token>"
+   ```
+   La respuesta incluye `hcaptcha_bypass`. El servidor guarda únicamente un hash
+   del secreto, así que guárdalo en un lugar seguro.
+2. Inicia sesión enviando el secreto en el header `X-HCaptcha-Bypass` (puedes
+   omitir el campo `token` de hCaptcha):
+   ```bash
+   curl -X POST https://<api>/api/v5/access \
+     -H "Content-Type: application/json" \
+     -H "X-HCaptcha-Bypass: <tu_secreto>" \
+     -d '{"email":"admin@example.com","password":"<tu_password>"}'
+   ```
+3. Rota el secreto cuando quieras volviendo a ejecutar el primer comando; el
+   secreto anterior deja de funcionar.
+
+> Advertencia: este mecanismo está pensado solo para pruebas y clientes de
+> confianza. No lo uses en producción ni compartas el secreto; si se filtra,
+> rótalo de inmediato.
+
 ## Estatus del proyecto
 El proyecto se encuentra en desarrollo activo. Se están implementando nuevas funcionalidades y mejoras continuamente. El proyecto aun se encuentra en fase temprana, por lo que se recomienda utilizarlo con precaución en entornos de producción.
 
