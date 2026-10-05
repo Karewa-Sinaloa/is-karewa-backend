@@ -29,7 +29,6 @@ class Users extends BaseModel {
 		'recovery_date'      => ['field' => 'u.recovery_date'],
 		'phone'              => ['field' => 'u.phone'],
 		'phone_verified'     => ['field' => 'u.phone_verified'],
-		'facebook_id'        => ['field' => 'u.facebook_id'],
 		'middle_name'        => ['field' => 'u.middle_name'],
 		'second_last_name'   => ['field' => 'u.second_last_name'],
 		'hcaptcha_bypass'    => ['field' => 'u.hcaptcha_bypass', 'filter' => false, 'listed' => false, 'saved' => false],
@@ -60,7 +59,6 @@ class Users extends BaseModel {
 		'phone'              => 'min:10|max:20|numeric|unique:users:phone',
 		'phone_verified'     => 'boolean',
 		'dob'                => 'date_format',
-		'facebook_id'        => 'min:6|max:20|numeric',
 		'password'           => 'min:6',
 	];
 

@@ -50,7 +50,6 @@ final class ApiUrlTest extends TestCase
               . "cart:\n  expiration: 3600\n"
               . "statics:\n  url: /s/\n  path: s/\n  images: s/i/\n  attachments: s/a/\n"
               . "mailings:\n  uuid: u\n  url: https://m.example\n  hash: h\n"
-              . "facebook:\n  appId: a\n  secret: s\n  version: v\n"
               . "hash: h\n"
               . "https: true\n";
 

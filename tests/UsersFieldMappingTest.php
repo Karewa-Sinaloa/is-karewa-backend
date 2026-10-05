@@ -17,7 +17,7 @@ final class UsersFieldMappingTest extends TestCase
     /** Base columns of the users table. */
     private const USER_COLUMNS = [
         'id', 'email', 'password', 'first_name', 'middle_name', 'last_name',
-        'second_last_name', 'phone', 'phone_verified', 'facebook_id',
+        'second_last_name', 'phone', 'phone_verified',
         'recovery_code', 'recovery_date', 'role_id', 'status_id',
         'hcaptcha_bypass',
     ];

@@ -149,12 +149,6 @@ define('REC_CODE_TIME', $_config->access->code_expiration_time);
  * CART_EXPIRATION Tiempo de expiración del código de recuperacíon de acceso o validación de correo electrónico
  */
 define('CART_EXPIRATION', $_config->cart->expiration);
-/**
- * Facebook SDK Graph config
- */
-define('FB_API_ID', $_config->facebook->appId);
-define('FB_API_SECRET', $_config->facebook->secret);
-define('FB_API_VERSION', $_config->facebook->version);
 
 if ($_config->development == true) {
 	define('DEVELOPMENT', $_config->development);

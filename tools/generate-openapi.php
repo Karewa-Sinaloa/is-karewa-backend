@@ -161,7 +161,7 @@ function guess_field_kind(string $name): string {
     if (preg_match('/(date|updated_at|created_at|dob|birthday|period)/', $name)) return 'date';
     if (in_array($name, ['amount_was_exceeded', 'phone_verified', 'email_verified', 'public'], true)) return 'boolean';
     if (in_array($name, ['total_amount', 'min_amount', 'max_amount', 'subtotal', 'exceeded_amount'], true)) return 'number';
-    if (in_array($name, ['postal_code', 'phone', 'phone_country_code', 'facebook_id'], true)) return 'integer';
+    if (in_array($name, ['postal_code', 'phone', 'phone_country_code'], true)) return 'integer';
     return 'string';
 }
 
@@ -371,7 +371,6 @@ function example_value_for_field(string $name, array $meta = []): mixed {
     if ($name === 'phone') return '5555555555';
     if ($name === 'phone_country_code') return 52;
     if ($name === 'photo') return 'https://example.com/photo.jpg';
-    if ($name === 'facebook_id') return '1234567890';
     if ($name === 'call_link' || $name === 'proposal_url' || $name === 'proposals_url' || $name === 'contract_link') return 'https://example.com/resource';
     if ($name === 'contract_number') return 'CT-2026-0001';
     if ($name === 'area_in_charge') return 'Procurement';

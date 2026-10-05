@@ -1980,7 +1980,7 @@
                         }
                     },
                     {
-                        "name": "phone_country_code",
+                        "name": "phone_verified",
                         "in": "query",
                         "schema": {
                             "type": "string"
@@ -1992,34 +1992,22 @@
                                 "summary": "Equal",
                                 "value": "eq:1"
                             },
-                            "lessThan": {
-                                "summary": "Less than",
-                                "value": "lt:10"
-                            },
-                            "greaterThan": {
-                                "summary": "Greater than",
-                                "value": "gt:10"
-                            },
-                            "greaterOrEqual": {
-                                "summary": "Greater or equal",
-                                "value": "gte:10"
-                            },
-                            "lessOrEqual": {
-                                "summary": "Less or equal",
-                                "value": "lte:10"
-                            },
                             "notEqual": {
                                 "summary": "Not equal",
-                                "value": "ne:10"
+                                "value": "ne:0"
                             },
-                            "inList": {
-                                "summary": "In list",
-                                "value": "in:1,2,3"
+                            "isNull": {
+                                "summary": "Is null",
+                                "value": "isn"
+                            },
+                            "notNull": {
+                                "summary": "Is not null",
+                                "value": "non"
                             }
                         }
                     },
                     {
-                        "name": "photo",
+                        "name": "middle_name",
                         "in": "query",
                         "schema": {
                             "type": "string"
@@ -2054,21 +2042,25 @@
                         }
                     },
                     {
-                        "name": "phone_verified",
+                        "name": "second_last_name",
                         "in": "query",
                         "schema": {
                             "type": "string"
                         },
                         "description": "Filterable field. Use campo=op:valor with operators eq, lt, gt, gte, lte, ne, lk, isn, non, in.",
-                        "example": "eq:1",
+                        "example": "lk:texto",
                         "examples": {
                             "equals": {
                                 "summary": "Equal",
-                                "value": "eq:1"
+                                "value": "eq:texto"
+                            },
+                            "like": {
+                                "summary": "Contains",
+                                "value": "lk:texto"
                             },
                             "notEqual": {
                                 "summary": "Not equal",
-                                "value": "ne:0"
+                                "value": "ne:texto"
                             },
                             "isNull": {
                                 "summary": "Is null",
@@ -2077,72 +2069,10 @@
                             "notNull": {
                                 "summary": "Is not null",
                                 "value": "non"
-                            }
-                        }
-                    },
-                    {
-                        "name": "email_verified",
-                        "in": "query",
-                        "schema": {
-                            "type": "string"
-                        },
-                        "description": "Filterable field. Use campo=op:valor with operators eq, lt, gt, gte, lte, ne, lk, isn, non, in.",
-                        "example": "eq:1",
-                        "examples": {
-                            "equals": {
-                                "summary": "Equal",
-                                "value": "eq:1"
-                            },
-                            "notEqual": {
-                                "summary": "Not equal",
-                                "value": "ne:0"
-                            },
-                            "isNull": {
-                                "summary": "Is null",
-                                "value": "isn"
-                            },
-                            "notNull": {
-                                "summary": "Is not null",
-                                "value": "non"
-                            }
-                        }
-                    },
-                    {
-                        "name": "facebook_id",
-                        "in": "query",
-                        "schema": {
-                            "type": "string"
-                        },
-                        "description": "Filterable field. Use campo=op:valor with operators eq, lt, gt, gte, lte, ne, lk, isn, non, in.",
-                        "example": "eq:1",
-                        "examples": {
-                            "equals": {
-                                "summary": "Equal",
-                                "value": "eq:1"
-                            },
-                            "lessThan": {
-                                "summary": "Less than",
-                                "value": "lt:10"
-                            },
-                            "greaterThan": {
-                                "summary": "Greater than",
-                                "value": "gt:10"
-                            },
-                            "greaterOrEqual": {
-                                "summary": "Greater or equal",
-                                "value": "gte:10"
-                            },
-                            "lessOrEqual": {
-                                "summary": "Less or equal",
-                                "value": "lte:10"
-                            },
-                            "notEqual": {
-                                "summary": "Not equal",
-                                "value": "ne:10"
                             },
                             "inList": {
                                 "summary": "In list",
-                                "value": "in:1,2,3"
+                                "value": "in:texto1,texto2"
                             }
                         }
                     }
@@ -2210,25 +2140,21 @@
                                         "type": "string",
                                         "description": "Public field"
                                     },
-                                    "phone_country_code": {
-                                        "type": "string",
-                                        "description": "Public field"
-                                    },
-                                    "photo": {
-                                        "type": "string",
-                                        "description": "Public field"
-                                    },
                                     "phone_verified": {
                                         "type": "boolean",
                                         "description": "Public field"
                                     },
-                                    "email_verified": {
-                                        "type": "boolean",
+                                    "middle_name": {
+                                        "type": "string",
                                         "description": "Public field"
                                     },
-                                    "facebook_id": {
-                                        "type": "integer",
+                                    "second_last_name": {
+                                        "type": "string",
                                         "description": "Public field"
+                                    },
+                                    "hcaptcha_bypass": {
+                                        "type": "string",
+                                        "description": "Internal field"
                                     }
                                 },
                                 "additionalProperties": true
@@ -2242,11 +2168,9 @@
                                 "last_name": "Doe",
                                 "recovery_date": "2026-08-21",
                                 "phone": "5555555555",
-                                "phone_country_code": 52,
-                                "photo": "https://example.com/photo.jpg",
                                 "phone_verified": false,
-                                "email_verified": false,
-                                "facebook_id": 1
+                                "middle_name": "example",
+                                "second_last_name": "example"
                             }
                         }
                     }
@@ -2410,11 +2334,9 @@
                                         "last_name": "Doe",
                                         "recovery_date": "2026-08-21",
                                         "phone": "5555555555",
-                                        "phone_country_code": 52,
-                                        "photo": "https://example.com/photo.jpg",
                                         "phone_verified": false,
-                                        "email_verified": false,
-                                        "facebook_id": 1
+                                        "middle_name": "example",
+                                        "second_last_name": "example"
                                     },
                                     "meta": {
                                         "session_id": "uuid"
@@ -2593,25 +2515,21 @@
                                         "type": "string",
                                         "description": "Public field"
                                     },
-                                    "phone_country_code": {
-                                        "type": "string",
-                                        "description": "Public field"
-                                    },
-                                    "photo": {
-                                        "type": "string",
-                                        "description": "Public field"
-                                    },
                                     "phone_verified": {
                                         "type": "boolean",
                                         "description": "Public field"
                                     },
-                                    "email_verified": {
-                                        "type": "boolean",
+                                    "middle_name": {
+                                        "type": "string",
                                         "description": "Public field"
                                     },
-                                    "facebook_id": {
-                                        "type": "integer",
+                                    "second_last_name": {
+                                        "type": "string",
                                         "description": "Public field"
+                                    },
+                                    "hcaptcha_bypass": {
+                                        "type": "string",
+                                        "description": "Internal field"
                                     }
                                 },
                                 "additionalProperties": true
@@ -2625,11 +2543,9 @@
                                 "last_name": "Doe",
                                 "recovery_date": "2026-08-21",
                                 "phone": "5555555555",
-                                "phone_country_code": 52,
-                                "photo": "https://example.com/photo.jpg",
                                 "phone_verified": false,
-                                "email_verified": false,
-                                "facebook_id": 1
+                                "middle_name": "example",
+                                "second_last_name": "example"
                             }
                         }
                     }

@@ -22,7 +22,7 @@ The application SHALL expose the global runtime values `$_config`, `$_payload`, 
 - **THEN** it reads `$_payload`
 
 ### Requirement: Configuration sections
-The main configuration SHALL include the sections `database`, `jwt`, `session`, `log`, `cors`, `statics`, `mailings`, `facebook`, `hcaptcha`, `uploads`, `valid_requests`, and related settings.
+The main configuration SHALL include the sections `database`, `jwt`, `session`, `log`, `cors`, `statics`, `mailings`, `hcaptcha`, `uploads`, `valid_requests`, and related settings.
 
 #### Scenario: Locating a setting
 - **WHEN** an agent needs a setting
