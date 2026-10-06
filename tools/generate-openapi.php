@@ -23,6 +23,7 @@ $controllers = [
     'image-upload' => $root . '/app/core/modules/image-upload/controller.php',
     'frontend-logs' => $root . '/app/core/modules/frontend-logs/controller.php',
     'mailings' => $root . '/app/core/modules/mailings/login_recovery.php',
+    'hcaptcha' => $root . '/app/core/modules/hcaptcha/controller.php',
 ];
 
 function extract_property_array(string $text, string $property): ?string {
@@ -110,11 +111,24 @@ function parse_search_fields(string $block): array {
     return [];
 }
 
-function endpoint_security(string $module, string $method, array $methodDef): array {
-    $auth = $methodDef[0] ?? false;
-    if ($module === 'docs') return [];
-    if (!$auth) return [];
-    return [['bearerAuth' => []]];
+function extract_accepted_methods(string $indexPath): ?array {
+    $text = @file_get_contents($indexPath);
+    if ($text === false) return null;
+    $block = extract_property_array($text, '$accepted_methods');
+    if ($block === null) return null;
+    $methods = [];
+    if (preg_match_all("/'(\w+)'\s*=>\s*\[\s*(true|false)\b/i", $block, $matches, PREG_SET_ORDER)) {
+        foreach ($matches as $m) {
+            $methods[$m[1]] = strtolower($m[2]) === 'true';
+        }
+    }
+    return $methods ?: null;
+}
+
+function apply_security(array &$op, array $accepted, string $method): void {
+    if (($accepted[$method] ?? false) === true) {
+        $op['security'] = [['bearerAuth' => []]];
+    }
 }
 
 function field_meta(array $field): array {
@@ -247,8 +261,9 @@ function error_response_example(array $codeData, bool $withErrors = false): arra
     return $response;
 }
 
-function add_error_responses(array &$op, array $codes, string $kind): void {
-    $selected = ['400000', '400001', '400002', '404000', '900000', '902000', '902001', '902002', '909000'];
+function add_error_responses(array &$op, array $codes, string $kind, array $omit = []): void {
+    global $errorResponses;
+    $selected = ['400000', '400001', '400002', '404000', '900000', '902000', '902001', '902002', '909000', '902003', '429000'];
     if ($kind === 'access') {
         $selected = array_merge($selected, ['901001', '901002', '901003', '901004', '901005', '901006', '901007', '903000', '905000']);
     }
@@ -258,12 +273,16 @@ function add_error_responses(array &$op, array $codes, string $kind): void {
     if ($kind === 'mailing') {
         $selected = array_merge($selected, ['903000', '905000']);
     }
-    $selected = array_values(array_unique($selected));
+    if ($kind === 'docs') {
+        $selected = ['429000'];
+    }
+    $selected = array_values(array_diff(array_unique($selected), $omit));
     foreach ($selected as $code) {
         if (!isset($codes[$code])) continue;
         $status = (string) ($codes[$code]['http_code'] ?? 500);
         $withErrors = in_array($code, ['400000', '400001', '400002'], true);
-        $op['responses'][$status] = [
+        $name = 'Error' . $code;
+        $errorResponses[$name] = [
             'description' => $codes[$code]['message'] ?? 'Error',
             'content' => [
                 'application/json' => [
@@ -271,6 +290,7 @@ function add_error_responses(array &$op, array $codes, string $kind): void {
                 ],
             ],
         ];
+        $op['responses'][$status] = ['$ref' => '#/components/responses/' . $name];
     }
 }
 
@@ -278,6 +298,8 @@ $paths = [];
 $tags = ['Docs'];
 $moduleFieldsMap = [];
 $searchFieldsMap = [];
+$acceptedMethodsMap = [];
+$errorResponses = [];
 $apiCodes = load_api_codes($root . '/app/core/config/api_codes.yml');
 
 foreach ($controllers as $module => $path) {
@@ -291,6 +313,16 @@ foreach ($controllers as $module => $path) {
     if ($getParamsRaw) {
         $searchFieldsMap[$module] = parse_search_fields($getParamsRaw);
     }
+    $indexPath = dirname($path) . '/index.php';
+    $accepted = is_file($indexPath) ? extract_accepted_methods($indexPath) : null;
+    if ($accepted !== null) {
+        $acceptedMethodsMap[$module] = $accepted;
+    }
+}
+
+if (isset($argv[1]) && $argv[1] === '--accepted-methods') {
+    echo json_encode($acceptedMethodsMap, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES) . PHP_EOL;
+    exit(0);
 }
 
 $apiRoutes = [
@@ -315,6 +347,7 @@ $apiRoutes = [
     'frontend-logs' => ['store' => 'post'],
     'mailings' => ['index' => 'get'],
     'docs' => ['index' => 'get'],
+    'hcaptcha' => ['store' => 'post'],
 ];
 
 function build_schema(array $fields, string $module): array {
@@ -506,6 +539,32 @@ foreach ($apiRoutes as $module => $methods) {
         $paths['/api/docs'] = ['get' => ['tags' => ['Docs'], 'summary' => 'Docs UI', 'responses' => ['200' => ['description' => 'HTML UI']]]];
         $paths['/docs'] = ['get' => ['tags' => ['Docs'], 'summary' => 'Docs landing page', 'responses' => ['200' => ['description' => 'HTML UI']]]];
         $paths['/api/docs/openapi.json'] = ['get' => ['tags' => ['Docs'], 'summary' => 'OpenAPI document', 'responses' => ['200' => ['description' => 'OpenAPI JSON']]]];
+        foreach (['/api/docs', '/docs', '/api/docs/openapi.json'] as $docPath) {
+            add_error_responses($paths[$docPath]['get'], $apiCodes, 'docs');
+        }
+        continue;
+    }
+    if ($module === 'hcaptcha') {
+        $op = [
+            'tags' => ['Hcaptcha'],
+            'summary' => 'Generate hCaptcha bypass secret',
+            'requestBody' => ['required' => false, 'content' => ['application/json' => ['schema' => ['type' => 'object', 'properties' => new stdClass(), 'additionalProperties' => false]]]],
+            'responses' => [
+                '200' => [
+                    'description' => 'Plaintext bypass secret, returned once',
+                    'content' => ['application/json' => ['example' => [
+                        'message' => 'Success',
+                        'code' => 'SUCCESS',
+                        'http_code' => 200,
+                        'data' => ['hcaptcha_bypass' => 'x7Kp2sQ9vR4m'],
+                        'meta' => ['session_id' => 'uuid'],
+                    ]]],
+                ],
+            ],
+        ];
+        apply_security($op, $acceptedMethodsMap[$module] ?? [], 'store');
+        add_error_responses($op, $apiCodes, 'crud');
+        $paths[$base]['post'] = $op;
         continue;
     }
     if ($module === 'access') {
@@ -533,7 +592,9 @@ foreach ($apiRoutes as $module => $methods) {
             ]
         ];
         attach_examples($paths[$base . '/login']['post'], $fields, $module, 'login');
+        add_error_responses($paths[$base . '/login']['post'], $apiCodes, 'access');
         $paths[$base . '/logout'] = ['get' => ['tags' => ['Access'], 'summary' => 'Logout', 'responses' => ['200' => ['description' => 'Logged out']]]];
+        add_error_responses($paths[$base . '/logout']['get'], $apiCodes, 'access', ['404000', '400000', '400001', '400002']);
         $paths[$base . '/recovery'] = [
             'post' => [
                 'tags' => ['Access'],
@@ -556,6 +617,7 @@ foreach ($apiRoutes as $module => $methods) {
             ],
         ];
         attach_examples($paths[$base . '/recovery']['post'], $fields, $module, 'recovery');
+        add_error_responses($paths[$base . '/recovery']['post'], $apiCodes, 'access', ['404000']);
         $paths[$base . '/reset'] = [
             'post' => [
                 'tags' => ['Access'],
@@ -580,6 +642,7 @@ foreach ($apiRoutes as $module => $methods) {
             ],
         ];
         attach_examples($paths[$base . '/reset']['post'], $fields, $module, 'reset');
+        add_error_responses($paths[$base . '/reset']['post'], $apiCodes, 'access', ['404000']);
         continue;
     }
     $collectionOp = [
@@ -588,31 +651,42 @@ foreach ($apiRoutes as $module => $methods) {
         'responses' => ['200' => ['description' => 'List response']],
     ];
     $collectionOp['parameters'] = build_query_param_definitions($fields, $searchFields);
-    add_error_responses($collectionOp, $apiCodes, in_array($module, ['attachments', 'image-upload'], true) ? 'upload' : (in_array($module, ['access'], true) ? 'access' : (in_array($module, ['mailings'], true) ? 'mailing' : 'crud')));
-    $paths[$base] = [strtolower($methods['index'] ?? 'get') => $collectionOp];
+    $collectionOp['responses']['200']['content'] = ['application/json' => ['example' => [
+        'message' => 'Success',
+        'code' => 'SUCCESS',
+        'http_code' => 200,
+        'data' => [],
+        'meta' => ['session_id' => 'uuid'],
+    ]]];
+    apply_security($collectionOp, $acceptedMethodsMap[$module] ?? [], 'index');
+    add_error_responses($collectionOp, $apiCodes, in_array($module, ['attachments', 'image-upload'], true) ? 'upload' : (in_array($module, ['access'], true) ? 'access' : (in_array($module, ['mailings'], true) ? 'mailing' : 'crud')), ['404000']);
+    if (isset($methods['index'])) {
+        $paths[$base] = [strtolower($methods['index']) => $collectionOp];
+    }
     if (isset($methods['show'])) {
         $op = ['tags' => [ucwords(str_replace('-', ' ', $module))], 'summary' => 'Get ' . str_replace('-', ' ', $module), 'parameters' => [['name' => 'id', 'in' => 'path', 'required' => true, 'schema' => ['type' => 'integer']]], 'responses' => ['200' => ['description' => 'Item response']]];
+        apply_security($op, $acceptedMethodsMap[$module] ?? [], 'show');
         attach_examples($op, $fields, $module, 'show');
         add_error_responses($op, $apiCodes, in_array($module, ['attachments', 'image-upload'], true) ? 'upload' : 'crud');
         $paths[$base . '/{id}']['get'] = $op;
     }
     if (isset($methods['store'])) {
         $op = ['tags' => [ucwords(str_replace('-', ' ', $module))], 'summary' => 'Create ' . str_replace('-', ' ', $module), 'requestBody' => ['required' => true, 'content' => ['application/json' => ['schema' => build_schema($fields, $module)]]], 'responses' => ['201' => ['description' => 'Created']]];
-        $op['security'] = endpoint_security($module, 'store', [true]);
+        apply_security($op, $acceptedMethodsMap[$module] ?? [], 'store');
         attach_examples($op, $fields, $module, 'store');
         add_error_responses($op, $apiCodes, in_array($module, ['attachments', 'image-upload'], true) ? 'upload' : (in_array($module, ['access'], true) ? 'access' : (in_array($module, ['mailings'], true) ? 'mailing' : 'crud')));
         $paths[$base]['post'] = $op;
     }
     if (isset($methods['update'])) {
         $op = ['tags' => [ucwords(str_replace('-', ' ', $module))], 'summary' => 'Update ' . str_replace('-', ' ', $module), 'parameters' => [['name' => 'id', 'in' => 'path', 'required' => true, 'schema' => ['type' => 'integer']]], 'requestBody' => ['required' => true, 'content' => ['application/json' => ['schema' => build_schema($fields, $module)]]], 'responses' => ['200' => ['description' => 'Updated']]];
-        $op['security'] = endpoint_security($module, 'update', [true]);
+        apply_security($op, $acceptedMethodsMap[$module] ?? [], 'update');
         attach_examples($op, $fields, $module, 'update');
         add_error_responses($op, $apiCodes, 'crud');
         $paths[$base . '/{id}']['put'] = $op;
     }
     if (isset($methods['destroy'])) {
         $op = ['tags' => [ucwords(str_replace('-', ' ', $module))], 'summary' => 'Delete ' . str_replace('-', ' ', $module), 'parameters' => [['name' => 'id', 'in' => 'path', 'required' => true, 'schema' => ['type' => 'integer']]], 'responses' => ['200' => ['description' => 'Deleted']]];
-        $op['security'] = endpoint_security($module, 'destroy', [true]);
+        apply_security($op, $acceptedMethodsMap[$module] ?? [], 'destroy');
         attach_examples($op, $fields, $module, 'destroy');
         add_error_responses($op, $apiCodes, 'crud');
         $paths[$base . '/{id}']['delete'] = $op;
@@ -622,20 +696,85 @@ foreach ($apiRoutes as $module => $methods) {
 foreach ($paths as $path => &$item) {
     foreach ($item as $method => &$op) {
         if (!isset($op['tags']) && $path === '/api/docs/openapi.json') $op['tags'] = ['Docs'];
+        // Deterministic operationId from method + path only (task 4.2).
+        $normalizedPath = strtolower(trim(preg_replace('/[^a-zA-Z0-9]+/', '_', $path), '_'));
+        $op['operationId'] = strtolower($method) . '_' . $normalizedPath;
+        // Every success response declares a schema instead of a bare description (task 4.3).
+        foreach (['200', '201', '202'] as $status) {
+            if (!isset($op['responses'][$status]) || isset($op['responses'][$status]['$ref'])) continue;
+            $response = $op['responses'][$status];
+            if ($path === '/docs' || $path === '/api/docs' || $path === '/mailings') {
+                // HTML surfaces: document the real content type, not a JSON envelope.
+                $op['responses'][$status]['content'] = ['text/html' => ['schema' => ['type' => 'string']]];
+            } elseif ($path === '/api/docs/openapi.json') {
+                $op['responses'][$status]['content'] = ['application/json' => ['schema' => ['type' => 'object', 'additionalProperties' => true]]];
+            } else {
+                if (!isset($response['content']['application/json'])) {
+                    $response['content']['application/json'] = [];
+                }
+                $response['content']['application/json']['schema'] = ['$ref' => '#/components/schemas/ResponseEnvelope'];
+                $op['responses'][$status] = $response;
+            }
+        }
     }
 }
 unset($item, $op);
+
+// Prune shared error responses that no operation ended up referencing
+// (several codes share one HTTP status, so only the last $ref survives).
+$referencedResponses = [];
+foreach ($paths as $item) {
+    foreach ($item as $op) {
+        foreach ($op['responses'] ?? [] as $response) {
+            if (isset($response['$ref'])) {
+                $referencedResponses[basename($response['$ref'])] = true;
+            }
+        }
+    }
+}
+$errorResponses = array_intersect_key($errorResponses, $referencedResponses);
+ksort($errorResponses);
 
 $spec = [
     'openapi' => '3.0.3',
     'info' => ['title' => 'Monitor Karewa API', 'version' => '5.0.0', 'description' => 'Public OpenAPI contract for the Monitor Karewa REST API.'],
     'servers' => [['url' => '/api/v5'], ['url' => '/']],
-    'tags' => array_map(fn($name) => ['name' => $name], ['Docs','Access','Pages','Users','Roles','Organization','Contracts','Estatus Contrato','Materias','Partidas','Periodos Contratos','Procedimientos','Proveedores','Tipo Contrato','Unidades Administrativas','Unit Types','Attachments','Config','Image Upload','Frontend Logs','Mailings']),
-    'components' => ['securitySchemes' => ['bearerAuth' => ['type' => 'http', 'scheme' => 'bearer', 'bearerFormat' => 'JWT']], 'schemas' => ['GenericObject' => ['type' => 'object', 'additionalProperties' => true], 'GenericList' => ['type' => 'array', 'items' => ['$ref' => '#/components/schemas/GenericObject']], 'LoginRequest' => ['type' => 'object', 'required' => ['email', 'password', 'token'], 'properties' => ['email' => ['type' => 'string', 'format' => 'email'], 'password' => ['type' => 'string'], 'token' => ['type' => 'string']]], 'RecoveryRequest' => ['type' => 'object', 'required' => ['email'], 'properties' => ['email' => ['type' => 'string', 'format' => 'email']]], 'ResetRequest' => ['type' => 'object', 'required' => ['email', 'code', 'password'], 'properties' => ['email' => ['type' => 'string', 'format' => 'email'], 'code' => ['type' => 'integer'], 'password' => ['type' => 'string']]], 'UploadResult' => ['type' => 'object', 'additionalProperties' => true]]],
+    'tags' => array_map(fn($name) => ['name' => $name], ['Docs','Access','Pages','Users','Roles','Organization','Contracts','Estatus Contrato','Materias','Partidas','Periodos Contratos','Procedimientos','Proveedores','Tipo Contrato','Unidades Administrativas','Unit Types','Attachments','Config','Image Upload','Frontend Logs','Mailings','Hcaptcha']),
+    'components' => [
+        'securitySchemes' => ['bearerAuth' => ['type' => 'http', 'scheme' => 'bearer', 'bearerFormat' => 'JWT']],
+        'responses' => $errorResponses,
+        'schemas' => [
+            'ResponseEnvelope' => [
+                'type' => 'object',
+                'required' => ['message', 'code', 'http_code', 'meta'],
+                'properties' => [
+                    'message' => ['type' => 'string'],
+                    'code' => ['type' => 'string'],
+                    'http_code' => ['type' => 'integer'],
+                    'data' => ['description' => 'Payload; shape depends on the endpoint (object, array, or scalar)'],
+                    'meta' => ['type' => 'object', 'properties' => ['session_id' => ['type' => 'string']]],
+                ],
+            ],
+            'GenericObject' => ['type' => 'object', 'additionalProperties' => true],
+            'GenericList' => ['type' => 'array', 'items' => ['$ref' => '#/components/schemas/GenericObject']],
+            'LoginRequest' => ['type' => 'object', 'required' => ['email', 'password', 'token'], 'properties' => ['email' => ['type' => 'string', 'format' => 'email'], 'password' => ['type' => 'string'], 'token' => ['type' => 'string']]],
+            'RecoveryRequest' => ['type' => 'object', 'required' => ['email'], 'properties' => ['email' => ['type' => 'string', 'format' => 'email']]],
+            'ResetRequest' => ['type' => 'object', 'required' => ['email', 'code', 'password'], 'properties' => ['email' => ['type' => 'string', 'format' => 'email'], 'code' => ['type' => 'integer'], 'password' => ['type' => 'string']]],
+            'UploadResult' => ['type' => 'object', 'additionalProperties' => true],
+        ],
+    ],
     'paths' => $paths,
 ];
 
 $json = json_encode($spec, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE) . PHP_EOL;
+// OPENAPI_OUT overrides the primary output path (used by the sync test to
+// regenerate into a temp file without touching the published copies).
+$out = getenv('OPENAPI_OUT');
+if ($out !== false && $out !== '') {
+    file_put_contents($out, $json);
+    echo "OpenAPI generated to {$out}\n";
+    exit(0);
+}
 file_put_contents($root . '/api/docs/openapi.json', $json);
 @mkdir($root . '/httpdocs/api/docs', 0775, true);
 file_put_contents($root . '/httpdocs/api/docs/openapi.json', $json);
