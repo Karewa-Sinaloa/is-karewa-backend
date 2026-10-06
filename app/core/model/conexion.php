@@ -9,6 +9,7 @@ abstract class DB {
    */
   private static ?PDO $overrideConnection = null;
   private static ?string $overridePrefix = null;
+  private static ?PDO $connection = null;
 
   /**
    * Inject a connection for the current process. Inert unless called.
@@ -30,15 +31,47 @@ abstract class DB {
   public static function reset(): void {
     self::$overrideConnection = null;
     self::$overridePrefix = null;
+    self::$connection = null;
   }
 
   public static function prefix(): string {
     return self::$overridePrefix ?? MYSQL_PREFIX;
   }
 
+  /**
+   * Start a transaction on the shared connection. Callers must always finish
+   * with commit() or rollback() so no transaction is left open.
+   */
+  public static function begin(): void {
+    self::connection()->beginTransaction();
+  }
+
+  /**
+   * Commit the open transaction, if any.
+   */
+  public static function commit(): void {
+    $connection = self::connection();
+    if ($connection->inTransaction()) {
+      $connection->commit();
+    }
+  }
+
+  /**
+   * Roll back the open transaction, if any. Safe to call on any failure path.
+   */
+  public static function rollback(): void {
+    $connection = self::connection();
+    if ($connection->inTransaction()) {
+      $connection->rollBack();
+    }
+  }
+
   public static function connection() {
     if (self::$overrideConnection instanceof PDO) {
       return self::$overrideConnection;
+    }
+    if (self::$connection instanceof PDO) {
+      return self::$connection;
     }
     try {
       $dbconn = new PDO('mysql:host=' . MYSQL_HOST . ';dbname=' . MYSQL_DB . ';port=' . MYSQL_PORT . ';charset=' . MYSQL_CHARSET, MYSQL_USER, MYSQL_PSWD);
@@ -46,12 +79,13 @@ abstract class DB {
       $dbconn->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
       $dbconn->setAttribute(PDO::ATTR_EMULATE_PREPARES, false);
       $dbconn->setAttribute(PDO::ATTR_PERSISTENT, true);
+      self::$connection = $dbconn;
     } catch (\PDOException $e) {
       http_response_code(500);
       error_logs(['Database connection: ', $e->getMessage()], ERROR_LOG_FILE);
       die(json_encode(['message' => 'Unable to connect to database']));
     }
-    return $dbconn;
+    return self::$connection;
   }
 }
 ?>

@@ -7,7 +7,7 @@ abstract class DBGet {
 
   public static function Get(array $params, ?string $action = NULL ) : array|null {
 	$limit_inf = 1;
-    $table        = is_string($params['table']) ? MYSQL_PREFIX . $params['table'] : null;
+    $table        = is_string($params['table']) ? DB::prefix() . $params['table'] : null;
     $_filters     = (array_key_exists('filters', $params) && is_array($params['filters'])) ? $params['filters'] : [];
     $_fields      = (array_key_exists('fields', $params) && is_array($params['fields'])) ? $params['fields'] : [];
     $_joins       = (array_key_exists('joins', $params) && is_array($params['joins'])) ? $params['joins'] : [];
@@ -22,10 +22,16 @@ abstract class DBGet {
 
     switch ($action) {
     case 'count':
-      $fields  = 'COUNT(*) results';
-      $group   = self::get_group_by($_group_by);
-			$qry_str = 'SELECT ' . $fields . ' FROM ' . $table . ' ' . $joins . $where . $group;
-			break;
+      $group = self::get_group_by($_group_by);
+      if (!empty($_group_by)) {
+        // Count the groups themselves: wrap the grouped rows in a subquery so
+        // the result is the number of groups, not the first group's COUNT(*).
+        $qry_str = 'SELECT COUNT(*) results FROM (SELECT 1 FROM ' . $table . ' ' . $joins . $where . $group . ') AS grouped_count';
+      } else {
+        $fields  = 'COUNT(*) results';
+        $qry_str = 'SELECT ' . $fields . ' FROM ' . $table . ' ' . $joins . $where;
+      }
+      break;
     case 'list':
       $fields    = self::getFields($_fields);
       $limits    = self::get_limits($_max_results, $_page);
@@ -60,7 +66,7 @@ abstract class DBGet {
           $join_type = 'LEFT JOIN';
           break;
         }
-         $join_qry .= $join_type . ' ' . MYSQL_PREFIX . $value['table'] . ' ON ' . $value['match'][0] . '=' . $value['match'][1] . ' ';
+         $join_qry .= $join_type . ' ' . DB::prefix() . $value['table'] . ' ON ' . $value['match'][0] . '=' . $value['match'][1] . ' ';
       }
     }
     return $join_qry;
@@ -83,19 +89,6 @@ abstract class DBGet {
          */
         elseif ($value[2] == 'IN') {
           $operator = 'IN ';
-          $wVal     = '';
-          $ids      = explode(',', $value[1]);
-
-          foreach ($ids as $key => $id) {
-            $wVal .= ':' . preg_replace("/[\.\s\,]+/", '_', $value[0]) . $sec . '_' . $key . ',';
-          }
-          $wVal = '(' . trim($wVal, ',') . ')';
-        }
-        /**
-         * IN: crea un parametro similar a WHERE `Column Name` IN (`value1`,`value2`...) donde por lo general estos ultimos son numericos, al crear el array se deben agregar de esta manera $filter[['column name', 'value1, value2, ..', 'IN'] ...];
-         */
-        elseif ($value[2] == 'IN') {
-          $operator = ' IN ';
           $wVal     = '';
           $ids      = explode(',', $value[1]);
 
@@ -251,8 +244,10 @@ abstract class DBGet {
 		} else {
 			$db_results = $qry->fetch(PDO::FETCH_ASSOC);
 		}
+	} catch(\AppException $e) {
+		throw $e;
 	} catch(\Exception $e) {
-		throw new \AppException($e->getMessage(), 902000);
+		throw new \AppException($e->getMessage(), 902003);
     }
     if ($db_results === false || $db_results === NULL || empty($db_results) || $db_results == [] || count( (array) $db_results) == 0) {
       return NULL;

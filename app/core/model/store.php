@@ -7,7 +7,7 @@ use PDO;
 abstract class DBStore {
   private static $bind_array;
   public static function Store(string $table, array $fields) {
-    $qry_str = self::post_qry(MYSQL_PREFIX . $table, $fields);
+    $qry_str = self::post_qry(DB::prefix() . $table, $fields);
     return self::post_bind_data($qry_str);
   }
 
@@ -54,8 +54,10 @@ abstract class DBStore {
       	$qrySave->bindParam(':' . $value[0], $value[1], $pdo_type);
     	}
 			$qrySave->execute();
+		} catch(\AppException $e) {
+			throw $e;
 		} catch(\Exception $e) {
-			throw new \AppException($e->getMessage(), 902000);
+			throw new \AppException($e->getMessage(), 902003);
 		}
     return $dbconn->lastInsertId();
   }

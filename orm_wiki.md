@@ -30,6 +30,7 @@ Este documento describe el funcionamiento completo del ORM personalizado del sis
 14. [Validación de campos](#validación-de-campos)
 15. [Opciones avanzadas del controlador](#opciones-avanzadas-del-controlador)
 16. [Ejemplo completo de módulo](#ejemplo-completo-de-módulo)
+17. [Tests de la capa ORM](#tests-de-la-capa-orm)
 
 ---
 
@@ -77,6 +78,36 @@ Características:
 - Modo de errores: `PDO::ERRMODE_EXCEPTION`.
 - `PDO::ATTR_EMULATE_PREPARES = false` (sentencias preparadas nativas).
 - Si falla, responde `HTTP 500` con JSON y termina la ejecución.
+
+### Transacciones
+
+`DB` expone tres helpers que operan sobre la conexión devuelta por `DB::connection()`:
+
+```php
+DB::begin();     // inicia la transacción
+DB::commit();    // confirma los cambios si todo salió bien
+DB::rollback();  // revierte los cambios; seguro de llamar en cualquier ruta de fallo
+```
+
+Úsalos para operaciones de varios pasos: cada sentencia intermedia se escribe dentro de la transacción y, si algún paso falla, se llama a `DB::rollback()` y se relanza la excepción para que ningún cambio parcial quede persistido.
+
+```php
+// Ejemplo: escritura multi-paso con rollback ante fallo
+DB::begin();
+try {
+    DBStore::Store('materia', $campos);
+    DBUpdate::Update('contadores', $conteo, $filtros);
+    DB::commit();
+} catch (\Throwable $e) {
+    DB::rollback();
+    throw $e;
+}
+```
+
+Notas:
+- `DB::commit()` y `DB::rollback()` solo actúan si hay una transacción abierta; es seguro llamarlos en rutas de error.
+- `DBDelete::delete()` con `$table_assoc` abre su propia transacción (verificación de asociación + delete) y solo confirma o revierte la transacción que ella abrió, por lo que participa sin romper una transacción ya abierta por el controlador.
+- Siempre termina la transacción: ninguna ruta debe salir con una transacción abierta (las conexiones son persistentes).
 
 ---
 
@@ -504,6 +535,8 @@ Operadores soportados en filtros: `=`, `!=`, `<>`, `>`, `>=`, `<`, `<=`, `LIKE`.
 ?campo=valor          (equivale a eq:valor)
 ```
 
+El separador es el **primer** `:` únicamente: todo lo que sigue al primer `:` se toma como valor completo, por lo que los valores pueden contener `:` (horas, URLs, hashes). Si lo que precede al primer `:` no es un operador conocido, el valor completo (incluyendo los `:`) se compara por igualdad.
+
 ### Operadores disponibles
 
 | URL op | SQL op |
@@ -527,6 +560,7 @@ GET /api/v5/contratos?fiscal_year=2024
 GET /api/v5/contratos?total_amount=gte:100000
 GET /api/v5/contratos?provider_id=in:1,2,3
 GET /api/v5/contratos?call_date=isn:
+GET /api/v5/contratos?call_time=lk:10:30   (valor "10:30" conservado)
 ```
 
 ---
@@ -756,3 +790,36 @@ POST /api/v5/materias
    d. DBStore::Store() → INSERT INTO c_materia (name, slug) VALUES (?, ?)
    e. ApiResponse::Set('CREATED', {inserted_id: 7})
 ```
+
+---
+
+## Tests de la capa ORM
+
+Los tests de la capa de datos (`tests/Or*.php` y `tests/Support/OrTestCase.php`) corren contra una base **SQLite en memoria**, no contra MySQL:
+
+- Cada test crea una conexión `sqlite::memory:` nueva y la inyecta en la capa con `DB::setConnection()` y `DB::setPrefix()`; `tearDown()` llama a `DB::reset()`, por lo que ningún estado se arrastra entre tests.
+- El prefijo de tabla queda vacío para los tests y el esquema mínimo (`items`, `categories`) se crea en cada test: no se necesita servidor MySQL ni datos de prueba.
+- Requiere la extensión `pdo_sqlite` en la imagen PHP (instalada en `docker/php-fpm/Dockerfile`); sin ella la serie no puede arrancar.
+- Si no se inyecta conexión, `DB::connection()` conserva el comportamiento por defecto (MySQL con las constantes `MYSQL_*`).
+
+### Cómo ejecutarlos
+
+Serie completa (comando canónico, desde la raíz del repositorio):
+
+```bash
+./vendor/bin/phpunit
+```
+
+Un solo archivo:
+
+```bash
+./vendor/bin/phpunit tests/OrGetTest.php
+```
+
+Dentro de Docker (objetivo del `Makefile`):
+
+```bash
+make test
+```
+
+que equivale a `docker compose exec php bash -lc "./vendor/bin/phpunit"` (ver `Makefile`).

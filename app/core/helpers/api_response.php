@@ -34,7 +34,7 @@ abstract class ApiResponse
             if (!error_logs([$e->getMessage(), __LINE__, __FILE__])) {
                 http_response_code(500);
                 die(json_encode([
-                    'message' => 'Internal server error, can not write to log file ' . ERROR_LOG_FILE,
+                    'message' => 'Internal server error, can not write to log file: ' . ERROR_LOG_FILE,
                     'http_code' => 500,
                     'code' => 'APP_INTERNAL_SERVER_ERROR',
                 ]));
@@ -44,21 +44,18 @@ abstract class ApiResponse
             if (!error_logs([$e->getMessage(), __LINE__, __FILE__])) {
                 http_response_code(500);
                 die(json_encode([
-                    'message' => 'Internal server error, can not write to log file ' . ERROR_LOG_FILE,
+                    'message' => 'Internal server error, can not write to log file: ' . ERROR_LOG_FILE,
                     'http_code' => 500,
                     'code' => 'APP_INTERNAL_SERVER_ERROR',
                 ]));
             }
             $codes = null;
         }
-        if (!$codes || !isset($codes->$code)) {
-            $response = [
-                'message' => 'Internal server error',
-                'http_code' => 500,
-                'code' => 'APP_INTERNAL_SERVER_ERROR',
-            ];
-        }
-        $response = $codes->$code;
+        $response = ($codes && isset($codes->$code)) ? $codes->$code : (object) [
+            'message' => 'Internal server error',
+            'http_code' => 500,
+            'code' => 'APP_INTERNAL_SERVER_ERROR',
+        ];
         if ($data) {
             foreach ($data as $key => $value) {
                 if (!in_array($key, ['code', 'http_code', 'message', 'meta'])) {

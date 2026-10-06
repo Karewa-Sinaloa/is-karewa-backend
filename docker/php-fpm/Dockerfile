@@ -9,9 +9,11 @@ RUN apt-get update \
         libonig-dev \
         libxml2-dev \
         libcurl4-openssl-dev \
+        libsqlite3-dev \
         default-mysql-client \
     && docker-php-ext-install -j"$(nproc)" \
         pdo_mysql \
+        pdo_sqlite \
         mysqli \
         zip \
         intl \

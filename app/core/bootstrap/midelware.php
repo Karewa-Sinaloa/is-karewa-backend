@@ -239,10 +239,10 @@ class BaseModel {
     foreach ($this->availableFields as $key => $value) {
       if (isset($_GET[$key]) && $value['filter'] == true) {
         $v = trim(strip_tags((string) $_GET[$key]));
-        $v = explode(':', $v);
-        if (array_key_exists($v[0], $operators)) {
+        $v = explode(':', $v, 2);
+        if (isset($v[1]) && array_key_exists($v[0], $operators)) {
           $filters[$key] = [$value['field'], $v[1], $operators[$v[0]]];
-        } elseif(!isset($v[1]) && isset($v[0])) {
+        } elseif (isset($v[0])) {
           $filters[$key] = [$value['field'], $v[0], $operators['eq']];
         }
       }
@@ -287,6 +287,13 @@ class BaseModel {
 	  ApiResponse::Set($e->errorCode());
     }
     if (!$data['data']) {
+      if ($result_type === 'list') {
+        $data['data'] = [];
+        if($this->methodOptions['end'] != True) {
+          return $data;
+        }
+        ApiResponse::Set('SUCCESS', $data);
+      }
       if(!$this->methodOptions['end']) {
         throw new \AppException('No results found', 404000);
       } else {
@@ -303,15 +310,8 @@ class BaseModel {
         ];
         if(in_array('group_by', $get_params) && count($get_params['group_by']) > 0) {
           $pagination_params['group_by'] = $get_params['group_by'];
-          $result = DBGet::Get($pagination_params, 'list');
-          if($result) {
-            $count = [
-              'results' => count($result)
-            ];
-          }
-        } else {
-          $count = DBGet::Get($pagination_params, 'count');
         }
+        $count = DBGet::Get($pagination_params, 'count');
         if($count) {
           $pages = ceil($count['results'] / $get_params['max_results']);
           $data['pagination'] = [

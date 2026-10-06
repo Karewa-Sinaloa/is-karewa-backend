@@ -10,21 +10,19 @@ class AppConfig extends BaseModel {
 		'id' => ['field' => 'id', 'saved' => false],
 		'name' => ['field' => 'name'],
 		'slug' => ['field' => 'slug'],
-		'data' => ['field' => 'data'],
-		'public' => ['field' => 'public', 'default' => 0, 'listed' => false]
+		'value' => ['field' => 'value']
 	];
 
 	protected $get_params = [
 		'table' => 'config',
 		'filters' => [],
 		'joins' => [],
-		'search' => ['name', 'public', 'slug']
+		'search' => ['name', 'slug']
 	];
 
 	protected $rules = [
 		'name' => 'required|max:45',
-		'slug' => 'required|max:45|unique:config:slug',
-		'public'	 => 'max_value:1|max:1'
+		'slug' => 'required|max:45|unique:config:slug'
 	];
 }
 ?>

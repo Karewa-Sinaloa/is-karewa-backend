@@ -14,7 +14,7 @@ abstract class DBUpdate {
 		$filters = self::put_filters($_filters);
     $join    = self::put_join($_joins);
 
-		$qry_str = 'UPDATE ' . MYSQL_PREFIX . $table . ' ' . $join . 'SET ' . $fields . $filters;
+		$qry_str = 'UPDATE ' . DB::prefix() . $table . ' ' . $join . 'SET ' . $fields . $filters;
     return self::put_bind_data($_fields, $_filters, $qry_str);
   }
 
@@ -22,7 +22,7 @@ abstract class DBUpdate {
     $join = '';
     if (count($joins) > 0) {
       foreach ($joins as $key => $table) {
-        $join .= 'JOIN ' . MYSQL_PREFIX . $table['table'] . ' ON ' . $table['match'][0] . ' = ' . $table['match'][1] . ' ';
+        $join .= 'JOIN ' . DB::prefix() . $table['table'] . ' ON ' . $table['match'][0] . ' = ' . $table['match'][1] . ' ';
       }
     }
     return $join;
@@ -108,8 +108,10 @@ abstract class DBUpdate {
 				$i++;
 			}
 			$q->execute();
+		} catch(\AppException $e) {
+			throw $e;
 		} catch(\Exception $e) {
-			throw new \AppException('Database query error: ' . $e->getMessage(), 902000);
+			throw new \AppException('Database query error: ' . $e->getMessage(), 902003);
 		}
     return $q->rowCount();
   }

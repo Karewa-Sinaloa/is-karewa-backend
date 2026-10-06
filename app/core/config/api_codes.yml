@@ -98,6 +98,10 @@ DELETED:
   message: Entry asociated to another entry or table, you should remove that first
   code: APP_ENTRY_RELATIONSHIP
   http_code: 409
+902003:
+  message: Database query failed
+  code: APP_DATABASE_QUERY_FAILED
+  http_code: 500
 903000:
   message: Error sending email message
   code: APP_MAILER_INTERNAL_ERROR

@@ -3,6 +3,31 @@
 use PHPUnit\Framework\TestCase;
 use App\Model\DB;
 
+// AppException::__destruct calls error_logs(); provide the logger (or a no-op
+// stub) plus its log-file constants before anything can throw.
+if (!defined('DEBUG_LOG_PATH')) {
+    define('DEBUG_LOG_PATH', sys_get_temp_dir() . '/karewa_orm_logs');
+}
+if (!defined('DEBUG_LOG_FILE')) {
+    define('DEBUG_LOG_FILE', DEBUG_LOG_PATH . '/or_testcase.log');
+}
+if (!function_exists('error_logs')) {
+    require_once CORE_PATH . 'helpers/log.manager.php';
+}
+if (!function_exists('error_logs')) {
+    function error_logs($data, $file = null): bool
+    {
+        return true;
+    }
+}
+if (!is_dir(DEBUG_LOG_PATH)) {
+    @mkdir(DEBUG_LOG_PATH, 0777, true);
+}
+if (!file_exists(DEBUG_LOG_FILE)) {
+    @touch(DEBUG_LOG_FILE);
+}
+$_SERVER['REMOTE_ADDR'] = $_SERVER['REMOTE_ADDR'] ?? '127.0.0.1';
+
 require_once CORE_PATH . 'helpers/custom_exceptions.php';
 require_once CORE_PATH . 'model/conexion.php';
 require_once CORE_PATH . 'model/get.php';
