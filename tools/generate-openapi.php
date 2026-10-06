@@ -417,7 +417,7 @@ function example_value_for_field(string $name, array $meta = []): mixed {
     return 'example';
 }
 
-function build_example_request(array $fields, string $module): ?array {
+function build_example_request(array $fields, string $module, string $method = ''): ?array {
     $payload = [];
     foreach ($fields as $name => $meta) {
         $m = field_meta($meta);
@@ -427,11 +427,12 @@ function build_example_request(array $fields, string $module): ?array {
     }
     if (!$payload) return null;
     if ($module === 'access') {
-        return [
+        $requests = [
             'login' => ['email' => 'admin@example.com', 'password' => 'Secret123!', 'token' => 'hcaptcha-token'],
             'recovery' => ['email' => 'admin@example.com'],
             'reset' => ['email' => 'admin@example.com', 'code' => 123456, 'password' => 'Secret123!'],
         ];
+        return $requests[$method] ?? null;
     }
     return $payload;
 }
@@ -516,7 +517,7 @@ function build_example_response(array $fields, string $method, string $module): 
 }
 
 function attach_examples(array &$op, array $fields, string $module, string $method): void {
-    $request = build_example_request($fields, $module);
+    $request = build_example_request($fields, $module, $method);
     $response = build_example_response($fields, $method, $module);
     if ($request && in_array($method, ['store', 'update', 'login', 'recovery', 'reset'], true)) {
         $op['requestBody']['content']['application/json']['example'] = $request;

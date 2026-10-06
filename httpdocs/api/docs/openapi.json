@@ -424,19 +424,9 @@
                                 }
                             },
                             "example": {
-                                "login": {
-                                    "email": "admin@example.com",
-                                    "password": "Secret123!",
-                                    "token": "hcaptcha-token"
-                                },
-                                "recovery": {
-                                    "email": "admin@example.com"
-                                },
-                                "reset": {
-                                    "email": "admin@example.com",
-                                    "code": 123456,
-                                    "password": "Secret123!"
-                                }
+                                "email": "admin@example.com",
+                                "password": "Secret123!",
+                                "token": "hcaptcha-token"
                             }
                         }
                     }
@@ -562,19 +552,7 @@
                                 }
                             },
                             "example": {
-                                "login": {
-                                    "email": "admin@example.com",
-                                    "password": "Secret123!",
-                                    "token": "hcaptcha-token"
-                                },
-                                "recovery": {
-                                    "email": "admin@example.com"
-                                },
-                                "reset": {
-                                    "email": "admin@example.com",
-                                    "code": 123456,
-                                    "password": "Secret123!"
-                                }
+                                "email": "admin@example.com"
                             }
                         }
                     }
@@ -657,19 +635,9 @@
                                 }
                             },
                             "example": {
-                                "login": {
-                                    "email": "admin@example.com",
-                                    "password": "Secret123!",
-                                    "token": "hcaptcha-token"
-                                },
-                                "recovery": {
-                                    "email": "admin@example.com"
-                                },
-                                "reset": {
-                                    "email": "admin@example.com",
-                                    "code": 123456,
-                                    "password": "Secret123!"
-                                }
+                                "email": "admin@example.com",
+                                "code": 123456,
+                                "password": "Secret123!"
                             }
                         }
                     }
