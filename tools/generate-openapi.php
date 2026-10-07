@@ -111,6 +111,33 @@ function parse_search_fields(string $block): array {
     return [];
 }
 
+function parse_rules(string $text): array {
+    $block = extract_property_array($text, '$rules');
+    if ($block === null) return [];
+    $rules = [];
+    if (preg_match_all("/'([^']+)'\s*=>\s*'([^']*)'/", $block, $matches, PREG_SET_ORDER)) {
+        foreach ($matches as $m) {
+            $rules[$m[1]] = $m[2];
+        }
+    }
+    return $rules;
+}
+
+function rule_parts(string $rule): array {
+    if ($rule === '') return [];
+    return array_values(array_filter(explode('|', $rule), fn($part) => $part !== ''));
+}
+
+function rule_names(array $parts): array {
+    return array_map(fn($part) => explode(':', $part)[0], $parts);
+}
+
+/** Fields the API writes on store/update: present in the field map, saved and not read-only. */
+function is_sendable(array $field): bool {
+    $m = field_meta($field);
+    return $m['saved'] === true && $m['readonly'] !== true;
+}
+
 function extract_accepted_methods(string $indexPath): ?array {
     $text = @file_get_contents($indexPath);
     if ($text === false) return null;
@@ -221,31 +248,243 @@ function build_filter_examples(string $name): array {
     return $examples;
 }
 
-function build_query_param_definitions(array $fields, array $searchFields): array {
+/**
+ * Readable code samples (cURL + axios) attached as `x-codeSamples` on every operation.
+ *
+ * The docs page sets `hiddenClients: true`, so Scalar's own clients are hidden: they
+ * percent-encode the examples (`fields=id%2Cname`, `sort=%2Bid%2C-name`), which is not
+ * readable for a human. The API accepts the query characters unencoded, so these
+ * samples keep them verbatim, and the host is the public API origin.
+ */
+function build_code_samples(string $path, string $method, array $op): array {
+    $method = strtoupper($method);
+    $server = ($path === '/docs' || str_starts_with($path, '/api/docs')) ? '' : '/api/v5';
+    $resolvedPath = str_replace('{id}', '1', $path);
+
     $params = [];
+    foreach ($op['parameters'] ?? [] as $param) {
+        if (($param['in'] ?? '') !== 'query' || !array_key_exists('example', $param)) continue;
+        $value = is_array($param['example']) ? ($param['example']['value'] ?? '') : $param['example'];
+        $params[$param['name']] = (string) $value;
+    }
+    $body = $op['requestBody']['content']['application/json']['example'] ?? null;
+    $authenticated = isset($op['security']);
+
+    $url = 'https://kapi.chavodigital.com' . $server . $resolvedPath;
+    if ($params) {
+        $pairs = [];
+        foreach ($params as $name => $value) $pairs[] = $name . '=' . $value;
+        $url .= '?' . implode('&', $pairs);
+    }
+
+    return [
+        ['lang' => 'Shell', 'label' => 'cURL', 'source' => build_curl_source($method, $url, $body, $authenticated)],
+        ['lang' => 'JavaScript', 'label' => 'axios', 'source' => build_axios_source($method, $url, $params, $body, $authenticated)],
+    ];
+}
+
+function build_curl_source(string $method, string $url, ?array $body, bool $authenticated): string {
+    $parts = ['curl'];
+    if ($method !== 'GET') $parts[] = '--request ' . $method;
+    $parts[] = "--url '" . $url . "'";
+    if ($body !== null) {
+        $parts[] = "--header 'Content-Type: application/json'";
+        $parts[] = "--data '" . json_encode($body, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES) . "'";
+    }
+    if ($authenticated) $parts[] = "--header 'Authorization: Bearer YOUR_SECRET_TOKEN'";
+    return implode(" \\\n  ", $parts);
+}
+
+function build_axios_source(string $method, string $url, array $params, ?array $body, bool $authenticated): string {
+    $headers = [];
+    if ($body !== null) $headers['Content-Type'] = 'application/json';
+    if ($authenticated) $headers['Authorization'] = 'Bearer YOUR_SECRET_TOKEN';
+
+    $lines = ["import axios from 'axios';", '', 'const options = {'];
+    $lines[] = "  method: '" . $method . "',";
+    $lines[] = "  url: '" . $url . "',";
+    if ($params) $lines[] = '  params: ' . js_literal($params, 1) . ',';
+    if ($body !== null) $lines[] = '  data: ' . js_literal($body, 1) . ',';
+    if ($headers) $lines[] = '  headers: ' . js_literal($headers, 1) . ',';
+    $lines[] = '};';
+    $lines[] = '';
+    $lines[] = 'try {';
+    $lines[] = '  const { data } = await axios.request(options);';
+    $lines[] = '  console.log(data);';
+    $lines[] = '} catch (error) {';
+    $lines[] = '  console.error(error);';
+    $lines[] = '}';
+    return implode("\n", $lines);
+}
+
+/** Renders a PHP value as an indented JavaScript literal (2 spaces per level). */
+function js_literal($value, int $depth): string {
+    $pad = str_repeat('  ', $depth);
+    $inner = str_repeat('  ', $depth + 1);
+    if (is_array($value)) {
+        $associative = array_keys($value) !== range(0, count($value) - 1);
+        if (!$value) return $associative ? '{}' : '[]';
+        $items = [];
+        foreach ($value as $key => $item) {
+            $rendered = js_literal($item, $depth + 1);
+            $items[] = $associative
+                ? (preg_match('/^[A-Za-z_$][A-Za-z0-9_$]*$/', (string) $key) ? $key : json_encode((string) $key)) . ': ' . $rendered
+                : $rendered;
+        }
+        return ($associative ? '{' : '[') . "\n" . $inner . implode(",\n" . $inner, $items) . "\n" . $pad . ($associative ? '}' : ']');
+    }
+    if (is_bool($value)) return $value ? 'true' : 'false';
+    if ($value === null) return 'null';
+    if (is_int($value) || is_float($value)) return (string) $value;
+    return json_encode((string) $value, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+}
+
+function build_query_param_definitions(array $fields, array $searchFields, array $rules = []): array {
+    $params = [];
+    $names = array_keys($fields);
+    $listedNames = [];
+    foreach ($fields as $name => $meta) {
+        if (field_meta($meta)['listed']) $listedNames[] = $name;
+    }
+    $first = $names[0] ?? 'id';
+    $second = $names[1] ?? null;
+    $firstListed = $listedNames[0] ?? $first;
+    $secondListed = $listedNames[1] ?? null;
+
     $params[] = ['name' => 'page', 'in' => 'query', 'schema' => ['type' => 'integer', 'minimum' => 1], 'description' => 'Page number', 'example' => 1];
     $params[] = ['name' => 'limit', 'in' => 'query', 'schema' => ['type' => 'integer', 'minimum' => 1], 'description' => 'Max results per page', 'example' => 25];
     if ($searchFields) {
-        $params[] = ['name' => 'search', 'in' => 'query', 'schema' => ['type' => 'string'], 'description' => 'Full-text search over the module search fields', 'example' => 'texto de prueba'];
+        $params[] = ['name' => 'search', 'in' => 'query', 'schema' => ['type' => 'string'], 'description' => 'Full-text search over: ' . implode(', ', $searchFields) . '. Accents and stopwords are normalized before matching.', 'example' => 'texto'];
     }
-    $params[] = ['name' => 'sort', 'in' => 'query', 'schema' => ['type' => 'string'], 'description' => 'Comma-separated sort list, e.g. +field,-field', 'example' => '+created_at,-id'];
-    $params[] = ['name' => 'groupby', 'in' => 'query', 'schema' => ['type' => 'string'], 'description' => 'Comma-separated grouping fields', 'example' => 'status_id,role_id'];
-    $params[] = ['name' => 'embed', 'in' => 'query', 'schema' => ['type' => 'string'], 'description' => 'Comma-separated embeddings, e.g. pagination', 'example' => 'pagination'];
-    $params[] = ['name' => 'fields', 'in' => 'query', 'schema' => ['type' => 'string'], 'description' => 'Comma-separated output fields', 'example' => 'id,name'];
+    $params[] = [
+        'name' => 'sort',
+        'in' => 'query',
+        'schema' => ['type' => 'string'],
+        'description' => 'Comma-separated sort list, prefix each field with + (ascending) or - (descending). Allowed fields: ' . implode(', ', $names) . '.',
+        'example' => $second === null ? '+' . $first : '+' . $first . ',-' . $second,
+        'examples' => [
+            'ascending' => ['summary' => 'Ascending', 'value' => '+' . $first],
+            'descending' => ['summary' => 'Descending', 'value' => '-' . $first],
+        ],
+    ];
+    $params[] = [
+        'name' => 'groupby',
+        'in' => 'query',
+        'schema' => ['type' => 'string'],
+        'description' => 'Comma-separated grouping fields. Allowed fields: ' . implode(', ', $names) . '.',
+        'example' => $first,
+    ];
+    $params[] = [
+        'name' => 'embed',
+        'in' => 'query',
+        'schema' => ['type' => 'string', 'enum' => ['pagination']],
+        'description' => 'Comma-separated embeddings. Supported values: pagination (adds pages, results and current_page to meta).',
+        'example' => 'pagination',
+    ];
+    $params[] = [
+        'name' => 'fields',
+        'in' => 'query',
+        'schema' => ['type' => 'string'],
+        'description' => 'Comma-separated output fields. Allowed fields: ' . implode(', ', $listedNames) . '.',
+        'example' => $secondListed === null ? $firstListed : implode(',', [$firstListed, $secondListed]),
+    ];
     foreach ($fields as $name => $meta) {
         $m = field_meta($meta);
-        if ($m['filter']) {
-            $params[] = [
-                'name' => $name,
-                'in' => 'query',
-                'schema' => ['type' => 'string'],
-                'description' => $m['internal'] ? 'Internal filter field. Use campo=op:valor with operators eq, lt, gt, gte, lte, ne, lk, isn, non, in.' : 'Filterable field. Use campo=op:valor with operators eq, lt, gt, gte, lte, ne, lk, isn, non, in.',
-                'example' => guess_field_kind($name) === 'string' ? 'lk:texto' : 'eq:1',
-                'examples' => build_filter_examples($name),
-            ];
-        }
+        if (!$m['filter']) continue;
+        $notes = [];
+        if (!$m['saved'] || $m['readonly']) $notes[] = 'Read-only field (not writable on POST/PUT).';
+        if (!$m['listed']) $notes[] = 'Internal field, not returned in responses.';
+        if ($m['roles']) $notes[] = 'Only visible for roles ' . implode(', ', (array) $m['roles']) . '.';
+        $ruleDetail = describe_rules(rule_parts($rules[$name] ?? ''), false);
+        if ($ruleDetail) $notes[] = $ruleDetail;
+        $params[] = [
+            'name' => $name,
+            'in' => 'query',
+            'schema' => ['type' => 'string'],
+            'description' => trim('Filter on ' . $name . ' using campo=op:valor with operators eq, lt, gt, gte, lte, ne, lk, isn, non, in. ' . implode(' ', $notes)),
+            'example' => guess_field_kind($name) === 'string' ? 'lk:texto' : 'eq:1',
+            'examples' => build_filter_examples($name),
+        ];
     }
     return $params;
+}
+
+/** Human readable summary of a module validation rule list, e.g. "Required. Max 100 characters." */
+function describe_rules(array $parts, bool $withRequired = true): string {
+    if (!$parts) return '';
+    $out = [];
+    $names = rule_names($parts);
+    foreach ($parts as $part) {
+        $bits = explode(':', $part);
+        $name = $bits[0];
+        $arg = $bits[1] ?? '';
+        switch ($name) {
+            case 'required':
+                if ($withRequired) $out[] = 'Required';
+                break;
+            case 'max':
+                if (is_numeric($arg)) $out[] = 'Max ' . (int) $arg . ' characters';
+                break;
+            case 'min':
+                if (is_numeric($arg)) $out[] = 'Min ' . (int) $arg . ' characters';
+                break;
+            case 'max_value':
+                $out[] = 'Max value ' . $arg;
+                break;
+            case 'min_value':
+                $out[] = 'Min value ' . $arg;
+                break;
+            case 'exist':
+                $out[] = 'Must reference an existing row in ' . ($bits[1] ?? '?') . '.' . ($bits[2] ?? '');
+                break;
+            case 'unique':
+                $out[] = 'Must be unique in ' . ($bits[1] ?? '?') . '.' . ($bits[2] ?? '');
+                break;
+            case 'email':
+                $out[] = 'Valid email';
+                break;
+            case 'url':
+                $out[] = 'Valid URL';
+                break;
+            case 'rfc':
+                $out[] = 'Valid RFC';
+                break;
+            case 'date_format':
+                $out[] = 'Date formatted as YYYY-MM-DD';
+                break;
+            case 'time_format':
+                $out[] = 'Time formatted as HH:MM:SS';
+                break;
+            case 'boolean':
+                $out[] = 'Boolean';
+                break;
+            case 'decimal':
+                $out[] = 'Decimal number';
+                break;
+            case 'numeric':
+                $out[] = 'Numeric';
+                break;
+            case 'json':
+                $out[] = 'JSON string';
+                break;
+            case 'base64':
+                $out[] = 'Base64 string';
+                break;
+            case 'alpha':
+                $out[] = 'Letters only';
+                break;
+            case 'alpha_dash':
+                $out[] = 'Letters, numbers, dashes and underscores';
+                break;
+            case 'alpha_spaces':
+                $out[] = 'Letters and spaces';
+                break;
+        }
+    }
+    if ($withRequired && !in_array('required', $names, true)) {
+        array_unshift($out, 'Optional');
+    }
+    return implode('. ', $out) . (count($out) ? '.' : '');
 }
 
 function error_response_example(array $codeData, bool $withErrors = false): array {
@@ -298,6 +537,7 @@ $paths = [];
 $tags = ['Docs'];
 $moduleFieldsMap = [];
 $searchFieldsMap = [];
+$moduleRulesMap = [];
 $acceptedMethodsMap = [];
 $errorResponses = [];
 $apiCodes = load_api_codes($root . '/app/core/config/api_codes.yml');
@@ -309,6 +549,7 @@ foreach ($controllers as $module => $path) {
     if ($moduleFieldsRaw) {
         $moduleFieldsMap[$module] = parse_module_fields($moduleFieldsRaw);
     }
+    $moduleRulesMap[$module] = parse_rules($text);
     $getParamsRaw = extract_property_array($text, '$get_params');
     if ($getParamsRaw) {
         $searchFieldsMap[$module] = parse_search_fields($getParamsRaw);
@@ -350,31 +591,93 @@ $apiRoutes = [
     'hcaptcha' => ['store' => 'post'],
 ];
 
-function build_schema(array $fields, string $module): array {
-    $props = [];
-    foreach ($fields as $name => $meta) {
-        $m = field_meta($meta);
-        $schema = ['type' => 'string'];
-        if (preg_match('/(^|_)(id|status_id|role_id|period_id|provider_id|admin_unit_type_id|partida_id|contract_type_id|organization_id|subject_id|procedure_id|applicant_admin_unit_id|organizer_admin_unit_id)$/', $name)) {
-            $schema = ['type' => 'integer'];
-        }
-        if (preg_match('/(date|updated_at|created_at|dob|birthday|period)/', $name)) {
-            $schema = ['type' => 'string'];
-        }
-        if (in_array($name, ['amount_was_exceeded', 'phone_verified', 'email_verified'], true)) {
-            $schema = ['type' => 'boolean'];
-        }
-        if (in_array($name, ['total_amount', 'min_amount', 'max_amount', 'subtotal', 'exceeded_amount'], true)) {
-            $schema = ['type' => 'number'];
-        }
-        $props[$name] = $schema + [
-            'description' => $m['internal'] ? 'Internal field' : 'Public field',
-        ];
-        if ($m['default'] !== null) {
-            $props[$name]['default'] = $m['default'];
-        }
+function schema_type_for_field(string $name, array $parts): array {
+    $names = rule_names($parts);
+    $schema = ['type' => 'string'];
+    if (preg_match('/(^|_)(id|status_id|role_id|period_id|provider_id|admin_unit_type_id|partida_id|contract_type_id|organization_id|subject_id|procedure_id|applicant_admin_unit_id|organizer_admin_unit_id)$/', $name)) {
+        $schema = ['type' => 'integer'];
     }
-    return ['type' => 'object', 'properties' => $props, 'additionalProperties' => true];
+    if (preg_match('/(date|updated_at|created_at|dob|birthday|period)/', $name)) {
+        $schema = ['type' => 'string'];
+    }
+    if (in_array($name, ['amount_was_exceeded', 'phone_verified', 'email_verified'], true)) {
+        $schema = ['type' => 'boolean'];
+    }
+    if (in_array($name, ['total_amount', 'min_amount', 'max_amount', 'subtotal', 'exceeded_amount'], true)) {
+        $schema = ['type' => 'number'];
+    }
+    if (in_array('boolean', $names, true)) $schema = ['type' => 'boolean'];
+    if (in_array('decimal', $names, true)) {
+        $schema = ['type' => 'number'];
+    } elseif (in_array('numeric', $names, true) && $schema['type'] !== 'number') {
+        $schema = ['type' => 'integer'];
+    }
+    if (in_array('email', $names, true)) {
+        $schema = ['type' => 'string', 'format' => 'email'];
+    } elseif (in_array('url', $names, true)) {
+        $schema = ['type' => 'string', 'format' => 'uri'];
+    } elseif (in_array('date_format', $names, true)) {
+        $schema = ['type' => 'string', 'format' => 'date'];
+    } elseif (in_array('time_format', $names, true)) {
+        $schema = ['type' => 'string', 'format' => 'time'];
+    }
+    foreach ($parts as $part) {
+        $bits = explode(':', $part);
+        $arg = $bits[1] ?? '';
+        if (!is_numeric($arg)) continue;
+        if ($bits[0] === 'max' && $schema['type'] === 'string') $schema['maxLength'] = (int) $arg;
+        if ($bits[0] === 'min' && $schema['type'] === 'string') $schema['minLength'] = (int) $arg;
+        if ($bits[0] === 'max_value') $schema['maximum'] = (int) $arg;
+        if ($bits[0] === 'min_value') $schema['minimum'] = (int) $arg;
+    }
+    return $schema;
+}
+
+/**
+ * Request body schema for store/update: only fields the API writes, with the
+ * `required` list derived from the module `$rules` on create.
+ */
+function build_request_schema(array $fields, array $rules, string $method): array {
+    $props = [];
+    $required = [];
+    foreach ($fields as $name => $meta) {
+        if (!is_sendable($meta)) continue;
+        $m = field_meta($meta);
+        $parts = rule_parts($rules[$name] ?? '');
+        $isCreate = $method === 'store';
+        if ($isCreate && in_array('required', rule_names($parts), true)) {
+            $required[] = $name;
+        }
+        $prop = schema_type_for_field($name, $parts);
+        $notes = [];
+        $detail = describe_rules($parts, $isCreate);
+        if ($detail) $notes[] = $detail;
+        if ($m['optional']) $notes[] = 'May be omitted when creating.';
+        if (!$m['listed']) $notes[] = 'Not returned in responses.';
+        if (!$m['filter']) $notes[] = 'Not usable as a query filter.';
+        if ($m['roles']) $notes[] = 'Writable only for roles ' . implode(', ', (array) $m['roles']) . '.';
+        $prop['description'] = $notes ? implode(' ', $notes) : 'Optional field.';
+        if ($m['default'] !== null) {
+            $prop['default'] = $m['default'];
+        }
+        $props[$name] = $prop;
+    }
+    $schema = [
+        'type' => 'object',
+        'properties' => $props ?: new stdClass(),
+        'additionalProperties' => true,
+    ];
+    if (!$props) {
+        $schema['description'] = 'No writable fields are declared for this endpoint.';
+        return $schema;
+    }
+    if ($method === 'store') {
+        if ($required) $schema['required'] = $required;
+        $schema['description'] = 'Create payload with every writable field of the module. Fields listed under required must be sent; the others are optional and fall back to their default when omitted.';
+    } else {
+        $schema['description'] = 'Partial update: only fields sent with a non-empty value are updated, omitted or empty fields keep their current value.';
+    }
+    return $schema;
 }
 
 function example_value_for_field(string $name, array $meta = []): mixed {
@@ -421,7 +724,7 @@ function build_example_request(array $fields, string $module, string $method = '
     $payload = [];
     foreach ($fields as $name => $meta) {
         $m = field_meta($meta);
-        if (!$m['saved'] || $m['readonly']) continue;
+        if (!is_sendable($meta)) continue;
         if ($name === 'recovery_code') continue;
         $payload[$name] = example_value_for_field($name, $meta);
     }
@@ -651,7 +954,7 @@ foreach ($apiRoutes as $module => $methods) {
         'summary' => 'List ' . str_replace('-', ' ', $module),
         'responses' => ['200' => ['description' => 'List response']],
     ];
-    $collectionOp['parameters'] = build_query_param_definitions($fields, $searchFields);
+    $collectionOp['parameters'] = build_query_param_definitions($fields, $searchFields, $moduleRulesMap[$module] ?? []);
     $collectionOp['responses']['200']['content'] = ['application/json' => ['example' => [
         'message' => 'Success',
         'code' => 'SUCCESS',
@@ -672,14 +975,14 @@ foreach ($apiRoutes as $module => $methods) {
         $paths[$base . '/{id}']['get'] = $op;
     }
     if (isset($methods['store'])) {
-        $op = ['tags' => [ucwords(str_replace('-', ' ', $module))], 'summary' => 'Create ' . str_replace('-', ' ', $module), 'requestBody' => ['required' => true, 'content' => ['application/json' => ['schema' => build_schema($fields, $module)]]], 'responses' => ['201' => ['description' => 'Created']]];
+        $op = ['tags' => [ucwords(str_replace('-', ' ', $module))], 'summary' => 'Create ' . str_replace('-', ' ', $module), 'requestBody' => ['required' => true, 'content' => ['application/json' => ['schema' => build_request_schema($fields, $moduleRulesMap[$module] ?? [], 'store')]]], 'responses' => ['201' => ['description' => 'Created']]];
         apply_security($op, $acceptedMethodsMap[$module] ?? [], 'store');
         attach_examples($op, $fields, $module, 'store');
         add_error_responses($op, $apiCodes, in_array($module, ['attachments', 'image-upload'], true) ? 'upload' : (in_array($module, ['access'], true) ? 'access' : (in_array($module, ['mailings'], true) ? 'mailing' : 'crud')));
         $paths[$base]['post'] = $op;
     }
     if (isset($methods['update'])) {
-        $op = ['tags' => [ucwords(str_replace('-', ' ', $module))], 'summary' => 'Update ' . str_replace('-', ' ', $module), 'parameters' => [['name' => 'id', 'in' => 'path', 'required' => true, 'schema' => ['type' => 'integer']]], 'requestBody' => ['required' => true, 'content' => ['application/json' => ['schema' => build_schema($fields, $module)]]], 'responses' => ['200' => ['description' => 'Updated']]];
+        $op = ['tags' => [ucwords(str_replace('-', ' ', $module))], 'summary' => 'Update ' . str_replace('-', ' ', $module), 'parameters' => [['name' => 'id', 'in' => 'path', 'required' => true, 'schema' => ['type' => 'integer']]], 'requestBody' => ['required' => true, 'content' => ['application/json' => ['schema' => build_request_schema($fields, $moduleRulesMap[$module] ?? [], 'update')]]], 'responses' => ['200' => ['description' => 'Updated']]];
         apply_security($op, $acceptedMethodsMap[$module] ?? [], 'update');
         attach_examples($op, $fields, $module, 'update');
         add_error_responses($op, $apiCodes, 'crud');
@@ -700,6 +1003,9 @@ foreach ($paths as $path => &$item) {
         // Deterministic operationId from method + path only (task 4.2).
         $normalizedPath = strtolower(trim(preg_replace('/[^a-zA-Z0-9]+/', '_', $path), '_'));
         $op['operationId'] = strtolower($method) . '_' . $normalizedPath;
+        // Readable samples: the docs page hides Scalar's generated clients because
+        // those percent-encode the examples, so every operation carries its own.
+        $op['x-codeSamples'] = build_code_samples($path, $method, $op);
         // Every success response declares a schema instead of a bare description (task 4.3).
         foreach (['200', '201', '202'] as $status) {
             if (!isset($op['responses'][$status]) || isset($op['responses'][$status]['$ref'])) continue;
