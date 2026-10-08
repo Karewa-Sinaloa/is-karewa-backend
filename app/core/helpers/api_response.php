@@ -14,6 +14,13 @@ abstract class ApiResponse
      */
     private static array $extraHeaders = [];
 
+    private static array $allowedRoles = [];
+
+    public static function SetAllowedRoles(array $roles): void
+    {
+        self::$allowedRoles = $roles;
+    }
+
     /**
      * Queue an HTTP header to be emitted with the next response. Lets callers
      * (for example the rate limiter) attach a Retry-After header while still
@@ -58,10 +65,13 @@ abstract class ApiResponse
         ];
         if ($data) {
             foreach ($data as $key => $value) {
-                if (!in_array($key, ['code', 'http_code', 'message', 'meta'])) {
+                if (!in_array($key, ['code', 'http_code', 'message', 'meta', 'allowed_roles'])) {
                     $response->$key = $value;
                 }
             }
+        }
+        if (defined('AUTHENTICATED') && AUTHENTICATED) {
+            $response->allowed_roles = (object) self::$allowedRoles;
         }
         if ($options['meta']) {
             $response->meta = [

@@ -27,6 +27,13 @@ abstract class ModuleHandler {
 			error_logs([MODULE, 405, 'No existe el método dentro de la clase especificada: ' . $rType]);
 			ApiResponse::Set(900000);
 		}
+		$allowedRoles = [];
+		foreach (['store' => 'create', 'update' => 'edit', 'destroy' => 'delete'] as $crudMethod => $action) {
+			if (array_key_exists($crudMethod, $accepted_methods)) {
+				$allowedRoles[$action] = array_map('intval', (array) ($accepted_methods[$crudMethod][1] ?? []));
+			}
+		}
+		ApiResponse::SetAllowedRoles($allowedRoles);
 		self::Authenticate($auth, $roles, $hash);
 		// Llama al método correspondiente de la clase
 		$class->{$method}();

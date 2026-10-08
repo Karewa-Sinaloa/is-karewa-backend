@@ -235,8 +235,16 @@ final class OpenApiSyncTest extends TestCase
                     foreach ($content as $mediaType => $media) {
                         $this->assertArrayHasKey('schema', $media, "Success {$verb} {$path} {$status} ({$mediaType}) lacks schema");
                         $schemaFound = true;
-                        if ($mediaType === 'application/json' && isset($media['schema']['$ref'])) {
-                            $this->assertSame('#/components/schemas/ResponseEnvelope', $media['schema']['$ref']);
+                        if ($mediaType !== 'application/json') continue;
+                        $schema = $media['schema'];
+                        if (isset($schema['$ref'])) {
+                            $this->assertSame('#/components/schemas/ResponseEnvelope', $schema['$ref']);
+                            $jsonOps++;
+                        } elseif (isset($schema['allOf'])) {
+                            $refs = array_values(array_filter(array_column($schema['allOf'], '$ref')));
+                            $this->assertContains('#/components/schemas/ResponseEnvelope', $refs, "Success {$verb} {$path} {$status} allOf must compose the envelope");
+                            $sibling = array_values(array_filter($schema['allOf'], fn($s) => isset($s['properties']['allowed_roles'])));
+                            $this->assertNotEmpty($sibling, "Success {$verb} {$path} {$status} must declare allowed_roles");
                             $jsonOps++;
                         }
                     }
@@ -246,6 +254,31 @@ final class OpenApiSyncTest extends TestCase
         }
         $this->assertGreaterThan(50, $jsonOps, 'Expected most success responses to use the envelope schema');
         $this->assertArrayHasKey('ResponseEnvelope', self::$spec['components']['schemas']);
+    }
+
+    public function testAllowedRolesDocumentedOnlyForAuthenticatedOperations(): void
+    {
+        $secured = 0;
+        $anonymous = 0;
+        foreach (self::$spec['paths'] as $path => $ops) {
+            foreach ($ops as $verb => $op) {
+                if (!is_array($op) || !isset($op['responses'])) continue;
+                foreach (['200', '201', '202'] as $status) {
+                    $schema = $op['responses'][$status]['content']['application/json']['schema'] ?? null;
+                    if ($schema === null) continue;
+                    $encoded = json_encode($schema);
+                    if (isset($op['security'])) {
+                        $this->assertStringContainsString('allowed_roles', $encoded, "Secured {$verb} {$path} {$status} must document allowed_roles");
+                        $secured++;
+                    } else {
+                        $this->assertStringNotContainsString('allowed_roles', $encoded, "Anonymous {$verb} {$path} {$status} must not document allowed_roles");
+                        $anonymous++;
+                    }
+                }
+            }
+        }
+        $this->assertGreaterThan(0, $secured, 'Expected at least one secured operation documenting allowed_roles');
+        $this->assertGreaterThan(0, $anonymous, 'Expected at least one anonymous operation omitting allowed_roles');
     }
 
     public function testCollectionListingsHaveNo404AndEmptyExample(): void

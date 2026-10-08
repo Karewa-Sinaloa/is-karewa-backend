@@ -18,7 +18,7 @@ final class ApiResponseTest extends TestCase
      *
      * @return array{body: string, http: ?int, raw: string, exit: int}
      */
-    private function invoke(string $code, ?array $data = null, ?array $options = null): array
+    private function invoke(string $code, ?array $data = null, ?array $options = null, ?array $allowedRoles = null, bool $authenticated = false): array
     {
         $script = tempnam(sys_get_temp_dir(), 'apiresp_') . '.php';
         file_put_contents($script, "<?php\n"
@@ -29,7 +29,11 @@ final class ApiResponseTest extends TestCase
             . "function error_logs(array \$data, string \$file = DEBUG_LOG_FILE): void {}\n"
             . "require " . var_export($this->vendorAutoload(), true) . ";\n"
             . "require CORE_PATH . 'helpers/api_response.php';\n"
-            . "register_shutdown_function(function () { echo \"\\n<<<HTTP_CODE>>>\" . http_response_code(); });\n"
+            . "register_shutdown_function(function () { echo \"\n<<<HTTP_CODE>>>\" . http_response_code(); });\n"
+            . ($authenticated ? "define('AUTHENTICATED', true);\n" : '')
+            . ($allowedRoles !== null
+                ? "\\App\\Helpers\\ApiResponse::SetAllowedRoles(" . var_export($allowedRoles, true) . ");\n"
+                : '')
             . "\\App\\Helpers\\ApiResponse::Set("
             . var_export($code, true) . ', '
             . var_export($data, true) . ', '
@@ -116,5 +120,57 @@ final class ApiResponseTest extends TestCase
         $this->assertSame('test-session-id', $json['meta']['session_id']);
         $this->assertSame('kept', $json['extra']);
         $this->assertSame(200, $result['http']);
+    }
+
+    public function testAuthenticatedResponseCarriesAllowedRoles(): void
+    {
+        $roles = ['create' => [1, 2, 3], 'edit' => [1], 'delete' => [1, 2]];
+        $result = $this->invoke('SUCCESS', null, null, $roles, true);
+
+        $this->assertSame(0, $result['exit']);
+        $this->assertStringNotContainsString('Fatal error', $result['raw']);
+
+        $json = json_decode($result['body'], true);
+        $this->assertIsArray($json);
+        $this->assertSame('Success', $json['message']);
+        $this->assertSame('SUCCESS', $json['code']);
+        $this->assertArrayHasKey('allowed_roles', $json);
+        $this->assertSame($roles, $json['allowed_roles']);
+    }
+
+    public function testAnonymousResponseOmitsAllowedRoles(): void
+    {
+        $result = $this->invoke('SUCCESS', ['allowed_roles' => ['create' => [9]]]);
+
+        $this->assertSame(0, $result['exit']);
+
+        $json = json_decode($result['body'], true);
+        $this->assertIsArray($json);
+        $this->assertArrayNotHasKey('allowed_roles', $json);
+        $this->assertStringNotContainsString('allowed_roles', $result['body']);
+    }
+
+    public function testAllowedRolesCannotBeOverriddenByExtraData(): void
+    {
+        $roles = ['create' => [1]];
+        $result = $this->invoke('SUCCESS', [
+            'allowed_roles' => ['create' => [9, 9]],
+            'extra' => 'kept',
+        ], null, $roles, true);
+
+        $this->assertSame(0, $result['exit']);
+
+        $json = json_decode($result['body'], true);
+        $this->assertIsArray($json);
+        $this->assertSame($roles, $json['allowed_roles']);
+        $this->assertSame('kept', $json['extra']);
+    }
+
+    public function testAuthenticatedResponseWithNoPublishedRolesCarriesEmptyObject(): void
+    {
+        $result = $this->invoke('SUCCESS', null, null, [], true);
+
+        $this->assertSame(0, $result['exit']);
+        $this->assertStringContainsString('"allowed_roles":{}', $result['body']);
     }
 }

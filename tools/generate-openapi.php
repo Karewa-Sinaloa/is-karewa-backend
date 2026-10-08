@@ -171,18 +171,50 @@ function extract_accepted_methods(string $indexPath): ?array {
     $block = extract_property_array($text, '$accepted_methods');
     if ($block === null) return null;
     $methods = [];
-    if (preg_match_all("/'(\w+)'\s*=>\s*\[\s*(true|false)\b/i", $block, $matches, PREG_SET_ORDER)) {
+    if (preg_match_all("/'(\w+)'\s*=>\s*\[\s*(true|false)\s*,\s*(NULL|null|\[[^\]]*\])/i", $block, $matches, PREG_SET_ORDER)) {
         foreach ($matches as $m) {
-            $methods[$m[1]] = strtolower($m[2]) === 'true';
+            $roles = [];
+            if (strcasecmp($m[3], 'null') !== 0 && preg_match_all('/\d+/', $m[3], $numbers)) {
+                $roles = array_map('intval', $numbers[0]);
+            }
+            $methods[$m[1]] = [strtolower($m[2]) === 'true', $roles];
         }
     }
     return $methods ?: null;
 }
 
 function apply_security(array &$op, array $accepted, string $method): void {
-    if (($accepted[$method] ?? false) === true) {
+    if (($accepted[$method][0] ?? false) === true) {
         $op['security'] = [['bearerAuth' => []]];
     }
+}
+
+/**
+ * allowed_roles value for a module's response example: mirrors the runtime
+ * aggregation (store -> create, update -> edit, destroy -> delete, empty
+ * array = any authenticated role), omitting undeclared actions.
+ */
+function allowed_roles_example(array $accepted): object {
+    $roles = new stdClass();
+    foreach (['store' => 'create', 'update' => 'edit', 'destroy' => 'delete'] as $crudMethod => $action) {
+        if (array_key_exists($crudMethod, $accepted)) {
+            $roles->$action = $accepted[$crudMethod][1];
+        }
+    }
+    return $roles;
+}
+
+function allowed_roles_schema(): array {
+    return [
+        'type' => 'object',
+        'description' => 'Roles allowed to create, edit and delete this resource; present only on authenticated responses.',
+        'properties' => [
+            'create' => ['type' => 'array', 'items' => ['type' => 'integer'], 'description' => 'Role IDs allowed to create (empty array = any authenticated role)'],
+            'edit'   => ['type' => 'array', 'items' => ['type' => 'integer'], 'description' => 'Role IDs allowed to edit (empty array = any authenticated role)'],
+            'delete' => ['type' => 'array', 'items' => ['type' => 'integer'], 'description' => 'Role IDs allowed to delete (empty array = any authenticated role)'],
+        ],
+        'additionalProperties' => false,
+    ];
 }
 
 function field_meta(array $field): array {
@@ -1083,7 +1115,20 @@ foreach ($paths as $path => &$item) {
                 if (!isset($response['content']['application/json'])) {
                     $response['content']['application/json'] = [];
                 }
-                $response['content']['application/json']['schema'] = ['$ref' => '#/components/schemas/ResponseEnvelope'];
+                if (isset($op['security'])) {
+                    $response['content']['application/json']['schema'] = [
+                        'allOf' => [
+                            ['$ref' => '#/components/schemas/ResponseEnvelope'],
+                            ['type' => 'object', 'properties' => ['allowed_roles' => allowed_roles_schema()]],
+                        ],
+                    ];
+                    $moduleForPath = explode('/', trim($path, '/'))[0];
+                    if (isset($response['content']['application/json']['example'])) {
+                        $response['content']['application/json']['example']['allowed_roles'] = allowed_roles_example($acceptedMethodsMap[$moduleForPath] ?? []);
+                    }
+                } else {
+                    $response['content']['application/json']['schema'] = ['$ref' => '#/components/schemas/ResponseEnvelope'];
+                }
                 $op['responses'][$status] = $response;
             }
         }
