@@ -201,6 +201,21 @@
                     }
                 }
             },
+            "Error901009": {
+                "description": "Not allowed to modify this entry",
+                "content": {
+                    "application/json": {
+                        "example": {
+                            "message": "Not allowed to modify this entry",
+                            "http_code": 403,
+                            "code": "APP_AUTH_ROW_FORBIDDEN",
+                            "meta": {
+                                "session_id": "uuid"
+                            }
+                        }
+                    }
+                }
+            },
             "Error902002": {
                 "description": "Entry asociated to another entry or table, you should remove that first",
                 "content": {
@@ -818,7 +833,7 @@
                         "schema": {
                             "type": "string"
                         },
-                        "description": "Comma-separated sort list, prefix each field with + (ascending) or - (descending). Allowed fields: id, title, slug, content, status_id, excerpt, thumbnail.",
+                        "description": "Comma-separated sort list, prefix each field with + (ascending) or - (descending). Allowed fields: id, title, slug, content, status_id, excerpt, thumbnail, tags.",
                         "example": "+id,-title",
                         "examples": {
                             "ascending": {
@@ -837,7 +852,7 @@
                         "schema": {
                             "type": "string"
                         },
-                        "description": "Comma-separated grouping fields. Allowed fields: id, title, slug, content, status_id, excerpt, thumbnail.",
+                        "description": "Comma-separated grouping fields. Allowed fields: id, title, slug, content, status_id, excerpt, thumbnail, tags.",
                         "example": "id"
                     },
                     {
@@ -858,7 +873,7 @@
                         "schema": {
                             "type": "string"
                         },
-                        "description": "Comma-separated output fields. Allowed fields: id, title, slug, content, status_id, excerpt, thumbnail.",
+                        "description": "Comma-separated output fields. Allowed fields: id, title, slug, content, status_id, excerpt, thumbnail, tags.",
                         "example": "id,title"
                     },
                     {
@@ -1113,6 +1128,41 @@
                                 "value": "in:texto1,texto2"
                             }
                         }
+                    },
+                    {
+                        "name": "tags",
+                        "in": "query",
+                        "schema": {
+                            "type": "string"
+                        },
+                        "description": "Filter on tags using campo=op:valor with operators eq, lt, gt, gte, lte, ne, lk, isn, non, in.",
+                        "example": "lk:texto",
+                        "examples": {
+                            "equals": {
+                                "summary": "Equal",
+                                "value": "eq:texto"
+                            },
+                            "like": {
+                                "summary": "Contains",
+                                "value": "lk:texto"
+                            },
+                            "notEqual": {
+                                "summary": "Not equal",
+                                "value": "ne:texto"
+                            },
+                            "isNull": {
+                                "summary": "Is null",
+                                "value": "isn"
+                            },
+                            "notNull": {
+                                "summary": "Is not null",
+                                "value": "non"
+                            },
+                            "inList": {
+                                "summary": "In list",
+                                "value": "in:texto1,texto2"
+                            }
+                        }
                     }
                 ],
                 "operationId": "get_pages",
@@ -1120,12 +1170,12 @@
                     {
                         "lang": "Shell",
                         "label": "cURL",
-                        "source": "curl \\\n  --url 'https://kapi.chavodigital.com/api/v5/pages?page=1&limit=25&search=texto&sort=+id,-title&groupby=id&embed=pagination&fields=id,title&id=eq:1&title=lk:texto&slug=lk:texto&content=lk:texto&status_id=eq:1&excerpt=lk:texto&thumbnail=lk:texto'"
+                        "source": "curl \\\n  --url 'https://kapi.chavodigital.com/api/v5/pages?page=1&limit=25&search=texto&sort=+id,-title&groupby=id&embed=pagination&fields=id,title&id=eq:1&title=lk:texto&slug=lk:texto&content=lk:texto&status_id=eq:1&excerpt=lk:texto&thumbnail=lk:texto&tags=lk:texto'"
                     },
                     {
                         "lang": "JavaScript",
                         "label": "axios",
-                        "source": "import axios from 'axios';\n\nconst options = {\n  method: 'GET',\n  url: 'https://kapi.chavodigital.com/api/v5/pages?page=1&limit=25&search=texto&sort=+id,-title&groupby=id&embed=pagination&fields=id,title&id=eq:1&title=lk:texto&slug=lk:texto&content=lk:texto&status_id=eq:1&excerpt=lk:texto&thumbnail=lk:texto',\n  params: {\n    page: \"1\",\n    limit: \"25\",\n    search: \"texto\",\n    sort: \"+id,-title\",\n    groupby: \"id\",\n    embed: \"pagination\",\n    fields: \"id,title\",\n    id: \"eq:1\",\n    title: \"lk:texto\",\n    slug: \"lk:texto\",\n    content: \"lk:texto\",\n    status_id: \"eq:1\",\n    excerpt: \"lk:texto\",\n    thumbnail: \"lk:texto\"\n  },\n};\n\ntry {\n  const { data } = await axios.request(options);\n  console.log(data);\n} catch (error) {\n  console.error(error);\n}"
+                        "source": "import axios from 'axios';\n\nconst options = {\n  method: 'GET',\n  url: 'https://kapi.chavodigital.com/api/v5/pages?page=1&limit=25&search=texto&sort=+id,-title&groupby=id&embed=pagination&fields=id,title&id=eq:1&title=lk:texto&slug=lk:texto&content=lk:texto&status_id=eq:1&excerpt=lk:texto&thumbnail=lk:texto&tags=lk:texto',\n  params: {\n    page: \"1\",\n    limit: \"25\",\n    search: \"texto\",\n    sort: \"+id,-title\",\n    groupby: \"id\",\n    embed: \"pagination\",\n    fields: \"id,title\",\n    id: \"eq:1\",\n    title: \"lk:texto\",\n    slug: \"lk:texto\",\n    content: \"lk:texto\",\n    status_id: \"eq:1\",\n    excerpt: \"lk:texto\",\n    thumbnail: \"lk:texto\",\n    tags: \"lk:texto\"\n  },\n};\n\ntry {\n  const { data } = await axios.request(options);\n  console.log(data);\n} catch (error) {\n  console.error(error);\n}"
                     }
                 ]
             },
@@ -1168,6 +1218,10 @@
                                     "thumbnail": {
                                         "type": "string",
                                         "description": "Optional. JSON string."
+                                    },
+                                    "tags": {
+                                        "type": "string",
+                                        "description": "Optional field."
                                     }
                                 },
                                 "additionalProperties": true,
@@ -1183,7 +1237,8 @@
                                 "content": "example",
                                 "status_id": 1,
                                 "excerpt": "example",
-                                "thumbnail": "example"
+                                "thumbnail": "example",
+                                "tags": "example"
                             }
                         }
                     }
@@ -1242,12 +1297,12 @@
                     {
                         "lang": "Shell",
                         "label": "cURL",
-                        "source": "curl \\\n  --request POST \\\n  --url 'https://kapi.chavodigital.com/api/v5/pages' \\\n  --header 'Content-Type: application/json' \\\n  --data '{\n    \"title\": \"example\",\n    \"slug\": \"example-slug\",\n    \"content\": \"example\",\n    \"status_id\": 1,\n    \"excerpt\": \"example\",\n    \"thumbnail\": \"example\"\n}' \\\n  --header 'Authorization: Bearer YOUR_SECRET_TOKEN'"
+                        "source": "curl \\\n  --request POST \\\n  --url 'https://kapi.chavodigital.com/api/v5/pages' \\\n  --header 'Content-Type: application/json' \\\n  --data '{\n    \"title\": \"example\",\n    \"slug\": \"example-slug\",\n    \"content\": \"example\",\n    \"status_id\": 1,\n    \"excerpt\": \"example\",\n    \"thumbnail\": \"example\",\n    \"tags\": \"example\"\n}' \\\n  --header 'Authorization: Bearer YOUR_SECRET_TOKEN'"
                     },
                     {
                         "lang": "JavaScript",
                         "label": "axios",
-                        "source": "import axios from 'axios';\n\nconst options = {\n  method: 'POST',\n  url: 'https://kapi.chavodigital.com/api/v5/pages',\n  data: {\n    title: \"example\",\n    slug: \"example-slug\",\n    content: \"example\",\n    status_id: 1,\n    excerpt: \"example\",\n    thumbnail: \"example\"\n  },\n  headers: {\n    \"Content-Type\": \"application/json\",\n    Authorization: \"Bearer YOUR_SECRET_TOKEN\"\n  },\n};\n\ntry {\n  const { data } = await axios.request(options);\n  console.log(data);\n} catch (error) {\n  console.error(error);\n}"
+                        "source": "import axios from 'axios';\n\nconst options = {\n  method: 'POST',\n  url: 'https://kapi.chavodigital.com/api/v5/pages',\n  data: {\n    title: \"example\",\n    slug: \"example-slug\",\n    content: \"example\",\n    status_id: 1,\n    excerpt: \"example\",\n    thumbnail: \"example\",\n    tags: \"example\"\n  },\n  headers: {\n    \"Content-Type\": \"application/json\",\n    Authorization: \"Bearer YOUR_SECRET_TOKEN\"\n  },\n};\n\ntry {\n  const { data } = await axios.request(options);\n  console.log(data);\n} catch (error) {\n  console.error(error);\n}"
                     }
                 ]
             }
@@ -1284,7 +1339,8 @@
                                         "content": "example",
                                         "status_id": 1,
                                         "excerpt": "example",
-                                        "thumbnail": "example"
+                                        "thumbnail": "example",
+                                        "tags": "example"
                                     },
                                     "meta": {
                                         "session_id": "uuid"
@@ -1381,6 +1437,10 @@
                                     "thumbnail": {
                                         "type": "string",
                                         "description": "JSON string."
+                                    },
+                                    "tags": {
+                                        "type": "string",
+                                        "description": "Optional field."
                                     }
                                 },
                                 "additionalProperties": true,
@@ -1392,7 +1452,8 @@
                                 "content": "example",
                                 "status_id": 1,
                                 "excerpt": "example",
-                                "thumbnail": "example"
+                                "thumbnail": "example",
+                                "tags": "example"
                             }
                         }
                     }
@@ -1451,12 +1512,12 @@
                     {
                         "lang": "Shell",
                         "label": "cURL",
-                        "source": "curl \\\n  --request PUT \\\n  --url 'https://kapi.chavodigital.com/api/v5/pages/1' \\\n  --header 'Content-Type: application/json' \\\n  --data '{\n    \"title\": \"example\",\n    \"slug\": \"example-slug\",\n    \"content\": \"example\",\n    \"status_id\": 1,\n    \"excerpt\": \"example\",\n    \"thumbnail\": \"example\"\n}' \\\n  --header 'Authorization: Bearer YOUR_SECRET_TOKEN'"
+                        "source": "curl \\\n  --request PUT \\\n  --url 'https://kapi.chavodigital.com/api/v5/pages/1' \\\n  --header 'Content-Type: application/json' \\\n  --data '{\n    \"title\": \"example\",\n    \"slug\": \"example-slug\",\n    \"content\": \"example\",\n    \"status_id\": 1,\n    \"excerpt\": \"example\",\n    \"thumbnail\": \"example\",\n    \"tags\": \"example\"\n}' \\\n  --header 'Authorization: Bearer YOUR_SECRET_TOKEN'"
                     },
                     {
                         "lang": "JavaScript",
                         "label": "axios",
-                        "source": "import axios from 'axios';\n\nconst options = {\n  method: 'PUT',\n  url: 'https://kapi.chavodigital.com/api/v5/pages/1',\n  data: {\n    title: \"example\",\n    slug: \"example-slug\",\n    content: \"example\",\n    status_id: 1,\n    excerpt: \"example\",\n    thumbnail: \"example\"\n  },\n  headers: {\n    \"Content-Type\": \"application/json\",\n    Authorization: \"Bearer YOUR_SECRET_TOKEN\"\n  },\n};\n\ntry {\n  const { data } = await axios.request(options);\n  console.log(data);\n} catch (error) {\n  console.error(error);\n}"
+                        "source": "import axios from 'axios';\n\nconst options = {\n  method: 'PUT',\n  url: 'https://kapi.chavodigital.com/api/v5/pages/1',\n  data: {\n    title: \"example\",\n    slug: \"example-slug\",\n    content: \"example\",\n    status_id: 1,\n    excerpt: \"example\",\n    thumbnail: \"example\",\n    tags: \"example\"\n  },\n  headers: {\n    \"Content-Type\": \"application/json\",\n    Authorization: \"Bearer YOUR_SECRET_TOKEN\"\n  },\n};\n\ntry {\n  const { data } = await axios.request(options);\n  console.log(data);\n} catch (error) {\n  console.error(error);\n}"
                     }
                 ]
             },
@@ -2039,7 +2100,7 @@
                         "name": "phone_verified",
                         "in": "query",
                         "schema": {
-                            "type": "string"
+                            "type": "boolean"
                         },
                         "description": "Filter on phone_verified using campo=op:valor with operators eq, lt, gt, gte, lte, ne, lk, isn, non, in. Boolean.",
                         "example": "eq:1",
@@ -4117,7 +4178,7 @@
                         "schema": {
                             "type": "string"
                         },
-                        "description": "Comma-separated sort list, prefix each field with + (ascending) or - (descending). Allowed fields: id, procedure_id, subject_id, admin_period_start, admin_period_end, fiscal_year, period_id, contract_id, partida_type, partida_id, status_id, call_link, call_date, work_description, clarification_meeting_date, proposals_url, proposal_url, provider_id, organizer_admin_unit_id, applicant_admin_unit_id, admin_unit_type_id, contract_number, contract_date, contract_type_id, total_amount, min_amount, max_amount, subtotal, contract_link, area_in_charge, contract_updated_at, notes, organization_notes, information_date, amount_was_exceeded, exceeded_amount, contract_backup, announcement_backup, created_at, updated_at, provider_name, organizer_admin_unit_name, applicant_admin_unit_name, admin_unit_type_name, contract_type_name, period_name, procedure_name, subject_name, partida_type_name.",
+                        "description": "Comma-separated sort list, prefix each field with + (ascending) or - (descending). Allowed fields: id, procedure_id, subject_id, admin_period_start, admin_period_end, fiscal_year, period_id, contract_id, partida_type, partida_id, status_id, call_link, call_date, work_description, clarification_meeting_date, proposals_url, proposal_url, provider_id, organizer_admin_unit_id, applicant_admin_unit_id, admin_unit_type_id, contract_number, contract_date, contract_type_id, total_amount, min_amount, max_amount, subtotal, contract_link, area_in_charge, contract_updated_at, notes, organization_notes, information_date, amount_was_exceeded, exceeded_amount, contract_backup, announcement_backup, created_at, updated_at, provider_name, organizer_admin_unit_name, applicant_admin_unit_name, admin_unit_type_name, contract_type_name, period_name, procedure_name, subject_name, partida_type_name, status_name.",
                         "example": "+id,-procedure_id",
                         "examples": {
                             "ascending": {
@@ -4136,7 +4197,7 @@
                         "schema": {
                             "type": "string"
                         },
-                        "description": "Comma-separated grouping fields. Allowed fields: id, procedure_id, subject_id, admin_period_start, admin_period_end, fiscal_year, period_id, contract_id, partida_type, partida_id, status_id, call_link, call_date, work_description, clarification_meeting_date, proposals_url, proposal_url, provider_id, organizer_admin_unit_id, applicant_admin_unit_id, admin_unit_type_id, contract_number, contract_date, contract_type_id, total_amount, min_amount, max_amount, subtotal, contract_link, area_in_charge, contract_updated_at, notes, organization_notes, information_date, amount_was_exceeded, exceeded_amount, contract_backup, announcement_backup, created_at, updated_at, provider_name, organizer_admin_unit_name, applicant_admin_unit_name, admin_unit_type_name, contract_type_name, period_name, procedure_name, subject_name, partida_type_name.",
+                        "description": "Comma-separated grouping fields. Allowed fields: id, procedure_id, subject_id, admin_period_start, admin_period_end, fiscal_year, period_id, contract_id, partida_type, partida_id, status_id, call_link, call_date, work_description, clarification_meeting_date, proposals_url, proposal_url, provider_id, organizer_admin_unit_id, applicant_admin_unit_id, admin_unit_type_id, contract_number, contract_date, contract_type_id, total_amount, min_amount, max_amount, subtotal, contract_link, area_in_charge, contract_updated_at, notes, organization_notes, information_date, amount_was_exceeded, exceeded_amount, contract_backup, announcement_backup, created_at, updated_at, provider_name, organizer_admin_unit_name, applicant_admin_unit_name, admin_unit_type_name, contract_type_name, period_name, procedure_name, subject_name, partida_type_name, status_name.",
                         "example": "id"
                     },
                     {
@@ -4157,7 +4218,7 @@
                         "schema": {
                             "type": "string"
                         },
-                        "description": "Comma-separated output fields. Allowed fields: id, procedure_id, subject_id, admin_period_start, admin_period_end, fiscal_year, period_id, contract_id, partida_type, partida_id, status_id, call_link, call_date, work_description, clarification_meeting_date, proposals_url, proposal_url, provider_id, organizer_admin_unit_id, applicant_admin_unit_id, admin_unit_type_id, contract_number, contract_date, contract_type_id, total_amount, min_amount, max_amount, subtotal, contract_link, area_in_charge, contract_updated_at, notes, organization_notes, information_date, amount_was_exceeded, exceeded_amount, contract_backup, announcement_backup, created_at, updated_at, provider_name, organizer_admin_unit_name, applicant_admin_unit_name, admin_unit_type_name, contract_type_name, period_name, procedure_name, subject_name, partida_type_name.",
+                        "description": "Comma-separated output fields. Allowed fields: id, procedure_id, subject_id, admin_period_start, admin_period_end, fiscal_year, period_id, contract_id, partida_type, partida_id, status_id, call_link, call_date, work_description, clarification_meeting_date, proposals_url, proposal_url, provider_id, organizer_admin_unit_id, applicant_admin_unit_id, admin_unit_type_id, contract_number, contract_date, contract_type_id, total_amount, min_amount, max_amount, subtotal, contract_link, area_in_charge, contract_updated_at, notes, organization_notes, information_date, amount_was_exceeded, exceeded_amount, contract_backup, announcement_backup, created_at, updated_at, provider_name, organizer_admin_unit_name, applicant_admin_unit_name, admin_unit_type_name, contract_type_name, period_name, procedure_name, subject_name, partida_type_name, status_name.",
                         "example": "id,procedure_id"
                     },
                     {
@@ -5418,7 +5479,7 @@
                         "name": "amount_was_exceeded",
                         "in": "query",
                         "schema": {
-                            "type": "string"
+                            "type": "boolean"
                         },
                         "description": "Filter on amount_was_exceeded using campo=op:valor with operators eq, lt, gt, gte, lte, ne, lk, isn, non, in. Boolean.",
                         "example": "eq:1",
@@ -5934,6 +5995,41 @@
                                 "value": "in:texto1,texto2"
                             }
                         }
+                    },
+                    {
+                        "name": "status_name",
+                        "in": "query",
+                        "schema": {
+                            "type": "string"
+                        },
+                        "description": "Filter on status_name using campo=op:valor with operators eq, lt, gt, gte, lte, ne, lk, isn, non, in. Read-only field (not writable on POST/PUT).",
+                        "example": "lk:texto",
+                        "examples": {
+                            "equals": {
+                                "summary": "Equal",
+                                "value": "eq:texto"
+                            },
+                            "like": {
+                                "summary": "Contains",
+                                "value": "lk:texto"
+                            },
+                            "notEqual": {
+                                "summary": "Not equal",
+                                "value": "ne:texto"
+                            },
+                            "isNull": {
+                                "summary": "Is null",
+                                "value": "isn"
+                            },
+                            "notNull": {
+                                "summary": "Is not null",
+                                "value": "non"
+                            },
+                            "inList": {
+                                "summary": "In list",
+                                "value": "in:texto1,texto2"
+                            }
+                        }
                     }
                 ],
                 "operationId": "get_contracts",
@@ -5941,12 +6037,12 @@
                     {
                         "lang": "Shell",
                         "label": "cURL",
-                        "source": "curl \\\n  --url 'https://kapi.chavodigital.com/api/v5/contracts?page=1&limit=25&sort=+id,-procedure_id&groupby=id&embed=pagination&fields=id,procedure_id&id=eq:1&procedure_id=eq:1&subject_id=eq:1&admin_period_start=eq:1&admin_period_end=eq:1&fiscal_year=lk:texto&period_id=eq:1&contract_id=eq:1&partida_type=lk:texto&partida_id=eq:1&status_id=eq:1&call_link=lk:texto&call_date=eq:1&work_description=lk:texto&clarification_meeting_date=eq:1&proposals_url=lk:texto&proposal_url=lk:texto&provider_id=eq:1&organizer_admin_unit_id=eq:1&applicant_admin_unit_id=eq:1&admin_unit_type_id=eq:1&contract_number=lk:texto&contract_date=eq:1&contract_type_id=eq:1&total_amount=eq:1&min_amount=eq:1&max_amount=eq:1&subtotal=eq:1&contract_link=lk:texto&area_in_charge=lk:texto&contract_updated_at=eq:1&notes=lk:texto&organization_notes=lk:texto&information_date=eq:1&amount_was_exceeded=eq:1&exceeded_amount=eq:1&contract_backup=lk:texto&announcement_backup=lk:texto&created_at=eq:1&updated_at=eq:1&provider_name=lk:texto&organizer_admin_unit_name=lk:texto&applicant_admin_unit_name=lk:texto&admin_unit_type_name=lk:texto&contract_type_name=lk:texto&period_name=eq:1&procedure_name=lk:texto&subject_name=lk:texto&partida_type_name=lk:texto'"
+                        "source": "curl \\\n  --url 'https://kapi.chavodigital.com/api/v5/contracts?page=1&limit=25&sort=+id,-procedure_id&groupby=id&embed=pagination&fields=id,procedure_id&id=eq:1&procedure_id=eq:1&subject_id=eq:1&admin_period_start=eq:1&admin_period_end=eq:1&fiscal_year=lk:texto&period_id=eq:1&contract_id=eq:1&partida_type=lk:texto&partida_id=eq:1&status_id=eq:1&call_link=lk:texto&call_date=eq:1&work_description=lk:texto&clarification_meeting_date=eq:1&proposals_url=lk:texto&proposal_url=lk:texto&provider_id=eq:1&organizer_admin_unit_id=eq:1&applicant_admin_unit_id=eq:1&admin_unit_type_id=eq:1&contract_number=lk:texto&contract_date=eq:1&contract_type_id=eq:1&total_amount=eq:1&min_amount=eq:1&max_amount=eq:1&subtotal=eq:1&contract_link=lk:texto&area_in_charge=lk:texto&contract_updated_at=eq:1&notes=lk:texto&organization_notes=lk:texto&information_date=eq:1&amount_was_exceeded=eq:1&exceeded_amount=eq:1&contract_backup=lk:texto&announcement_backup=lk:texto&created_at=eq:1&updated_at=eq:1&provider_name=lk:texto&organizer_admin_unit_name=lk:texto&applicant_admin_unit_name=lk:texto&admin_unit_type_name=lk:texto&contract_type_name=lk:texto&period_name=eq:1&procedure_name=lk:texto&subject_name=lk:texto&partida_type_name=lk:texto&status_name=lk:texto'"
                     },
                     {
                         "lang": "JavaScript",
                         "label": "axios",
-                        "source": "import axios from 'axios';\n\nconst options = {\n  method: 'GET',\n  url: 'https://kapi.chavodigital.com/api/v5/contracts?page=1&limit=25&sort=+id,-procedure_id&groupby=id&embed=pagination&fields=id,procedure_id&id=eq:1&procedure_id=eq:1&subject_id=eq:1&admin_period_start=eq:1&admin_period_end=eq:1&fiscal_year=lk:texto&period_id=eq:1&contract_id=eq:1&partida_type=lk:texto&partida_id=eq:1&status_id=eq:1&call_link=lk:texto&call_date=eq:1&work_description=lk:texto&clarification_meeting_date=eq:1&proposals_url=lk:texto&proposal_url=lk:texto&provider_id=eq:1&organizer_admin_unit_id=eq:1&applicant_admin_unit_id=eq:1&admin_unit_type_id=eq:1&contract_number=lk:texto&contract_date=eq:1&contract_type_id=eq:1&total_amount=eq:1&min_amount=eq:1&max_amount=eq:1&subtotal=eq:1&contract_link=lk:texto&area_in_charge=lk:texto&contract_updated_at=eq:1&notes=lk:texto&organization_notes=lk:texto&information_date=eq:1&amount_was_exceeded=eq:1&exceeded_amount=eq:1&contract_backup=lk:texto&announcement_backup=lk:texto&created_at=eq:1&updated_at=eq:1&provider_name=lk:texto&organizer_admin_unit_name=lk:texto&applicant_admin_unit_name=lk:texto&admin_unit_type_name=lk:texto&contract_type_name=lk:texto&period_name=eq:1&procedure_name=lk:texto&subject_name=lk:texto&partida_type_name=lk:texto',\n  params: {\n    page: \"1\",\n    limit: \"25\",\n    sort: \"+id,-procedure_id\",\n    groupby: \"id\",\n    embed: \"pagination\",\n    fields: \"id,procedure_id\",\n    id: \"eq:1\",\n    procedure_id: \"eq:1\",\n    subject_id: \"eq:1\",\n    admin_period_start: \"eq:1\",\n    admin_period_end: \"eq:1\",\n    fiscal_year: \"lk:texto\",\n    period_id: \"eq:1\",\n    contract_id: \"eq:1\",\n    partida_type: \"lk:texto\",\n    partida_id: \"eq:1\",\n    status_id: \"eq:1\",\n    call_link: \"lk:texto\",\n    call_date: \"eq:1\",\n    work_description: \"lk:texto\",\n    clarification_meeting_date: \"eq:1\",\n    proposals_url: \"lk:texto\",\n    proposal_url: \"lk:texto\",\n    provider_id: \"eq:1\",\n    organizer_admin_unit_id: \"eq:1\",\n    applicant_admin_unit_id: \"eq:1\",\n    admin_unit_type_id: \"eq:1\",\n    contract_number: \"lk:texto\",\n    contract_date: \"eq:1\",\n    contract_type_id: \"eq:1\",\n    total_amount: \"eq:1\",\n    min_amount: \"eq:1\",\n    max_amount: \"eq:1\",\n    subtotal: \"eq:1\",\n    contract_link: \"lk:texto\",\n    area_in_charge: \"lk:texto\",\n    contract_updated_at: \"eq:1\",\n    notes: \"lk:texto\",\n    organization_notes: \"lk:texto\",\n    information_date: \"eq:1\",\n    amount_was_exceeded: \"eq:1\",\n    exceeded_amount: \"eq:1\",\n    contract_backup: \"lk:texto\",\n    announcement_backup: \"lk:texto\",\n    created_at: \"eq:1\",\n    updated_at: \"eq:1\",\n    provider_name: \"lk:texto\",\n    organizer_admin_unit_name: \"lk:texto\",\n    applicant_admin_unit_name: \"lk:texto\",\n    admin_unit_type_name: \"lk:texto\",\n    contract_type_name: \"lk:texto\",\n    period_name: \"eq:1\",\n    procedure_name: \"lk:texto\",\n    subject_name: \"lk:texto\",\n    partida_type_name: \"lk:texto\"\n  },\n};\n\ntry {\n  const { data } = await axios.request(options);\n  console.log(data);\n} catch (error) {\n  console.error(error);\n}"
+                        "source": "import axios from 'axios';\n\nconst options = {\n  method: 'GET',\n  url: 'https://kapi.chavodigital.com/api/v5/contracts?page=1&limit=25&sort=+id,-procedure_id&groupby=id&embed=pagination&fields=id,procedure_id&id=eq:1&procedure_id=eq:1&subject_id=eq:1&admin_period_start=eq:1&admin_period_end=eq:1&fiscal_year=lk:texto&period_id=eq:1&contract_id=eq:1&partida_type=lk:texto&partida_id=eq:1&status_id=eq:1&call_link=lk:texto&call_date=eq:1&work_description=lk:texto&clarification_meeting_date=eq:1&proposals_url=lk:texto&proposal_url=lk:texto&provider_id=eq:1&organizer_admin_unit_id=eq:1&applicant_admin_unit_id=eq:1&admin_unit_type_id=eq:1&contract_number=lk:texto&contract_date=eq:1&contract_type_id=eq:1&total_amount=eq:1&min_amount=eq:1&max_amount=eq:1&subtotal=eq:1&contract_link=lk:texto&area_in_charge=lk:texto&contract_updated_at=eq:1&notes=lk:texto&organization_notes=lk:texto&information_date=eq:1&amount_was_exceeded=eq:1&exceeded_amount=eq:1&contract_backup=lk:texto&announcement_backup=lk:texto&created_at=eq:1&updated_at=eq:1&provider_name=lk:texto&organizer_admin_unit_name=lk:texto&applicant_admin_unit_name=lk:texto&admin_unit_type_name=lk:texto&contract_type_name=lk:texto&period_name=eq:1&procedure_name=lk:texto&subject_name=lk:texto&partida_type_name=lk:texto&status_name=lk:texto',\n  params: {\n    page: \"1\",\n    limit: \"25\",\n    sort: \"+id,-procedure_id\",\n    groupby: \"id\",\n    embed: \"pagination\",\n    fields: \"id,procedure_id\",\n    id: \"eq:1\",\n    procedure_id: \"eq:1\",\n    subject_id: \"eq:1\",\n    admin_period_start: \"eq:1\",\n    admin_period_end: \"eq:1\",\n    fiscal_year: \"lk:texto\",\n    period_id: \"eq:1\",\n    contract_id: \"eq:1\",\n    partida_type: \"lk:texto\",\n    partida_id: \"eq:1\",\n    status_id: \"eq:1\",\n    call_link: \"lk:texto\",\n    call_date: \"eq:1\",\n    work_description: \"lk:texto\",\n    clarification_meeting_date: \"eq:1\",\n    proposals_url: \"lk:texto\",\n    proposal_url: \"lk:texto\",\n    provider_id: \"eq:1\",\n    organizer_admin_unit_id: \"eq:1\",\n    applicant_admin_unit_id: \"eq:1\",\n    admin_unit_type_id: \"eq:1\",\n    contract_number: \"lk:texto\",\n    contract_date: \"eq:1\",\n    contract_type_id: \"eq:1\",\n    total_amount: \"eq:1\",\n    min_amount: \"eq:1\",\n    max_amount: \"eq:1\",\n    subtotal: \"eq:1\",\n    contract_link: \"lk:texto\",\n    area_in_charge: \"lk:texto\",\n    contract_updated_at: \"eq:1\",\n    notes: \"lk:texto\",\n    organization_notes: \"lk:texto\",\n    information_date: \"eq:1\",\n    amount_was_exceeded: \"eq:1\",\n    exceeded_amount: \"eq:1\",\n    contract_backup: \"lk:texto\",\n    announcement_backup: \"lk:texto\",\n    created_at: \"eq:1\",\n    updated_at: \"eq:1\",\n    provider_name: \"lk:texto\",\n    organizer_admin_unit_name: \"lk:texto\",\n    applicant_admin_unit_name: \"lk:texto\",\n    admin_unit_type_name: \"lk:texto\",\n    contract_type_name: \"lk:texto\",\n    period_name: \"eq:1\",\n    procedure_name: \"lk:texto\",\n    subject_name: \"lk:texto\",\n    partida_type_name: \"lk:texto\",\n    status_name: \"lk:texto\"\n  },\n};\n\ntry {\n  const { data } = await axios.request(options);\n  console.log(data);\n} catch (error) {\n  console.error(error);\n}"
                     }
                 ]
             },
@@ -6111,7 +6207,7 @@
                                     "amount_was_exceeded": {
                                         "type": "boolean",
                                         "description": "Optional. Boolean.",
-                                        "default": 0
+                                        "default": false
                                     },
                                     "exceeded_amount": {
                                         "type": "number",
@@ -6317,7 +6413,8 @@
                                         "period_name": "2026-08-21",
                                         "procedure_name": "example",
                                         "subject_name": "example",
-                                        "partida_type_name": "example"
+                                        "partida_type_name": "example",
+                                        "status_name": "example"
                                     },
                                     "meta": {
                                         "session_id": "uuid"
@@ -6536,7 +6633,7 @@
                                     "amount_was_exceeded": {
                                         "type": "boolean",
                                         "description": "Boolean.",
-                                        "default": 0
+                                        "default": false
                                     },
                                     "exceeded_amount": {
                                         "type": "number",
@@ -6807,7 +6904,7 @@
                         "schema": {
                             "type": "string"
                         },
-                        "description": "Comma-separated sort list, prefix each field with + (ascending) or - (descending). Allowed fields: id, name.",
+                        "description": "Comma-separated sort list, prefix each field with + (ascending) or - (descending). Allowed fields: id, name, slug.",
                         "example": "+id,-name",
                         "examples": {
                             "ascending": {
@@ -6826,7 +6923,7 @@
                         "schema": {
                             "type": "string"
                         },
-                        "description": "Comma-separated grouping fields. Allowed fields: id, name.",
+                        "description": "Comma-separated grouping fields. Allowed fields: id, name, slug.",
                         "example": "id"
                     },
                     {
@@ -6847,7 +6944,7 @@
                         "schema": {
                             "type": "string"
                         },
-                        "description": "Comma-separated output fields. Allowed fields: id, name.",
+                        "description": "Comma-separated output fields. Allowed fields: id, name, slug.",
                         "example": "id,name"
                     },
                     {
@@ -6923,6 +7020,41 @@
                                 "value": "in:texto1,texto2"
                             }
                         }
+                    },
+                    {
+                        "name": "slug",
+                        "in": "query",
+                        "schema": {
+                            "type": "string"
+                        },
+                        "description": "Filter on slug using campo=op:valor with operators eq, lt, gt, gte, lte, ne, lk, isn, non, in. Max 100 characters. Must be unique in c_estatus.slug.",
+                        "example": "lk:texto",
+                        "examples": {
+                            "equals": {
+                                "summary": "Equal",
+                                "value": "eq:texto"
+                            },
+                            "like": {
+                                "summary": "Contains",
+                                "value": "lk:texto"
+                            },
+                            "notEqual": {
+                                "summary": "Not equal",
+                                "value": "ne:texto"
+                            },
+                            "isNull": {
+                                "summary": "Is null",
+                                "value": "isn"
+                            },
+                            "notNull": {
+                                "summary": "Is not null",
+                                "value": "non"
+                            },
+                            "inList": {
+                                "summary": "In list",
+                                "value": "in:texto1,texto2"
+                            }
+                        }
                     }
                 ],
                 "operationId": "get_estatus_contrato",
@@ -6930,12 +7062,12 @@
                     {
                         "lang": "Shell",
                         "label": "cURL",
-                        "source": "curl \\\n  --url 'https://kapi.chavodigital.com/api/v5/estatus-contrato?page=1&limit=25&sort=+id,-name&groupby=id&embed=pagination&fields=id,name&id=eq:1&name=lk:texto'"
+                        "source": "curl \\\n  --url 'https://kapi.chavodigital.com/api/v5/estatus-contrato?page=1&limit=25&sort=+id,-name&groupby=id&embed=pagination&fields=id,name&id=eq:1&name=lk:texto&slug=lk:texto'"
                     },
                     {
                         "lang": "JavaScript",
                         "label": "axios",
-                        "source": "import axios from 'axios';\n\nconst options = {\n  method: 'GET',\n  url: 'https://kapi.chavodigital.com/api/v5/estatus-contrato?page=1&limit=25&sort=+id,-name&groupby=id&embed=pagination&fields=id,name&id=eq:1&name=lk:texto',\n  params: {\n    page: \"1\",\n    limit: \"25\",\n    sort: \"+id,-name\",\n    groupby: \"id\",\n    embed: \"pagination\",\n    fields: \"id,name\",\n    id: \"eq:1\",\n    name: \"lk:texto\"\n  },\n};\n\ntry {\n  const { data } = await axios.request(options);\n  console.log(data);\n} catch (error) {\n  console.error(error);\n}"
+                        "source": "import axios from 'axios';\n\nconst options = {\n  method: 'GET',\n  url: 'https://kapi.chavodigital.com/api/v5/estatus-contrato?page=1&limit=25&sort=+id,-name&groupby=id&embed=pagination&fields=id,name&id=eq:1&name=lk:texto&slug=lk:texto',\n  params: {\n    page: \"1\",\n    limit: \"25\",\n    sort: \"+id,-name\",\n    groupby: \"id\",\n    embed: \"pagination\",\n    fields: \"id,name\",\n    id: \"eq:1\",\n    name: \"lk:texto\",\n    slug: \"lk:texto\"\n  },\n};\n\ntry {\n  const { data } = await axios.request(options);\n  console.log(data);\n} catch (error) {\n  console.error(error);\n}"
                     }
                 ]
             },
@@ -6955,16 +7087,23 @@
                                         "type": "string",
                                         "maxLength": 100,
                                         "description": "Required. Max 100 characters."
+                                    },
+                                    "slug": {
+                                        "type": "string",
+                                        "maxLength": 100,
+                                        "description": "Required. Max 100 characters. Must be unique in c_estatus.slug."
                                     }
                                 },
                                 "additionalProperties": true,
                                 "required": [
-                                    "name"
+                                    "name",
+                                    "slug"
                                 ],
                                 "description": "Create payload with every writable field of the module. Fields listed under required must be sent; the others are optional and fall back to their default when omitted."
                             },
                             "example": {
-                                "name": "Example name"
+                                "name": "Example name",
+                                "slug": "example-slug"
                             }
                         }
                     }
@@ -7023,12 +7162,12 @@
                     {
                         "lang": "Shell",
                         "label": "cURL",
-                        "source": "curl \\\n  --request POST \\\n  --url 'https://kapi.chavodigital.com/api/v5/estatus-contrato' \\\n  --header 'Content-Type: application/json' \\\n  --data '{\n    \"name\": \"Example name\"\n}' \\\n  --header 'Authorization: Bearer YOUR_SECRET_TOKEN'"
+                        "source": "curl \\\n  --request POST \\\n  --url 'https://kapi.chavodigital.com/api/v5/estatus-contrato' \\\n  --header 'Content-Type: application/json' \\\n  --data '{\n    \"name\": \"Example name\",\n    \"slug\": \"example-slug\"\n}' \\\n  --header 'Authorization: Bearer YOUR_SECRET_TOKEN'"
                     },
                     {
                         "lang": "JavaScript",
                         "label": "axios",
-                        "source": "import axios from 'axios';\n\nconst options = {\n  method: 'POST',\n  url: 'https://kapi.chavodigital.com/api/v5/estatus-contrato',\n  data: {\n    name: \"Example name\"\n  },\n  headers: {\n    \"Content-Type\": \"application/json\",\n    Authorization: \"Bearer YOUR_SECRET_TOKEN\"\n  },\n};\n\ntry {\n  const { data } = await axios.request(options);\n  console.log(data);\n} catch (error) {\n  console.error(error);\n}"
+                        "source": "import axios from 'axios';\n\nconst options = {\n  method: 'POST',\n  url: 'https://kapi.chavodigital.com/api/v5/estatus-contrato',\n  data: {\n    name: \"Example name\",\n    slug: \"example-slug\"\n  },\n  headers: {\n    \"Content-Type\": \"application/json\",\n    Authorization: \"Bearer YOUR_SECRET_TOKEN\"\n  },\n};\n\ntry {\n  const { data } = await axios.request(options);\n  console.log(data);\n} catch (error) {\n  console.error(error);\n}"
                     }
                 ]
             }
@@ -7060,7 +7199,8 @@
                                     "http_code": 200,
                                     "data": {
                                         "id": 1,
-                                        "name": "Example name"
+                                        "name": "Example name",
+                                        "slug": "example-slug"
                                     },
                                     "meta": {
                                         "session_id": "uuid"
@@ -7134,13 +7274,19 @@
                                         "type": "string",
                                         "maxLength": 100,
                                         "description": "Max 100 characters."
+                                    },
+                                    "slug": {
+                                        "type": "string",
+                                        "maxLength": 100,
+                                        "description": "Max 100 characters. Must be unique in c_estatus.slug."
                                     }
                                 },
                                 "additionalProperties": true,
                                 "description": "Partial update: only fields sent with a non-empty value are updated, omitted or empty fields keep their current value."
                             },
                             "example": {
-                                "name": "Example name"
+                                "name": "Example name",
+                                "slug": "example-slug"
                             }
                         }
                     }
@@ -7199,12 +7345,12 @@
                     {
                         "lang": "Shell",
                         "label": "cURL",
-                        "source": "curl \\\n  --request PUT \\\n  --url 'https://kapi.chavodigital.com/api/v5/estatus-contrato/1' \\\n  --header 'Content-Type: application/json' \\\n  --data '{\n    \"name\": \"Example name\"\n}' \\\n  --header 'Authorization: Bearer YOUR_SECRET_TOKEN'"
+                        "source": "curl \\\n  --request PUT \\\n  --url 'https://kapi.chavodigital.com/api/v5/estatus-contrato/1' \\\n  --header 'Content-Type: application/json' \\\n  --data '{\n    \"name\": \"Example name\",\n    \"slug\": \"example-slug\"\n}' \\\n  --header 'Authorization: Bearer YOUR_SECRET_TOKEN'"
                     },
                     {
                         "lang": "JavaScript",
                         "label": "axios",
-                        "source": "import axios from 'axios';\n\nconst options = {\n  method: 'PUT',\n  url: 'https://kapi.chavodigital.com/api/v5/estatus-contrato/1',\n  data: {\n    name: \"Example name\"\n  },\n  headers: {\n    \"Content-Type\": \"application/json\",\n    Authorization: \"Bearer YOUR_SECRET_TOKEN\"\n  },\n};\n\ntry {\n  const { data } = await axios.request(options);\n  console.log(data);\n} catch (error) {\n  console.error(error);\n}"
+                        "source": "import axios from 'axios';\n\nconst options = {\n  method: 'PUT',\n  url: 'https://kapi.chavodigital.com/api/v5/estatus-contrato/1',\n  data: {\n    name: \"Example name\",\n    slug: \"example-slug\"\n  },\n  headers: {\n    \"Content-Type\": \"application/json\",\n    Authorization: \"Bearer YOUR_SECRET_TOKEN\"\n  },\n};\n\ntry {\n  const { data } = await axios.request(options);\n  console.log(data);\n} catch (error) {\n  console.error(error);\n}"
                     }
                 ]
             },
@@ -7365,7 +7511,7 @@
                         "schema": {
                             "type": "string"
                         },
-                        "description": "Comma-separated sort list, prefix each field with + (ascending) or - (descending). Allowed fields: id, name.",
+                        "description": "Comma-separated sort list, prefix each field with + (ascending) or - (descending). Allowed fields: id, name, slug.",
                         "example": "+id,-name",
                         "examples": {
                             "ascending": {
@@ -7384,7 +7530,7 @@
                         "schema": {
                             "type": "string"
                         },
-                        "description": "Comma-separated grouping fields. Allowed fields: id, name.",
+                        "description": "Comma-separated grouping fields. Allowed fields: id, name, slug.",
                         "example": "id"
                     },
                     {
@@ -7405,7 +7551,7 @@
                         "schema": {
                             "type": "string"
                         },
-                        "description": "Comma-separated output fields. Allowed fields: id, name.",
+                        "description": "Comma-separated output fields. Allowed fields: id, name, slug.",
                         "example": "id,name"
                     },
                     {
@@ -7481,6 +7627,41 @@
                                 "value": "in:texto1,texto2"
                             }
                         }
+                    },
+                    {
+                        "name": "slug",
+                        "in": "query",
+                        "schema": {
+                            "type": "string"
+                        },
+                        "description": "Filter on slug using campo=op:valor with operators eq, lt, gt, gte, lte, ne, lk, isn, non, in. Max 50 characters. Must be unique in c_materia.slug.",
+                        "example": "lk:texto",
+                        "examples": {
+                            "equals": {
+                                "summary": "Equal",
+                                "value": "eq:texto"
+                            },
+                            "like": {
+                                "summary": "Contains",
+                                "value": "lk:texto"
+                            },
+                            "notEqual": {
+                                "summary": "Not equal",
+                                "value": "ne:texto"
+                            },
+                            "isNull": {
+                                "summary": "Is null",
+                                "value": "isn"
+                            },
+                            "notNull": {
+                                "summary": "Is not null",
+                                "value": "non"
+                            },
+                            "inList": {
+                                "summary": "In list",
+                                "value": "in:texto1,texto2"
+                            }
+                        }
                     }
                 ],
                 "operationId": "get_materias",
@@ -7488,12 +7669,12 @@
                     {
                         "lang": "Shell",
                         "label": "cURL",
-                        "source": "curl \\\n  --url 'https://kapi.chavodigital.com/api/v5/materias?page=1&limit=25&sort=+id,-name&groupby=id&embed=pagination&fields=id,name&id=eq:1&name=lk:texto'"
+                        "source": "curl \\\n  --url 'https://kapi.chavodigital.com/api/v5/materias?page=1&limit=25&sort=+id,-name&groupby=id&embed=pagination&fields=id,name&id=eq:1&name=lk:texto&slug=lk:texto'"
                     },
                     {
                         "lang": "JavaScript",
                         "label": "axios",
-                        "source": "import axios from 'axios';\n\nconst options = {\n  method: 'GET',\n  url: 'https://kapi.chavodigital.com/api/v5/materias?page=1&limit=25&sort=+id,-name&groupby=id&embed=pagination&fields=id,name&id=eq:1&name=lk:texto',\n  params: {\n    page: \"1\",\n    limit: \"25\",\n    sort: \"+id,-name\",\n    groupby: \"id\",\n    embed: \"pagination\",\n    fields: \"id,name\",\n    id: \"eq:1\",\n    name: \"lk:texto\"\n  },\n};\n\ntry {\n  const { data } = await axios.request(options);\n  console.log(data);\n} catch (error) {\n  console.error(error);\n}"
+                        "source": "import axios from 'axios';\n\nconst options = {\n  method: 'GET',\n  url: 'https://kapi.chavodigital.com/api/v5/materias?page=1&limit=25&sort=+id,-name&groupby=id&embed=pagination&fields=id,name&id=eq:1&name=lk:texto&slug=lk:texto',\n  params: {\n    page: \"1\",\n    limit: \"25\",\n    sort: \"+id,-name\",\n    groupby: \"id\",\n    embed: \"pagination\",\n    fields: \"id,name\",\n    id: \"eq:1\",\n    name: \"lk:texto\",\n    slug: \"lk:texto\"\n  },\n};\n\ntry {\n  const { data } = await axios.request(options);\n  console.log(data);\n} catch (error) {\n  console.error(error);\n}"
                     }
                 ]
             },
@@ -7513,16 +7694,23 @@
                                         "type": "string",
                                         "maxLength": 50,
                                         "description": "Required. Max 50 characters."
+                                    },
+                                    "slug": {
+                                        "type": "string",
+                                        "maxLength": 50,
+                                        "description": "Required. Max 50 characters. Must be unique in c_materia.slug."
                                     }
                                 },
                                 "additionalProperties": true,
                                 "required": [
-                                    "name"
+                                    "name",
+                                    "slug"
                                 ],
                                 "description": "Create payload with every writable field of the module. Fields listed under required must be sent; the others are optional and fall back to their default when omitted."
                             },
                             "example": {
-                                "name": "Example name"
+                                "name": "Example name",
+                                "slug": "example-slug"
                             }
                         }
                     }
@@ -7581,12 +7769,12 @@
                     {
                         "lang": "Shell",
                         "label": "cURL",
-                        "source": "curl \\\n  --request POST \\\n  --url 'https://kapi.chavodigital.com/api/v5/materias' \\\n  --header 'Content-Type: application/json' \\\n  --data '{\n    \"name\": \"Example name\"\n}' \\\n  --header 'Authorization: Bearer YOUR_SECRET_TOKEN'"
+                        "source": "curl \\\n  --request POST \\\n  --url 'https://kapi.chavodigital.com/api/v5/materias' \\\n  --header 'Content-Type: application/json' \\\n  --data '{\n    \"name\": \"Example name\",\n    \"slug\": \"example-slug\"\n}' \\\n  --header 'Authorization: Bearer YOUR_SECRET_TOKEN'"
                     },
                     {
                         "lang": "JavaScript",
                         "label": "axios",
-                        "source": "import axios from 'axios';\n\nconst options = {\n  method: 'POST',\n  url: 'https://kapi.chavodigital.com/api/v5/materias',\n  data: {\n    name: \"Example name\"\n  },\n  headers: {\n    \"Content-Type\": \"application/json\",\n    Authorization: \"Bearer YOUR_SECRET_TOKEN\"\n  },\n};\n\ntry {\n  const { data } = await axios.request(options);\n  console.log(data);\n} catch (error) {\n  console.error(error);\n}"
+                        "source": "import axios from 'axios';\n\nconst options = {\n  method: 'POST',\n  url: 'https://kapi.chavodigital.com/api/v5/materias',\n  data: {\n    name: \"Example name\",\n    slug: \"example-slug\"\n  },\n  headers: {\n    \"Content-Type\": \"application/json\",\n    Authorization: \"Bearer YOUR_SECRET_TOKEN\"\n  },\n};\n\ntry {\n  const { data } = await axios.request(options);\n  console.log(data);\n} catch (error) {\n  console.error(error);\n}"
                     }
                 ]
             }
@@ -7618,7 +7806,8 @@
                                     "http_code": 200,
                                     "data": {
                                         "id": 1,
-                                        "name": "Example name"
+                                        "name": "Example name",
+                                        "slug": "example-slug"
                                     },
                                     "meta": {
                                         "session_id": "uuid"
@@ -7692,13 +7881,19 @@
                                         "type": "string",
                                         "maxLength": 50,
                                         "description": "Max 50 characters."
+                                    },
+                                    "slug": {
+                                        "type": "string",
+                                        "maxLength": 50,
+                                        "description": "Max 50 characters. Must be unique in c_materia.slug."
                                     }
                                 },
                                 "additionalProperties": true,
                                 "description": "Partial update: only fields sent with a non-empty value are updated, omitted or empty fields keep their current value."
                             },
                             "example": {
-                                "name": "Example name"
+                                "name": "Example name",
+                                "slug": "example-slug"
                             }
                         }
                     }
@@ -7757,12 +7952,12 @@
                     {
                         "lang": "Shell",
                         "label": "cURL",
-                        "source": "curl \\\n  --request PUT \\\n  --url 'https://kapi.chavodigital.com/api/v5/materias/1' \\\n  --header 'Content-Type: application/json' \\\n  --data '{\n    \"name\": \"Example name\"\n}' \\\n  --header 'Authorization: Bearer YOUR_SECRET_TOKEN'"
+                        "source": "curl \\\n  --request PUT \\\n  --url 'https://kapi.chavodigital.com/api/v5/materias/1' \\\n  --header 'Content-Type: application/json' \\\n  --data '{\n    \"name\": \"Example name\",\n    \"slug\": \"example-slug\"\n}' \\\n  --header 'Authorization: Bearer YOUR_SECRET_TOKEN'"
                     },
                     {
                         "lang": "JavaScript",
                         "label": "axios",
-                        "source": "import axios from 'axios';\n\nconst options = {\n  method: 'PUT',\n  url: 'https://kapi.chavodigital.com/api/v5/materias/1',\n  data: {\n    name: \"Example name\"\n  },\n  headers: {\n    \"Content-Type\": \"application/json\",\n    Authorization: \"Bearer YOUR_SECRET_TOKEN\"\n  },\n};\n\ntry {\n  const { data } = await axios.request(options);\n  console.log(data);\n} catch (error) {\n  console.error(error);\n}"
+                        "source": "import axios from 'axios';\n\nconst options = {\n  method: 'PUT',\n  url: 'https://kapi.chavodigital.com/api/v5/materias/1',\n  data: {\n    name: \"Example name\",\n    slug: \"example-slug\"\n  },\n  headers: {\n    \"Content-Type\": \"application/json\",\n    Authorization: \"Bearer YOUR_SECRET_TOKEN\"\n  },\n};\n\ntry {\n  const { data } = await axios.request(options);\n  console.log(data);\n} catch (error) {\n  console.error(error);\n}"
                     }
                 ]
             },
@@ -7923,7 +8118,7 @@
                         "schema": {
                             "type": "string"
                         },
-                        "description": "Comma-separated sort list, prefix each field with + (ascending) or - (descending). Allowed fields: id, name.",
+                        "description": "Comma-separated sort list, prefix each field with + (ascending) or - (descending). Allowed fields: id, name, slug.",
                         "example": "+id,-name",
                         "examples": {
                             "ascending": {
@@ -7942,7 +8137,7 @@
                         "schema": {
                             "type": "string"
                         },
-                        "description": "Comma-separated grouping fields. Allowed fields: id, name.",
+                        "description": "Comma-separated grouping fields. Allowed fields: id, name, slug.",
                         "example": "id"
                     },
                     {
@@ -7963,7 +8158,7 @@
                         "schema": {
                             "type": "string"
                         },
-                        "description": "Comma-separated output fields. Allowed fields: id, name.",
+                        "description": "Comma-separated output fields. Allowed fields: id, name, slug.",
                         "example": "id,name"
                     },
                     {
@@ -8039,6 +8234,41 @@
                                 "value": "in:texto1,texto2"
                             }
                         }
+                    },
+                    {
+                        "name": "slug",
+                        "in": "query",
+                        "schema": {
+                            "type": "string"
+                        },
+                        "description": "Filter on slug using campo=op:valor with operators eq, lt, gt, gte, lte, ne, lk, isn, non, in. Max 50 characters. Must be unique in c_partidas.slug.",
+                        "example": "lk:texto",
+                        "examples": {
+                            "equals": {
+                                "summary": "Equal",
+                                "value": "eq:texto"
+                            },
+                            "like": {
+                                "summary": "Contains",
+                                "value": "lk:texto"
+                            },
+                            "notEqual": {
+                                "summary": "Not equal",
+                                "value": "ne:texto"
+                            },
+                            "isNull": {
+                                "summary": "Is null",
+                                "value": "isn"
+                            },
+                            "notNull": {
+                                "summary": "Is not null",
+                                "value": "non"
+                            },
+                            "inList": {
+                                "summary": "In list",
+                                "value": "in:texto1,texto2"
+                            }
+                        }
                     }
                 ],
                 "operationId": "get_partidas",
@@ -8046,12 +8276,12 @@
                     {
                         "lang": "Shell",
                         "label": "cURL",
-                        "source": "curl \\\n  --url 'https://kapi.chavodigital.com/api/v5/partidas?page=1&limit=25&sort=+id,-name&groupby=id&embed=pagination&fields=id,name&id=eq:1&name=lk:texto'"
+                        "source": "curl \\\n  --url 'https://kapi.chavodigital.com/api/v5/partidas?page=1&limit=25&sort=+id,-name&groupby=id&embed=pagination&fields=id,name&id=eq:1&name=lk:texto&slug=lk:texto'"
                     },
                     {
                         "lang": "JavaScript",
                         "label": "axios",
-                        "source": "import axios from 'axios';\n\nconst options = {\n  method: 'GET',\n  url: 'https://kapi.chavodigital.com/api/v5/partidas?page=1&limit=25&sort=+id,-name&groupby=id&embed=pagination&fields=id,name&id=eq:1&name=lk:texto',\n  params: {\n    page: \"1\",\n    limit: \"25\",\n    sort: \"+id,-name\",\n    groupby: \"id\",\n    embed: \"pagination\",\n    fields: \"id,name\",\n    id: \"eq:1\",\n    name: \"lk:texto\"\n  },\n};\n\ntry {\n  const { data } = await axios.request(options);\n  console.log(data);\n} catch (error) {\n  console.error(error);\n}"
+                        "source": "import axios from 'axios';\n\nconst options = {\n  method: 'GET',\n  url: 'https://kapi.chavodigital.com/api/v5/partidas?page=1&limit=25&sort=+id,-name&groupby=id&embed=pagination&fields=id,name&id=eq:1&name=lk:texto&slug=lk:texto',\n  params: {\n    page: \"1\",\n    limit: \"25\",\n    sort: \"+id,-name\",\n    groupby: \"id\",\n    embed: \"pagination\",\n    fields: \"id,name\",\n    id: \"eq:1\",\n    name: \"lk:texto\",\n    slug: \"lk:texto\"\n  },\n};\n\ntry {\n  const { data } = await axios.request(options);\n  console.log(data);\n} catch (error) {\n  console.error(error);\n}"
                     }
                 ]
             },
@@ -8071,16 +8301,23 @@
                                         "type": "string",
                                         "maxLength": 50,
                                         "description": "Required. Max 50 characters."
+                                    },
+                                    "slug": {
+                                        "type": "string",
+                                        "maxLength": 50,
+                                        "description": "Required. Max 50 characters. Must be unique in c_partidas.slug."
                                     }
                                 },
                                 "additionalProperties": true,
                                 "required": [
-                                    "name"
+                                    "name",
+                                    "slug"
                                 ],
                                 "description": "Create payload with every writable field of the module. Fields listed under required must be sent; the others are optional and fall back to their default when omitted."
                             },
                             "example": {
-                                "name": "Example name"
+                                "name": "Example name",
+                                "slug": "example-slug"
                             }
                         }
                     }
@@ -8139,12 +8376,12 @@
                     {
                         "lang": "Shell",
                         "label": "cURL",
-                        "source": "curl \\\n  --request POST \\\n  --url 'https://kapi.chavodigital.com/api/v5/partidas' \\\n  --header 'Content-Type: application/json' \\\n  --data '{\n    \"name\": \"Example name\"\n}' \\\n  --header 'Authorization: Bearer YOUR_SECRET_TOKEN'"
+                        "source": "curl \\\n  --request POST \\\n  --url 'https://kapi.chavodigital.com/api/v5/partidas' \\\n  --header 'Content-Type: application/json' \\\n  --data '{\n    \"name\": \"Example name\",\n    \"slug\": \"example-slug\"\n}' \\\n  --header 'Authorization: Bearer YOUR_SECRET_TOKEN'"
                     },
                     {
                         "lang": "JavaScript",
                         "label": "axios",
-                        "source": "import axios from 'axios';\n\nconst options = {\n  method: 'POST',\n  url: 'https://kapi.chavodigital.com/api/v5/partidas',\n  data: {\n    name: \"Example name\"\n  },\n  headers: {\n    \"Content-Type\": \"application/json\",\n    Authorization: \"Bearer YOUR_SECRET_TOKEN\"\n  },\n};\n\ntry {\n  const { data } = await axios.request(options);\n  console.log(data);\n} catch (error) {\n  console.error(error);\n}"
+                        "source": "import axios from 'axios';\n\nconst options = {\n  method: 'POST',\n  url: 'https://kapi.chavodigital.com/api/v5/partidas',\n  data: {\n    name: \"Example name\",\n    slug: \"example-slug\"\n  },\n  headers: {\n    \"Content-Type\": \"application/json\",\n    Authorization: \"Bearer YOUR_SECRET_TOKEN\"\n  },\n};\n\ntry {\n  const { data } = await axios.request(options);\n  console.log(data);\n} catch (error) {\n  console.error(error);\n}"
                     }
                 ]
             }
@@ -8176,7 +8413,8 @@
                                     "http_code": 200,
                                     "data": {
                                         "id": 1,
-                                        "name": "Example name"
+                                        "name": "Example name",
+                                        "slug": "example-slug"
                                     },
                                     "meta": {
                                         "session_id": "uuid"
@@ -8250,13 +8488,19 @@
                                         "type": "string",
                                         "maxLength": 50,
                                         "description": "Max 50 characters."
+                                    },
+                                    "slug": {
+                                        "type": "string",
+                                        "maxLength": 50,
+                                        "description": "Max 50 characters. Must be unique in c_partidas.slug."
                                     }
                                 },
                                 "additionalProperties": true,
                                 "description": "Partial update: only fields sent with a non-empty value are updated, omitted or empty fields keep their current value."
                             },
                             "example": {
-                                "name": "Example name"
+                                "name": "Example name",
+                                "slug": "example-slug"
                             }
                         }
                     }
@@ -8315,12 +8559,12 @@
                     {
                         "lang": "Shell",
                         "label": "cURL",
-                        "source": "curl \\\n  --request PUT \\\n  --url 'https://kapi.chavodigital.com/api/v5/partidas/1' \\\n  --header 'Content-Type: application/json' \\\n  --data '{\n    \"name\": \"Example name\"\n}' \\\n  --header 'Authorization: Bearer YOUR_SECRET_TOKEN'"
+                        "source": "curl \\\n  --request PUT \\\n  --url 'https://kapi.chavodigital.com/api/v5/partidas/1' \\\n  --header 'Content-Type: application/json' \\\n  --data '{\n    \"name\": \"Example name\",\n    \"slug\": \"example-slug\"\n}' \\\n  --header 'Authorization: Bearer YOUR_SECRET_TOKEN'"
                     },
                     {
                         "lang": "JavaScript",
                         "label": "axios",
-                        "source": "import axios from 'axios';\n\nconst options = {\n  method: 'PUT',\n  url: 'https://kapi.chavodigital.com/api/v5/partidas/1',\n  data: {\n    name: \"Example name\"\n  },\n  headers: {\n    \"Content-Type\": \"application/json\",\n    Authorization: \"Bearer YOUR_SECRET_TOKEN\"\n  },\n};\n\ntry {\n  const { data } = await axios.request(options);\n  console.log(data);\n} catch (error) {\n  console.error(error);\n}"
+                        "source": "import axios from 'axios';\n\nconst options = {\n  method: 'PUT',\n  url: 'https://kapi.chavodigital.com/api/v5/partidas/1',\n  data: {\n    name: \"Example name\",\n    slug: \"example-slug\"\n  },\n  headers: {\n    \"Content-Type\": \"application/json\",\n    Authorization: \"Bearer YOUR_SECRET_TOKEN\"\n  },\n};\n\ntry {\n  const { data } = await axios.request(options);\n  console.log(data);\n} catch (error) {\n  console.error(error);\n}"
                     }
                 ]
             },
@@ -8481,7 +8725,7 @@
                         "schema": {
                             "type": "string"
                         },
-                        "description": "Comma-separated sort list, prefix each field with + (ascending) or - (descending). Allowed fields: id, name.",
+                        "description": "Comma-separated sort list, prefix each field with + (ascending) or - (descending). Allowed fields: id, name, slug.",
                         "example": "+id,-name",
                         "examples": {
                             "ascending": {
@@ -8500,7 +8744,7 @@
                         "schema": {
                             "type": "string"
                         },
-                        "description": "Comma-separated grouping fields. Allowed fields: id, name.",
+                        "description": "Comma-separated grouping fields. Allowed fields: id, name, slug.",
                         "example": "id"
                     },
                     {
@@ -8521,7 +8765,7 @@
                         "schema": {
                             "type": "string"
                         },
-                        "description": "Comma-separated output fields. Allowed fields: id, name.",
+                        "description": "Comma-separated output fields. Allowed fields: id, name, slug.",
                         "example": "id,name"
                     },
                     {
@@ -8597,6 +8841,41 @@
                                 "value": "in:texto1,texto2"
                             }
                         }
+                    },
+                    {
+                        "name": "slug",
+                        "in": "query",
+                        "schema": {
+                            "type": "string"
+                        },
+                        "description": "Filter on slug using campo=op:valor with operators eq, lt, gt, gte, lte, ne, lk, isn, non, in. Max 50 characters. Must be unique in c_periods.slug.",
+                        "example": "lk:texto",
+                        "examples": {
+                            "equals": {
+                                "summary": "Equal",
+                                "value": "eq:texto"
+                            },
+                            "like": {
+                                "summary": "Contains",
+                                "value": "lk:texto"
+                            },
+                            "notEqual": {
+                                "summary": "Not equal",
+                                "value": "ne:texto"
+                            },
+                            "isNull": {
+                                "summary": "Is null",
+                                "value": "isn"
+                            },
+                            "notNull": {
+                                "summary": "Is not null",
+                                "value": "non"
+                            },
+                            "inList": {
+                                "summary": "In list",
+                                "value": "in:texto1,texto2"
+                            }
+                        }
                     }
                 ],
                 "operationId": "get_periodos_contratos",
@@ -8604,12 +8883,12 @@
                     {
                         "lang": "Shell",
                         "label": "cURL",
-                        "source": "curl \\\n  --url 'https://kapi.chavodigital.com/api/v5/periodos-contratos?page=1&limit=25&sort=+id,-name&groupby=id&embed=pagination&fields=id,name&id=eq:1&name=lk:texto'"
+                        "source": "curl \\\n  --url 'https://kapi.chavodigital.com/api/v5/periodos-contratos?page=1&limit=25&sort=+id,-name&groupby=id&embed=pagination&fields=id,name&id=eq:1&name=lk:texto&slug=lk:texto'"
                     },
                     {
                         "lang": "JavaScript",
                         "label": "axios",
-                        "source": "import axios from 'axios';\n\nconst options = {\n  method: 'GET',\n  url: 'https://kapi.chavodigital.com/api/v5/periodos-contratos?page=1&limit=25&sort=+id,-name&groupby=id&embed=pagination&fields=id,name&id=eq:1&name=lk:texto',\n  params: {\n    page: \"1\",\n    limit: \"25\",\n    sort: \"+id,-name\",\n    groupby: \"id\",\n    embed: \"pagination\",\n    fields: \"id,name\",\n    id: \"eq:1\",\n    name: \"lk:texto\"\n  },\n};\n\ntry {\n  const { data } = await axios.request(options);\n  console.log(data);\n} catch (error) {\n  console.error(error);\n}"
+                        "source": "import axios from 'axios';\n\nconst options = {\n  method: 'GET',\n  url: 'https://kapi.chavodigital.com/api/v5/periodos-contratos?page=1&limit=25&sort=+id,-name&groupby=id&embed=pagination&fields=id,name&id=eq:1&name=lk:texto&slug=lk:texto',\n  params: {\n    page: \"1\",\n    limit: \"25\",\n    sort: \"+id,-name\",\n    groupby: \"id\",\n    embed: \"pagination\",\n    fields: \"id,name\",\n    id: \"eq:1\",\n    name: \"lk:texto\",\n    slug: \"lk:texto\"\n  },\n};\n\ntry {\n  const { data } = await axios.request(options);\n  console.log(data);\n} catch (error) {\n  console.error(error);\n}"
                     }
                 ]
             },
@@ -8629,16 +8908,23 @@
                                         "type": "string",
                                         "maxLength": 50,
                                         "description": "Required. Max 50 characters."
+                                    },
+                                    "slug": {
+                                        "type": "string",
+                                        "maxLength": 50,
+                                        "description": "Required. Max 50 characters. Must be unique in c_periods.slug."
                                     }
                                 },
                                 "additionalProperties": true,
                                 "required": [
-                                    "name"
+                                    "name",
+                                    "slug"
                                 ],
                                 "description": "Create payload with every writable field of the module. Fields listed under required must be sent; the others are optional and fall back to their default when omitted."
                             },
                             "example": {
-                                "name": "Example name"
+                                "name": "Example name",
+                                "slug": "example-slug"
                             }
                         }
                     }
@@ -8697,12 +8983,12 @@
                     {
                         "lang": "Shell",
                         "label": "cURL",
-                        "source": "curl \\\n  --request POST \\\n  --url 'https://kapi.chavodigital.com/api/v5/periodos-contratos' \\\n  --header 'Content-Type: application/json' \\\n  --data '{\n    \"name\": \"Example name\"\n}' \\\n  --header 'Authorization: Bearer YOUR_SECRET_TOKEN'"
+                        "source": "curl \\\n  --request POST \\\n  --url 'https://kapi.chavodigital.com/api/v5/periodos-contratos' \\\n  --header 'Content-Type: application/json' \\\n  --data '{\n    \"name\": \"Example name\",\n    \"slug\": \"example-slug\"\n}' \\\n  --header 'Authorization: Bearer YOUR_SECRET_TOKEN'"
                     },
                     {
                         "lang": "JavaScript",
                         "label": "axios",
-                        "source": "import axios from 'axios';\n\nconst options = {\n  method: 'POST',\n  url: 'https://kapi.chavodigital.com/api/v5/periodos-contratos',\n  data: {\n    name: \"Example name\"\n  },\n  headers: {\n    \"Content-Type\": \"application/json\",\n    Authorization: \"Bearer YOUR_SECRET_TOKEN\"\n  },\n};\n\ntry {\n  const { data } = await axios.request(options);\n  console.log(data);\n} catch (error) {\n  console.error(error);\n}"
+                        "source": "import axios from 'axios';\n\nconst options = {\n  method: 'POST',\n  url: 'https://kapi.chavodigital.com/api/v5/periodos-contratos',\n  data: {\n    name: \"Example name\",\n    slug: \"example-slug\"\n  },\n  headers: {\n    \"Content-Type\": \"application/json\",\n    Authorization: \"Bearer YOUR_SECRET_TOKEN\"\n  },\n};\n\ntry {\n  const { data } = await axios.request(options);\n  console.log(data);\n} catch (error) {\n  console.error(error);\n}"
                     }
                 ]
             }
@@ -8734,7 +9020,8 @@
                                     "http_code": 200,
                                     "data": {
                                         "id": 1,
-                                        "name": "Example name"
+                                        "name": "Example name",
+                                        "slug": "example-slug"
                                     },
                                     "meta": {
                                         "session_id": "uuid"
@@ -8808,13 +9095,19 @@
                                         "type": "string",
                                         "maxLength": 50,
                                         "description": "Max 50 characters."
+                                    },
+                                    "slug": {
+                                        "type": "string",
+                                        "maxLength": 50,
+                                        "description": "Max 50 characters. Must be unique in c_periods.slug."
                                     }
                                 },
                                 "additionalProperties": true,
                                 "description": "Partial update: only fields sent with a non-empty value are updated, omitted or empty fields keep their current value."
                             },
                             "example": {
-                                "name": "Example name"
+                                "name": "Example name",
+                                "slug": "example-slug"
                             }
                         }
                     }
@@ -8873,12 +9166,12 @@
                     {
                         "lang": "Shell",
                         "label": "cURL",
-                        "source": "curl \\\n  --request PUT \\\n  --url 'https://kapi.chavodigital.com/api/v5/periodos-contratos/1' \\\n  --header 'Content-Type: application/json' \\\n  --data '{\n    \"name\": \"Example name\"\n}' \\\n  --header 'Authorization: Bearer YOUR_SECRET_TOKEN'"
+                        "source": "curl \\\n  --request PUT \\\n  --url 'https://kapi.chavodigital.com/api/v5/periodos-contratos/1' \\\n  --header 'Content-Type: application/json' \\\n  --data '{\n    \"name\": \"Example name\",\n    \"slug\": \"example-slug\"\n}' \\\n  --header 'Authorization: Bearer YOUR_SECRET_TOKEN'"
                     },
                     {
                         "lang": "JavaScript",
                         "label": "axios",
-                        "source": "import axios from 'axios';\n\nconst options = {\n  method: 'PUT',\n  url: 'https://kapi.chavodigital.com/api/v5/periodos-contratos/1',\n  data: {\n    name: \"Example name\"\n  },\n  headers: {\n    \"Content-Type\": \"application/json\",\n    Authorization: \"Bearer YOUR_SECRET_TOKEN\"\n  },\n};\n\ntry {\n  const { data } = await axios.request(options);\n  console.log(data);\n} catch (error) {\n  console.error(error);\n}"
+                        "source": "import axios from 'axios';\n\nconst options = {\n  method: 'PUT',\n  url: 'https://kapi.chavodigital.com/api/v5/periodos-contratos/1',\n  data: {\n    name: \"Example name\",\n    slug: \"example-slug\"\n  },\n  headers: {\n    \"Content-Type\": \"application/json\",\n    Authorization: \"Bearer YOUR_SECRET_TOKEN\"\n  },\n};\n\ntry {\n  const { data } = await axios.request(options);\n  console.log(data);\n} catch (error) {\n  console.error(error);\n}"
                     }
                 ]
             },
@@ -9039,7 +9332,7 @@
                         "schema": {
                             "type": "string"
                         },
-                        "description": "Comma-separated sort list, prefix each field with + (ascending) or - (descending). Allowed fields: id, name.",
+                        "description": "Comma-separated sort list, prefix each field with + (ascending) or - (descending). Allowed fields: id, name, slug.",
                         "example": "+id,-name",
                         "examples": {
                             "ascending": {
@@ -9058,7 +9351,7 @@
                         "schema": {
                             "type": "string"
                         },
-                        "description": "Comma-separated grouping fields. Allowed fields: id, name.",
+                        "description": "Comma-separated grouping fields. Allowed fields: id, name, slug.",
                         "example": "id"
                     },
                     {
@@ -9079,7 +9372,7 @@
                         "schema": {
                             "type": "string"
                         },
-                        "description": "Comma-separated output fields. Allowed fields: id, name.",
+                        "description": "Comma-separated output fields. Allowed fields: id, name, slug.",
                         "example": "id,name"
                     },
                     {
@@ -9155,6 +9448,41 @@
                                 "value": "in:texto1,texto2"
                             }
                         }
+                    },
+                    {
+                        "name": "slug",
+                        "in": "query",
+                        "schema": {
+                            "type": "string"
+                        },
+                        "description": "Filter on slug using campo=op:valor with operators eq, lt, gt, gte, lte, ne, lk, isn, non, in. Max 50 characters. Must be unique in c_procedures.slug.",
+                        "example": "lk:texto",
+                        "examples": {
+                            "equals": {
+                                "summary": "Equal",
+                                "value": "eq:texto"
+                            },
+                            "like": {
+                                "summary": "Contains",
+                                "value": "lk:texto"
+                            },
+                            "notEqual": {
+                                "summary": "Not equal",
+                                "value": "ne:texto"
+                            },
+                            "isNull": {
+                                "summary": "Is null",
+                                "value": "isn"
+                            },
+                            "notNull": {
+                                "summary": "Is not null",
+                                "value": "non"
+                            },
+                            "inList": {
+                                "summary": "In list",
+                                "value": "in:texto1,texto2"
+                            }
+                        }
                     }
                 ],
                 "operationId": "get_procedimientos",
@@ -9162,12 +9490,12 @@
                     {
                         "lang": "Shell",
                         "label": "cURL",
-                        "source": "curl \\\n  --url 'https://kapi.chavodigital.com/api/v5/procedimientos?page=1&limit=25&sort=+id,-name&groupby=id&embed=pagination&fields=id,name&id=eq:1&name=lk:texto'"
+                        "source": "curl \\\n  --url 'https://kapi.chavodigital.com/api/v5/procedimientos?page=1&limit=25&sort=+id,-name&groupby=id&embed=pagination&fields=id,name&id=eq:1&name=lk:texto&slug=lk:texto'"
                     },
                     {
                         "lang": "JavaScript",
                         "label": "axios",
-                        "source": "import axios from 'axios';\n\nconst options = {\n  method: 'GET',\n  url: 'https://kapi.chavodigital.com/api/v5/procedimientos?page=1&limit=25&sort=+id,-name&groupby=id&embed=pagination&fields=id,name&id=eq:1&name=lk:texto',\n  params: {\n    page: \"1\",\n    limit: \"25\",\n    sort: \"+id,-name\",\n    groupby: \"id\",\n    embed: \"pagination\",\n    fields: \"id,name\",\n    id: \"eq:1\",\n    name: \"lk:texto\"\n  },\n};\n\ntry {\n  const { data } = await axios.request(options);\n  console.log(data);\n} catch (error) {\n  console.error(error);\n}"
+                        "source": "import axios from 'axios';\n\nconst options = {\n  method: 'GET',\n  url: 'https://kapi.chavodigital.com/api/v5/procedimientos?page=1&limit=25&sort=+id,-name&groupby=id&embed=pagination&fields=id,name&id=eq:1&name=lk:texto&slug=lk:texto',\n  params: {\n    page: \"1\",\n    limit: \"25\",\n    sort: \"+id,-name\",\n    groupby: \"id\",\n    embed: \"pagination\",\n    fields: \"id,name\",\n    id: \"eq:1\",\n    name: \"lk:texto\",\n    slug: \"lk:texto\"\n  },\n};\n\ntry {\n  const { data } = await axios.request(options);\n  console.log(data);\n} catch (error) {\n  console.error(error);\n}"
                     }
                 ]
             },
@@ -9187,16 +9515,23 @@
                                         "type": "string",
                                         "maxLength": 50,
                                         "description": "Required. Max 50 characters."
+                                    },
+                                    "slug": {
+                                        "type": "string",
+                                        "maxLength": 50,
+                                        "description": "Required. Max 50 characters. Must be unique in c_procedures.slug."
                                     }
                                 },
                                 "additionalProperties": true,
                                 "required": [
-                                    "name"
+                                    "name",
+                                    "slug"
                                 ],
                                 "description": "Create payload with every writable field of the module. Fields listed under required must be sent; the others are optional and fall back to their default when omitted."
                             },
                             "example": {
-                                "name": "Example name"
+                                "name": "Example name",
+                                "slug": "example-slug"
                             }
                         }
                     }
@@ -9255,12 +9590,12 @@
                     {
                         "lang": "Shell",
                         "label": "cURL",
-                        "source": "curl \\\n  --request POST \\\n  --url 'https://kapi.chavodigital.com/api/v5/procedimientos' \\\n  --header 'Content-Type: application/json' \\\n  --data '{\n    \"name\": \"Example name\"\n}' \\\n  --header 'Authorization: Bearer YOUR_SECRET_TOKEN'"
+                        "source": "curl \\\n  --request POST \\\n  --url 'https://kapi.chavodigital.com/api/v5/procedimientos' \\\n  --header 'Content-Type: application/json' \\\n  --data '{\n    \"name\": \"Example name\",\n    \"slug\": \"example-slug\"\n}' \\\n  --header 'Authorization: Bearer YOUR_SECRET_TOKEN'"
                     },
                     {
                         "lang": "JavaScript",
                         "label": "axios",
-                        "source": "import axios from 'axios';\n\nconst options = {\n  method: 'POST',\n  url: 'https://kapi.chavodigital.com/api/v5/procedimientos',\n  data: {\n    name: \"Example name\"\n  },\n  headers: {\n    \"Content-Type\": \"application/json\",\n    Authorization: \"Bearer YOUR_SECRET_TOKEN\"\n  },\n};\n\ntry {\n  const { data } = await axios.request(options);\n  console.log(data);\n} catch (error) {\n  console.error(error);\n}"
+                        "source": "import axios from 'axios';\n\nconst options = {\n  method: 'POST',\n  url: 'https://kapi.chavodigital.com/api/v5/procedimientos',\n  data: {\n    name: \"Example name\",\n    slug: \"example-slug\"\n  },\n  headers: {\n    \"Content-Type\": \"application/json\",\n    Authorization: \"Bearer YOUR_SECRET_TOKEN\"\n  },\n};\n\ntry {\n  const { data } = await axios.request(options);\n  console.log(data);\n} catch (error) {\n  console.error(error);\n}"
                     }
                 ]
             }
@@ -9292,7 +9627,8 @@
                                     "http_code": 200,
                                     "data": {
                                         "id": 1,
-                                        "name": "Example name"
+                                        "name": "Example name",
+                                        "slug": "example-slug"
                                     },
                                     "meta": {
                                         "session_id": "uuid"
@@ -9366,13 +9702,19 @@
                                         "type": "string",
                                         "maxLength": 50,
                                         "description": "Max 50 characters."
+                                    },
+                                    "slug": {
+                                        "type": "string",
+                                        "maxLength": 50,
+                                        "description": "Max 50 characters. Must be unique in c_procedures.slug."
                                     }
                                 },
                                 "additionalProperties": true,
                                 "description": "Partial update: only fields sent with a non-empty value are updated, omitted or empty fields keep their current value."
                             },
                             "example": {
-                                "name": "Example name"
+                                "name": "Example name",
+                                "slug": "example-slug"
                             }
                         }
                     }
@@ -9431,12 +9773,12 @@
                     {
                         "lang": "Shell",
                         "label": "cURL",
-                        "source": "curl \\\n  --request PUT \\\n  --url 'https://kapi.chavodigital.com/api/v5/procedimientos/1' \\\n  --header 'Content-Type: application/json' \\\n  --data '{\n    \"name\": \"Example name\"\n}' \\\n  --header 'Authorization: Bearer YOUR_SECRET_TOKEN'"
+                        "source": "curl \\\n  --request PUT \\\n  --url 'https://kapi.chavodigital.com/api/v5/procedimientos/1' \\\n  --header 'Content-Type: application/json' \\\n  --data '{\n    \"name\": \"Example name\",\n    \"slug\": \"example-slug\"\n}' \\\n  --header 'Authorization: Bearer YOUR_SECRET_TOKEN'"
                     },
                     {
                         "lang": "JavaScript",
                         "label": "axios",
-                        "source": "import axios from 'axios';\n\nconst options = {\n  method: 'PUT',\n  url: 'https://kapi.chavodigital.com/api/v5/procedimientos/1',\n  data: {\n    name: \"Example name\"\n  },\n  headers: {\n    \"Content-Type\": \"application/json\",\n    Authorization: \"Bearer YOUR_SECRET_TOKEN\"\n  },\n};\n\ntry {\n  const { data } = await axios.request(options);\n  console.log(data);\n} catch (error) {\n  console.error(error);\n}"
+                        "source": "import axios from 'axios';\n\nconst options = {\n  method: 'PUT',\n  url: 'https://kapi.chavodigital.com/api/v5/procedimientos/1',\n  data: {\n    name: \"Example name\",\n    slug: \"example-slug\"\n  },\n  headers: {\n    \"Content-Type\": \"application/json\",\n    Authorization: \"Bearer YOUR_SECRET_TOKEN\"\n  },\n};\n\ntry {\n  const { data } = await axios.request(options);\n  console.log(data);\n} catch (error) {\n  console.error(error);\n}"
                     }
                 ]
             },
@@ -9597,7 +9939,7 @@
                         "schema": {
                             "type": "string"
                         },
-                        "description": "Comma-separated sort list, prefix each field with + (ascending) or - (descending). Allowed fields: id, name, slug, rfc.",
+                        "description": "Comma-separated sort list, prefix each field with + (ascending) or - (descending). Allowed fields: id, name, slug, rfc, comments.",
                         "example": "+id,-name",
                         "examples": {
                             "ascending": {
@@ -9616,7 +9958,7 @@
                         "schema": {
                             "type": "string"
                         },
-                        "description": "Comma-separated grouping fields. Allowed fields: id, name, slug, rfc.",
+                        "description": "Comma-separated grouping fields. Allowed fields: id, name, slug, rfc, comments.",
                         "example": "id"
                     },
                     {
@@ -9637,7 +9979,7 @@
                         "schema": {
                             "type": "string"
                         },
-                        "description": "Comma-separated output fields. Allowed fields: id, name, slug, rfc.",
+                        "description": "Comma-separated output fields. Allowed fields: id, name, slug, rfc, comments.",
                         "example": "id,name"
                     },
                     {
@@ -9783,6 +10125,41 @@
                                 "value": "in:texto1,texto2"
                             }
                         }
+                    },
+                    {
+                        "name": "comments",
+                        "in": "query",
+                        "schema": {
+                            "type": "string"
+                        },
+                        "description": "Filter on comments using campo=op:valor with operators eq, lt, gt, gte, lte, ne, lk, isn, non, in.",
+                        "example": "lk:texto",
+                        "examples": {
+                            "equals": {
+                                "summary": "Equal",
+                                "value": "eq:texto"
+                            },
+                            "like": {
+                                "summary": "Contains",
+                                "value": "lk:texto"
+                            },
+                            "notEqual": {
+                                "summary": "Not equal",
+                                "value": "ne:texto"
+                            },
+                            "isNull": {
+                                "summary": "Is null",
+                                "value": "isn"
+                            },
+                            "notNull": {
+                                "summary": "Is not null",
+                                "value": "non"
+                            },
+                            "inList": {
+                                "summary": "In list",
+                                "value": "in:texto1,texto2"
+                            }
+                        }
                     }
                 ],
                 "operationId": "get_proveedores",
@@ -9790,12 +10167,12 @@
                     {
                         "lang": "Shell",
                         "label": "cURL",
-                        "source": "curl \\\n  --url 'https://kapi.chavodigital.com/api/v5/proveedores?page=1&limit=25&sort=+id,-name&groupby=id&embed=pagination&fields=id,name&id=eq:1&name=lk:texto&slug=lk:texto&rfc=lk:texto'"
+                        "source": "curl \\\n  --url 'https://kapi.chavodigital.com/api/v5/proveedores?page=1&limit=25&sort=+id,-name&groupby=id&embed=pagination&fields=id,name&id=eq:1&name=lk:texto&slug=lk:texto&rfc=lk:texto&comments=lk:texto'"
                     },
                     {
                         "lang": "JavaScript",
                         "label": "axios",
-                        "source": "import axios from 'axios';\n\nconst options = {\n  method: 'GET',\n  url: 'https://kapi.chavodigital.com/api/v5/proveedores?page=1&limit=25&sort=+id,-name&groupby=id&embed=pagination&fields=id,name&id=eq:1&name=lk:texto&slug=lk:texto&rfc=lk:texto',\n  params: {\n    page: \"1\",\n    limit: \"25\",\n    sort: \"+id,-name\",\n    groupby: \"id\",\n    embed: \"pagination\",\n    fields: \"id,name\",\n    id: \"eq:1\",\n    name: \"lk:texto\",\n    slug: \"lk:texto\",\n    rfc: \"lk:texto\"\n  },\n};\n\ntry {\n  const { data } = await axios.request(options);\n  console.log(data);\n} catch (error) {\n  console.error(error);\n}"
+                        "source": "import axios from 'axios';\n\nconst options = {\n  method: 'GET',\n  url: 'https://kapi.chavodigital.com/api/v5/proveedores?page=1&limit=25&sort=+id,-name&groupby=id&embed=pagination&fields=id,name&id=eq:1&name=lk:texto&slug=lk:texto&rfc=lk:texto&comments=lk:texto',\n  params: {\n    page: \"1\",\n    limit: \"25\",\n    sort: \"+id,-name\",\n    groupby: \"id\",\n    embed: \"pagination\",\n    fields: \"id,name\",\n    id: \"eq:1\",\n    name: \"lk:texto\",\n    slug: \"lk:texto\",\n    rfc: \"lk:texto\",\n    comments: \"lk:texto\"\n  },\n};\n\ntry {\n  const { data } = await axios.request(options);\n  console.log(data);\n} catch (error) {\n  console.error(error);\n}"
                     }
                 ]
             },
@@ -9824,6 +10201,10 @@
                                         "type": "string",
                                         "maxLength": 13,
                                         "description": "Required. Valid RFC. Max 13 characters. Must be unique in proveedores.rfc."
+                                    },
+                                    "comments": {
+                                        "type": "string",
+                                        "description": "Optional field."
                                     }
                                 },
                                 "additionalProperties": true,
@@ -9836,7 +10217,8 @@
                             "example": {
                                 "name": "Example name",
                                 "slug": "example-slug",
-                                "rfc": "example"
+                                "rfc": "example",
+                                "comments": "example"
                             }
                         }
                     }
@@ -9895,12 +10277,12 @@
                     {
                         "lang": "Shell",
                         "label": "cURL",
-                        "source": "curl \\\n  --request POST \\\n  --url 'https://kapi.chavodigital.com/api/v5/proveedores' \\\n  --header 'Content-Type: application/json' \\\n  --data '{\n    \"name\": \"Example name\",\n    \"slug\": \"example-slug\",\n    \"rfc\": \"example\"\n}' \\\n  --header 'Authorization: Bearer YOUR_SECRET_TOKEN'"
+                        "source": "curl \\\n  --request POST \\\n  --url 'https://kapi.chavodigital.com/api/v5/proveedores' \\\n  --header 'Content-Type: application/json' \\\n  --data '{\n    \"name\": \"Example name\",\n    \"slug\": \"example-slug\",\n    \"rfc\": \"example\",\n    \"comments\": \"example\"\n}' \\\n  --header 'Authorization: Bearer YOUR_SECRET_TOKEN'"
                     },
                     {
                         "lang": "JavaScript",
                         "label": "axios",
-                        "source": "import axios from 'axios';\n\nconst options = {\n  method: 'POST',\n  url: 'https://kapi.chavodigital.com/api/v5/proveedores',\n  data: {\n    name: \"Example name\",\n    slug: \"example-slug\",\n    rfc: \"example\"\n  },\n  headers: {\n    \"Content-Type\": \"application/json\",\n    Authorization: \"Bearer YOUR_SECRET_TOKEN\"\n  },\n};\n\ntry {\n  const { data } = await axios.request(options);\n  console.log(data);\n} catch (error) {\n  console.error(error);\n}"
+                        "source": "import axios from 'axios';\n\nconst options = {\n  method: 'POST',\n  url: 'https://kapi.chavodigital.com/api/v5/proveedores',\n  data: {\n    name: \"Example name\",\n    slug: \"example-slug\",\n    rfc: \"example\",\n    comments: \"example\"\n  },\n  headers: {\n    \"Content-Type\": \"application/json\",\n    Authorization: \"Bearer YOUR_SECRET_TOKEN\"\n  },\n};\n\ntry {\n  const { data } = await axios.request(options);\n  console.log(data);\n} catch (error) {\n  console.error(error);\n}"
                     }
                 ]
             }
@@ -9934,7 +10316,8 @@
                                         "id": 1,
                                         "name": "Example name",
                                         "slug": "example-slug",
-                                        "rfc": "example"
+                                        "rfc": "example",
+                                        "comments": "example"
                                     },
                                     "meta": {
                                         "session_id": "uuid"
@@ -10017,6 +10400,10 @@
                                         "type": "string",
                                         "maxLength": 13,
                                         "description": "Valid RFC. Max 13 characters. Must be unique in proveedores.rfc."
+                                    },
+                                    "comments": {
+                                        "type": "string",
+                                        "description": "Optional field."
                                     }
                                 },
                                 "additionalProperties": true,
@@ -10025,7 +10412,8 @@
                             "example": {
                                 "name": "Example name",
                                 "slug": "example-slug",
-                                "rfc": "example"
+                                "rfc": "example",
+                                "comments": "example"
                             }
                         }
                     }
@@ -10084,12 +10472,12 @@
                     {
                         "lang": "Shell",
                         "label": "cURL",
-                        "source": "curl \\\n  --request PUT \\\n  --url 'https://kapi.chavodigital.com/api/v5/proveedores/1' \\\n  --header 'Content-Type: application/json' \\\n  --data '{\n    \"name\": \"Example name\",\n    \"slug\": \"example-slug\",\n    \"rfc\": \"example\"\n}' \\\n  --header 'Authorization: Bearer YOUR_SECRET_TOKEN'"
+                        "source": "curl \\\n  --request PUT \\\n  --url 'https://kapi.chavodigital.com/api/v5/proveedores/1' \\\n  --header 'Content-Type: application/json' \\\n  --data '{\n    \"name\": \"Example name\",\n    \"slug\": \"example-slug\",\n    \"rfc\": \"example\",\n    \"comments\": \"example\"\n}' \\\n  --header 'Authorization: Bearer YOUR_SECRET_TOKEN'"
                     },
                     {
                         "lang": "JavaScript",
                         "label": "axios",
-                        "source": "import axios from 'axios';\n\nconst options = {\n  method: 'PUT',\n  url: 'https://kapi.chavodigital.com/api/v5/proveedores/1',\n  data: {\n    name: \"Example name\",\n    slug: \"example-slug\",\n    rfc: \"example\"\n  },\n  headers: {\n    \"Content-Type\": \"application/json\",\n    Authorization: \"Bearer YOUR_SECRET_TOKEN\"\n  },\n};\n\ntry {\n  const { data } = await axios.request(options);\n  console.log(data);\n} catch (error) {\n  console.error(error);\n}"
+                        "source": "import axios from 'axios';\n\nconst options = {\n  method: 'PUT',\n  url: 'https://kapi.chavodigital.com/api/v5/proveedores/1',\n  data: {\n    name: \"Example name\",\n    slug: \"example-slug\",\n    rfc: \"example\",\n    comments: \"example\"\n  },\n  headers: {\n    \"Content-Type\": \"application/json\",\n    Authorization: \"Bearer YOUR_SECRET_TOKEN\"\n  },\n};\n\ntry {\n  const { data } = await axios.request(options);\n  console.log(data);\n} catch (error) {\n  console.error(error);\n}"
                     }
                 ]
             },
@@ -10250,7 +10638,7 @@
                         "schema": {
                             "type": "string"
                         },
-                        "description": "Comma-separated sort list, prefix each field with + (ascending) or - (descending). Allowed fields: id, name.",
+                        "description": "Comma-separated sort list, prefix each field with + (ascending) or - (descending). Allowed fields: id, name, slug.",
                         "example": "+id,-name",
                         "examples": {
                             "ascending": {
@@ -10269,7 +10657,7 @@
                         "schema": {
                             "type": "string"
                         },
-                        "description": "Comma-separated grouping fields. Allowed fields: id, name.",
+                        "description": "Comma-separated grouping fields. Allowed fields: id, name, slug.",
                         "example": "id"
                     },
                     {
@@ -10290,7 +10678,7 @@
                         "schema": {
                             "type": "string"
                         },
-                        "description": "Comma-separated output fields. Allowed fields: id, name.",
+                        "description": "Comma-separated output fields. Allowed fields: id, name, slug.",
                         "example": "id,name"
                     },
                     {
@@ -10366,6 +10754,41 @@
                                 "value": "in:texto1,texto2"
                             }
                         }
+                    },
+                    {
+                        "name": "slug",
+                        "in": "query",
+                        "schema": {
+                            "type": "string"
+                        },
+                        "description": "Filter on slug using campo=op:valor with operators eq, lt, gt, gte, lte, ne, lk, isn, non, in. Max 100 characters. Must be unique in c_tipo.slug.",
+                        "example": "lk:texto",
+                        "examples": {
+                            "equals": {
+                                "summary": "Equal",
+                                "value": "eq:texto"
+                            },
+                            "like": {
+                                "summary": "Contains",
+                                "value": "lk:texto"
+                            },
+                            "notEqual": {
+                                "summary": "Not equal",
+                                "value": "ne:texto"
+                            },
+                            "isNull": {
+                                "summary": "Is null",
+                                "value": "isn"
+                            },
+                            "notNull": {
+                                "summary": "Is not null",
+                                "value": "non"
+                            },
+                            "inList": {
+                                "summary": "In list",
+                                "value": "in:texto1,texto2"
+                            }
+                        }
                     }
                 ],
                 "operationId": "get_tipo_contrato",
@@ -10373,12 +10796,12 @@
                     {
                         "lang": "Shell",
                         "label": "cURL",
-                        "source": "curl \\\n  --url 'https://kapi.chavodigital.com/api/v5/tipo-contrato?page=1&limit=25&sort=+id,-name&groupby=id&embed=pagination&fields=id,name&id=eq:1&name=lk:texto'"
+                        "source": "curl \\\n  --url 'https://kapi.chavodigital.com/api/v5/tipo-contrato?page=1&limit=25&sort=+id,-name&groupby=id&embed=pagination&fields=id,name&id=eq:1&name=lk:texto&slug=lk:texto'"
                     },
                     {
                         "lang": "JavaScript",
                         "label": "axios",
-                        "source": "import axios from 'axios';\n\nconst options = {\n  method: 'GET',\n  url: 'https://kapi.chavodigital.com/api/v5/tipo-contrato?page=1&limit=25&sort=+id,-name&groupby=id&embed=pagination&fields=id,name&id=eq:1&name=lk:texto',\n  params: {\n    page: \"1\",\n    limit: \"25\",\n    sort: \"+id,-name\",\n    groupby: \"id\",\n    embed: \"pagination\",\n    fields: \"id,name\",\n    id: \"eq:1\",\n    name: \"lk:texto\"\n  },\n};\n\ntry {\n  const { data } = await axios.request(options);\n  console.log(data);\n} catch (error) {\n  console.error(error);\n}"
+                        "source": "import axios from 'axios';\n\nconst options = {\n  method: 'GET',\n  url: 'https://kapi.chavodigital.com/api/v5/tipo-contrato?page=1&limit=25&sort=+id,-name&groupby=id&embed=pagination&fields=id,name&id=eq:1&name=lk:texto&slug=lk:texto',\n  params: {\n    page: \"1\",\n    limit: \"25\",\n    sort: \"+id,-name\",\n    groupby: \"id\",\n    embed: \"pagination\",\n    fields: \"id,name\",\n    id: \"eq:1\",\n    name: \"lk:texto\",\n    slug: \"lk:texto\"\n  },\n};\n\ntry {\n  const { data } = await axios.request(options);\n  console.log(data);\n} catch (error) {\n  console.error(error);\n}"
                     }
                 ]
             },
@@ -10398,16 +10821,23 @@
                                         "type": "string",
                                         "maxLength": 100,
                                         "description": "Required. Max 100 characters."
+                                    },
+                                    "slug": {
+                                        "type": "string",
+                                        "maxLength": 100,
+                                        "description": "Required. Max 100 characters. Must be unique in c_tipo.slug."
                                     }
                                 },
                                 "additionalProperties": true,
                                 "required": [
-                                    "name"
+                                    "name",
+                                    "slug"
                                 ],
                                 "description": "Create payload with every writable field of the module. Fields listed under required must be sent; the others are optional and fall back to their default when omitted."
                             },
                             "example": {
-                                "name": "Example name"
+                                "name": "Example name",
+                                "slug": "example-slug"
                             }
                         }
                     }
@@ -10466,12 +10896,12 @@
                     {
                         "lang": "Shell",
                         "label": "cURL",
-                        "source": "curl \\\n  --request POST \\\n  --url 'https://kapi.chavodigital.com/api/v5/tipo-contrato' \\\n  --header 'Content-Type: application/json' \\\n  --data '{\n    \"name\": \"Example name\"\n}' \\\n  --header 'Authorization: Bearer YOUR_SECRET_TOKEN'"
+                        "source": "curl \\\n  --request POST \\\n  --url 'https://kapi.chavodigital.com/api/v5/tipo-contrato' \\\n  --header 'Content-Type: application/json' \\\n  --data '{\n    \"name\": \"Example name\",\n    \"slug\": \"example-slug\"\n}' \\\n  --header 'Authorization: Bearer YOUR_SECRET_TOKEN'"
                     },
                     {
                         "lang": "JavaScript",
                         "label": "axios",
-                        "source": "import axios from 'axios';\n\nconst options = {\n  method: 'POST',\n  url: 'https://kapi.chavodigital.com/api/v5/tipo-contrato',\n  data: {\n    name: \"Example name\"\n  },\n  headers: {\n    \"Content-Type\": \"application/json\",\n    Authorization: \"Bearer YOUR_SECRET_TOKEN\"\n  },\n};\n\ntry {\n  const { data } = await axios.request(options);\n  console.log(data);\n} catch (error) {\n  console.error(error);\n}"
+                        "source": "import axios from 'axios';\n\nconst options = {\n  method: 'POST',\n  url: 'https://kapi.chavodigital.com/api/v5/tipo-contrato',\n  data: {\n    name: \"Example name\",\n    slug: \"example-slug\"\n  },\n  headers: {\n    \"Content-Type\": \"application/json\",\n    Authorization: \"Bearer YOUR_SECRET_TOKEN\"\n  },\n};\n\ntry {\n  const { data } = await axios.request(options);\n  console.log(data);\n} catch (error) {\n  console.error(error);\n}"
                     }
                 ]
             }
@@ -10503,7 +10933,8 @@
                                     "http_code": 200,
                                     "data": {
                                         "id": 1,
-                                        "name": "Example name"
+                                        "name": "Example name",
+                                        "slug": "example-slug"
                                     },
                                     "meta": {
                                         "session_id": "uuid"
@@ -10577,13 +11008,19 @@
                                         "type": "string",
                                         "maxLength": 100,
                                         "description": "Max 100 characters."
+                                    },
+                                    "slug": {
+                                        "type": "string",
+                                        "maxLength": 100,
+                                        "description": "Max 100 characters. Must be unique in c_tipo.slug."
                                     }
                                 },
                                 "additionalProperties": true,
                                 "description": "Partial update: only fields sent with a non-empty value are updated, omitted or empty fields keep their current value."
                             },
                             "example": {
-                                "name": "Example name"
+                                "name": "Example name",
+                                "slug": "example-slug"
                             }
                         }
                     }
@@ -10642,12 +11079,12 @@
                     {
                         "lang": "Shell",
                         "label": "cURL",
-                        "source": "curl \\\n  --request PUT \\\n  --url 'https://kapi.chavodigital.com/api/v5/tipo-contrato/1' \\\n  --header 'Content-Type: application/json' \\\n  --data '{\n    \"name\": \"Example name\"\n}' \\\n  --header 'Authorization: Bearer YOUR_SECRET_TOKEN'"
+                        "source": "curl \\\n  --request PUT \\\n  --url 'https://kapi.chavodigital.com/api/v5/tipo-contrato/1' \\\n  --header 'Content-Type: application/json' \\\n  --data '{\n    \"name\": \"Example name\",\n    \"slug\": \"example-slug\"\n}' \\\n  --header 'Authorization: Bearer YOUR_SECRET_TOKEN'"
                     },
                     {
                         "lang": "JavaScript",
                         "label": "axios",
-                        "source": "import axios from 'axios';\n\nconst options = {\n  method: 'PUT',\n  url: 'https://kapi.chavodigital.com/api/v5/tipo-contrato/1',\n  data: {\n    name: \"Example name\"\n  },\n  headers: {\n    \"Content-Type\": \"application/json\",\n    Authorization: \"Bearer YOUR_SECRET_TOKEN\"\n  },\n};\n\ntry {\n  const { data } = await axios.request(options);\n  console.log(data);\n} catch (error) {\n  console.error(error);\n}"
+                        "source": "import axios from 'axios';\n\nconst options = {\n  method: 'PUT',\n  url: 'https://kapi.chavodigital.com/api/v5/tipo-contrato/1',\n  data: {\n    name: \"Example name\",\n    slug: \"example-slug\"\n  },\n  headers: {\n    \"Content-Type\": \"application/json\",\n    Authorization: \"Bearer YOUR_SECRET_TOKEN\"\n  },\n};\n\ntry {\n  const { data } = await axios.request(options);\n  console.log(data);\n} catch (error) {\n  console.error(error);\n}"
                     }
                 ]
             },
@@ -10808,7 +11245,7 @@
                         "schema": {
                             "type": "string"
                         },
-                        "description": "Comma-separated sort list, prefix each field with + (ascending) or - (descending). Allowed fields: id, name.",
+                        "description": "Comma-separated sort list, prefix each field with + (ascending) or - (descending). Allowed fields: id, name, notes.",
                         "example": "+id,-name",
                         "examples": {
                             "ascending": {
@@ -10827,7 +11264,7 @@
                         "schema": {
                             "type": "string"
                         },
-                        "description": "Comma-separated grouping fields. Allowed fields: id, name.",
+                        "description": "Comma-separated grouping fields. Allowed fields: id, name, notes.",
                         "example": "id"
                     },
                     {
@@ -10848,7 +11285,7 @@
                         "schema": {
                             "type": "string"
                         },
-                        "description": "Comma-separated output fields. Allowed fields: id, name.",
+                        "description": "Comma-separated output fields. Allowed fields: id, name, notes.",
                         "example": "id,name"
                     },
                     {
@@ -10924,6 +11361,41 @@
                                 "value": "in:texto1,texto2"
                             }
                         }
+                    },
+                    {
+                        "name": "notes",
+                        "in": "query",
+                        "schema": {
+                            "type": "string"
+                        },
+                        "description": "Filter on notes using campo=op:valor with operators eq, lt, gt, gte, lte, ne, lk, isn, non, in.",
+                        "example": "lk:texto",
+                        "examples": {
+                            "equals": {
+                                "summary": "Equal",
+                                "value": "eq:texto"
+                            },
+                            "like": {
+                                "summary": "Contains",
+                                "value": "lk:texto"
+                            },
+                            "notEqual": {
+                                "summary": "Not equal",
+                                "value": "ne:texto"
+                            },
+                            "isNull": {
+                                "summary": "Is null",
+                                "value": "isn"
+                            },
+                            "notNull": {
+                                "summary": "Is not null",
+                                "value": "non"
+                            },
+                            "inList": {
+                                "summary": "In list",
+                                "value": "in:texto1,texto2"
+                            }
+                        }
                     }
                 ],
                 "operationId": "get_unidades_administrativas",
@@ -10931,12 +11403,12 @@
                     {
                         "lang": "Shell",
                         "label": "cURL",
-                        "source": "curl \\\n  --url 'https://kapi.chavodigital.com/api/v5/unidades-administrativas?page=1&limit=25&sort=+id,-name&groupby=id&embed=pagination&fields=id,name&id=eq:1&name=lk:texto'"
+                        "source": "curl \\\n  --url 'https://kapi.chavodigital.com/api/v5/unidades-administrativas?page=1&limit=25&sort=+id,-name&groupby=id&embed=pagination&fields=id,name&id=eq:1&name=lk:texto&notes=lk:texto'"
                     },
                     {
                         "lang": "JavaScript",
                         "label": "axios",
-                        "source": "import axios from 'axios';\n\nconst options = {\n  method: 'GET',\n  url: 'https://kapi.chavodigital.com/api/v5/unidades-administrativas?page=1&limit=25&sort=+id,-name&groupby=id&embed=pagination&fields=id,name&id=eq:1&name=lk:texto',\n  params: {\n    page: \"1\",\n    limit: \"25\",\n    sort: \"+id,-name\",\n    groupby: \"id\",\n    embed: \"pagination\",\n    fields: \"id,name\",\n    id: \"eq:1\",\n    name: \"lk:texto\"\n  },\n};\n\ntry {\n  const { data } = await axios.request(options);\n  console.log(data);\n} catch (error) {\n  console.error(error);\n}"
+                        "source": "import axios from 'axios';\n\nconst options = {\n  method: 'GET',\n  url: 'https://kapi.chavodigital.com/api/v5/unidades-administrativas?page=1&limit=25&sort=+id,-name&groupby=id&embed=pagination&fields=id,name&id=eq:1&name=lk:texto&notes=lk:texto',\n  params: {\n    page: \"1\",\n    limit: \"25\",\n    sort: \"+id,-name\",\n    groupby: \"id\",\n    embed: \"pagination\",\n    fields: \"id,name\",\n    id: \"eq:1\",\n    name: \"lk:texto\",\n    notes: \"lk:texto\"\n  },\n};\n\ntry {\n  const { data } = await axios.request(options);\n  console.log(data);\n} catch (error) {\n  console.error(error);\n}"
                     }
                 ]
             },
@@ -10956,6 +11428,10 @@
                                         "type": "string",
                                         "maxLength": 150,
                                         "description": "Required. Max 150 characters."
+                                    },
+                                    "notes": {
+                                        "type": "string",
+                                        "description": "Optional field."
                                     }
                                 },
                                 "additionalProperties": true,
@@ -10965,7 +11441,8 @@
                                 "description": "Create payload with every writable field of the module. Fields listed under required must be sent; the others are optional and fall back to their default when omitted."
                             },
                             "example": {
-                                "name": "Example name"
+                                "name": "Example name",
+                                "notes": "Example description"
                             }
                         }
                     }
@@ -11024,12 +11501,12 @@
                     {
                         "lang": "Shell",
                         "label": "cURL",
-                        "source": "curl \\\n  --request POST \\\n  --url 'https://kapi.chavodigital.com/api/v5/unidades-administrativas' \\\n  --header 'Content-Type: application/json' \\\n  --data '{\n    \"name\": \"Example name\"\n}' \\\n  --header 'Authorization: Bearer YOUR_SECRET_TOKEN'"
+                        "source": "curl \\\n  --request POST \\\n  --url 'https://kapi.chavodigital.com/api/v5/unidades-administrativas' \\\n  --header 'Content-Type: application/json' \\\n  --data '{\n    \"name\": \"Example name\",\n    \"notes\": \"Example description\"\n}' \\\n  --header 'Authorization: Bearer YOUR_SECRET_TOKEN'"
                     },
                     {
                         "lang": "JavaScript",
                         "label": "axios",
-                        "source": "import axios from 'axios';\n\nconst options = {\n  method: 'POST',\n  url: 'https://kapi.chavodigital.com/api/v5/unidades-administrativas',\n  data: {\n    name: \"Example name\"\n  },\n  headers: {\n    \"Content-Type\": \"application/json\",\n    Authorization: \"Bearer YOUR_SECRET_TOKEN\"\n  },\n};\n\ntry {\n  const { data } = await axios.request(options);\n  console.log(data);\n} catch (error) {\n  console.error(error);\n}"
+                        "source": "import axios from 'axios';\n\nconst options = {\n  method: 'POST',\n  url: 'https://kapi.chavodigital.com/api/v5/unidades-administrativas',\n  data: {\n    name: \"Example name\",\n    notes: \"Example description\"\n  },\n  headers: {\n    \"Content-Type\": \"application/json\",\n    Authorization: \"Bearer YOUR_SECRET_TOKEN\"\n  },\n};\n\ntry {\n  const { data } = await axios.request(options);\n  console.log(data);\n} catch (error) {\n  console.error(error);\n}"
                     }
                 ]
             }
@@ -11061,7 +11538,8 @@
                                     "http_code": 200,
                                     "data": {
                                         "id": 1,
-                                        "name": "Example name"
+                                        "name": "Example name",
+                                        "notes": "Example description"
                                     },
                                     "meta": {
                                         "session_id": "uuid"
@@ -11135,13 +11613,18 @@
                                         "type": "string",
                                         "maxLength": 150,
                                         "description": "Max 150 characters."
+                                    },
+                                    "notes": {
+                                        "type": "string",
+                                        "description": "Optional field."
                                     }
                                 },
                                 "additionalProperties": true,
                                 "description": "Partial update: only fields sent with a non-empty value are updated, omitted or empty fields keep their current value."
                             },
                             "example": {
-                                "name": "Example name"
+                                "name": "Example name",
+                                "notes": "Example description"
                             }
                         }
                     }
@@ -11200,12 +11683,12 @@
                     {
                         "lang": "Shell",
                         "label": "cURL",
-                        "source": "curl \\\n  --request PUT \\\n  --url 'https://kapi.chavodigital.com/api/v5/unidades-administrativas/1' \\\n  --header 'Content-Type: application/json' \\\n  --data '{\n    \"name\": \"Example name\"\n}' \\\n  --header 'Authorization: Bearer YOUR_SECRET_TOKEN'"
+                        "source": "curl \\\n  --request PUT \\\n  --url 'https://kapi.chavodigital.com/api/v5/unidades-administrativas/1' \\\n  --header 'Content-Type: application/json' \\\n  --data '{\n    \"name\": \"Example name\",\n    \"notes\": \"Example description\"\n}' \\\n  --header 'Authorization: Bearer YOUR_SECRET_TOKEN'"
                     },
                     {
                         "lang": "JavaScript",
                         "label": "axios",
-                        "source": "import axios from 'axios';\n\nconst options = {\n  method: 'PUT',\n  url: 'https://kapi.chavodigital.com/api/v5/unidades-administrativas/1',\n  data: {\n    name: \"Example name\"\n  },\n  headers: {\n    \"Content-Type\": \"application/json\",\n    Authorization: \"Bearer YOUR_SECRET_TOKEN\"\n  },\n};\n\ntry {\n  const { data } = await axios.request(options);\n  console.log(data);\n} catch (error) {\n  console.error(error);\n}"
+                        "source": "import axios from 'axios';\n\nconst options = {\n  method: 'PUT',\n  url: 'https://kapi.chavodigital.com/api/v5/unidades-administrativas/1',\n  data: {\n    name: \"Example name\",\n    notes: \"Example description\"\n  },\n  headers: {\n    \"Content-Type\": \"application/json\",\n    Authorization: \"Bearer YOUR_SECRET_TOKEN\"\n  },\n};\n\ntry {\n  const { data } = await axios.request(options);\n  console.log(data);\n} catch (error) {\n  console.error(error);\n}"
                     }
                 ]
             },
@@ -11366,7 +11849,7 @@
                         "schema": {
                             "type": "string"
                         },
-                        "description": "Comma-separated sort list, prefix each field with + (ascending) or - (descending). Allowed fields: id, name.",
+                        "description": "Comma-separated sort list, prefix each field with + (ascending) or - (descending). Allowed fields: id, name, slug.",
                         "example": "+id,-name",
                         "examples": {
                             "ascending": {
@@ -11385,7 +11868,7 @@
                         "schema": {
                             "type": "string"
                         },
-                        "description": "Comma-separated grouping fields. Allowed fields: id, name.",
+                        "description": "Comma-separated grouping fields. Allowed fields: id, name, slug.",
                         "example": "id"
                     },
                     {
@@ -11406,7 +11889,7 @@
                         "schema": {
                             "type": "string"
                         },
-                        "description": "Comma-separated output fields. Allowed fields: id, name.",
+                        "description": "Comma-separated output fields. Allowed fields: id, name, slug.",
                         "example": "id,name"
                     },
                     {
@@ -11482,6 +11965,41 @@
                                 "value": "in:texto1,texto2"
                             }
                         }
+                    },
+                    {
+                        "name": "slug",
+                        "in": "query",
+                        "schema": {
+                            "type": "string"
+                        },
+                        "description": "Filter on slug using campo=op:valor with operators eq, lt, gt, gte, lte, ne, lk, isn, non, in. Max 50 characters. Must be unique in unit_types.slug.",
+                        "example": "lk:texto",
+                        "examples": {
+                            "equals": {
+                                "summary": "Equal",
+                                "value": "eq:texto"
+                            },
+                            "like": {
+                                "summary": "Contains",
+                                "value": "lk:texto"
+                            },
+                            "notEqual": {
+                                "summary": "Not equal",
+                                "value": "ne:texto"
+                            },
+                            "isNull": {
+                                "summary": "Is null",
+                                "value": "isn"
+                            },
+                            "notNull": {
+                                "summary": "Is not null",
+                                "value": "non"
+                            },
+                            "inList": {
+                                "summary": "In list",
+                                "value": "in:texto1,texto2"
+                            }
+                        }
                     }
                 ],
                 "operationId": "get_unit_types",
@@ -11489,12 +12007,12 @@
                     {
                         "lang": "Shell",
                         "label": "cURL",
-                        "source": "curl \\\n  --url 'https://kapi.chavodigital.com/api/v5/unit-types?page=1&limit=25&sort=+id,-name&groupby=id&embed=pagination&fields=id,name&id=eq:1&name=lk:texto'"
+                        "source": "curl \\\n  --url 'https://kapi.chavodigital.com/api/v5/unit-types?page=1&limit=25&sort=+id,-name&groupby=id&embed=pagination&fields=id,name&id=eq:1&name=lk:texto&slug=lk:texto'"
                     },
                     {
                         "lang": "JavaScript",
                         "label": "axios",
-                        "source": "import axios from 'axios';\n\nconst options = {\n  method: 'GET',\n  url: 'https://kapi.chavodigital.com/api/v5/unit-types?page=1&limit=25&sort=+id,-name&groupby=id&embed=pagination&fields=id,name&id=eq:1&name=lk:texto',\n  params: {\n    page: \"1\",\n    limit: \"25\",\n    sort: \"+id,-name\",\n    groupby: \"id\",\n    embed: \"pagination\",\n    fields: \"id,name\",\n    id: \"eq:1\",\n    name: \"lk:texto\"\n  },\n};\n\ntry {\n  const { data } = await axios.request(options);\n  console.log(data);\n} catch (error) {\n  console.error(error);\n}"
+                        "source": "import axios from 'axios';\n\nconst options = {\n  method: 'GET',\n  url: 'https://kapi.chavodigital.com/api/v5/unit-types?page=1&limit=25&sort=+id,-name&groupby=id&embed=pagination&fields=id,name&id=eq:1&name=lk:texto&slug=lk:texto',\n  params: {\n    page: \"1\",\n    limit: \"25\",\n    sort: \"+id,-name\",\n    groupby: \"id\",\n    embed: \"pagination\",\n    fields: \"id,name\",\n    id: \"eq:1\",\n    name: \"lk:texto\",\n    slug: \"lk:texto\"\n  },\n};\n\ntry {\n  const { data } = await axios.request(options);\n  console.log(data);\n} catch (error) {\n  console.error(error);\n}"
                     }
                 ]
             },
@@ -11514,16 +12032,23 @@
                                         "type": "string",
                                         "maxLength": 50,
                                         "description": "Required. Max 50 characters."
+                                    },
+                                    "slug": {
+                                        "type": "string",
+                                        "maxLength": 50,
+                                        "description": "Required. Max 50 characters. Must be unique in unit_types.slug."
                                     }
                                 },
                                 "additionalProperties": true,
                                 "required": [
-                                    "name"
+                                    "name",
+                                    "slug"
                                 ],
                                 "description": "Create payload with every writable field of the module. Fields listed under required must be sent; the others are optional and fall back to their default when omitted."
                             },
                             "example": {
-                                "name": "Example name"
+                                "name": "Example name",
+                                "slug": "example-slug"
                             }
                         }
                     }
@@ -11582,12 +12107,12 @@
                     {
                         "lang": "Shell",
                         "label": "cURL",
-                        "source": "curl \\\n  --request POST \\\n  --url 'https://kapi.chavodigital.com/api/v5/unit-types' \\\n  --header 'Content-Type: application/json' \\\n  --data '{\n    \"name\": \"Example name\"\n}' \\\n  --header 'Authorization: Bearer YOUR_SECRET_TOKEN'"
+                        "source": "curl \\\n  --request POST \\\n  --url 'https://kapi.chavodigital.com/api/v5/unit-types' \\\n  --header 'Content-Type: application/json' \\\n  --data '{\n    \"name\": \"Example name\",\n    \"slug\": \"example-slug\"\n}' \\\n  --header 'Authorization: Bearer YOUR_SECRET_TOKEN'"
                     },
                     {
                         "lang": "JavaScript",
                         "label": "axios",
-                        "source": "import axios from 'axios';\n\nconst options = {\n  method: 'POST',\n  url: 'https://kapi.chavodigital.com/api/v5/unit-types',\n  data: {\n    name: \"Example name\"\n  },\n  headers: {\n    \"Content-Type\": \"application/json\",\n    Authorization: \"Bearer YOUR_SECRET_TOKEN\"\n  },\n};\n\ntry {\n  const { data } = await axios.request(options);\n  console.log(data);\n} catch (error) {\n  console.error(error);\n}"
+                        "source": "import axios from 'axios';\n\nconst options = {\n  method: 'POST',\n  url: 'https://kapi.chavodigital.com/api/v5/unit-types',\n  data: {\n    name: \"Example name\",\n    slug: \"example-slug\"\n  },\n  headers: {\n    \"Content-Type\": \"application/json\",\n    Authorization: \"Bearer YOUR_SECRET_TOKEN\"\n  },\n};\n\ntry {\n  const { data } = await axios.request(options);\n  console.log(data);\n} catch (error) {\n  console.error(error);\n}"
                     }
                 ]
             }
@@ -11619,7 +12144,8 @@
                                     "http_code": 200,
                                     "data": {
                                         "id": 1,
-                                        "name": "Example name"
+                                        "name": "Example name",
+                                        "slug": "example-slug"
                                     },
                                     "meta": {
                                         "session_id": "uuid"
@@ -11693,13 +12219,19 @@
                                         "type": "string",
                                         "maxLength": 50,
                                         "description": "Max 50 characters."
+                                    },
+                                    "slug": {
+                                        "type": "string",
+                                        "maxLength": 50,
+                                        "description": "Max 50 characters. Must be unique in unit_types.slug."
                                     }
                                 },
                                 "additionalProperties": true,
                                 "description": "Partial update: only fields sent with a non-empty value are updated, omitted or empty fields keep their current value."
                             },
                             "example": {
-                                "name": "Example name"
+                                "name": "Example name",
+                                "slug": "example-slug"
                             }
                         }
                     }
@@ -11758,12 +12290,12 @@
                     {
                         "lang": "Shell",
                         "label": "cURL",
-                        "source": "curl \\\n  --request PUT \\\n  --url 'https://kapi.chavodigital.com/api/v5/unit-types/1' \\\n  --header 'Content-Type: application/json' \\\n  --data '{\n    \"name\": \"Example name\"\n}' \\\n  --header 'Authorization: Bearer YOUR_SECRET_TOKEN'"
+                        "source": "curl \\\n  --request PUT \\\n  --url 'https://kapi.chavodigital.com/api/v5/unit-types/1' \\\n  --header 'Content-Type: application/json' \\\n  --data '{\n    \"name\": \"Example name\",\n    \"slug\": \"example-slug\"\n}' \\\n  --header 'Authorization: Bearer YOUR_SECRET_TOKEN'"
                     },
                     {
                         "lang": "JavaScript",
                         "label": "axios",
-                        "source": "import axios from 'axios';\n\nconst options = {\n  method: 'PUT',\n  url: 'https://kapi.chavodigital.com/api/v5/unit-types/1',\n  data: {\n    name: \"Example name\"\n  },\n  headers: {\n    \"Content-Type\": \"application/json\",\n    Authorization: \"Bearer YOUR_SECRET_TOKEN\"\n  },\n};\n\ntry {\n  const { data } = await axios.request(options);\n  console.log(data);\n} catch (error) {\n  console.error(error);\n}"
+                        "source": "import axios from 'axios';\n\nconst options = {\n  method: 'PUT',\n  url: 'https://kapi.chavodigital.com/api/v5/unit-types/1',\n  data: {\n    name: \"Example name\",\n    slug: \"example-slug\"\n  },\n  headers: {\n    \"Content-Type\": \"application/json\",\n    Authorization: \"Bearer YOUR_SECRET_TOKEN\"\n  },\n};\n\ntry {\n  const { data } = await axios.request(options);\n  console.log(data);\n} catch (error) {\n  console.error(error);\n}"
                     }
                 ]
             },
@@ -11933,7 +12465,7 @@
                         "schema": {
                             "type": "string"
                         },
-                        "description": "Comma-separated sort list, prefix each field with + (ascending) or - (descending). Allowed fields: id, name, slug.",
+                        "description": "Comma-separated sort list, prefix each field with + (ascending) or - (descending). Allowed fields: id, name, slug, value, is_private, edit_roles.",
                         "example": "+id,-name",
                         "examples": {
                             "ascending": {
@@ -11952,7 +12484,7 @@
                         "schema": {
                             "type": "string"
                         },
-                        "description": "Comma-separated grouping fields. Allowed fields: id, name, slug.",
+                        "description": "Comma-separated grouping fields. Allowed fields: id, name, slug, value, is_private, edit_roles.",
                         "example": "id"
                     },
                     {
@@ -11973,7 +12505,7 @@
                         "schema": {
                             "type": "string"
                         },
-                        "description": "Comma-separated output fields. Allowed fields: id, name, slug.",
+                        "description": "Comma-separated output fields. Allowed fields: id, name, slug, value, is_private, edit_roles.",
                         "example": "id,name"
                     },
                     {
@@ -12084,19 +12616,117 @@
                                 "value": "in:texto1,texto2"
                             }
                         }
+                    },
+                    {
+                        "name": "value",
+                        "in": "query",
+                        "schema": {
+                            "type": "string"
+                        },
+                        "description": "Filter on value using campo=op:valor with operators eq, lt, gt, gte, lte, ne, lk, isn, non, in.",
+                        "example": "lk:texto",
+                        "examples": {
+                            "equals": {
+                                "summary": "Equal",
+                                "value": "eq:texto"
+                            },
+                            "like": {
+                                "summary": "Contains",
+                                "value": "lk:texto"
+                            },
+                            "notEqual": {
+                                "summary": "Not equal",
+                                "value": "ne:texto"
+                            },
+                            "isNull": {
+                                "summary": "Is null",
+                                "value": "isn"
+                            },
+                            "notNull": {
+                                "summary": "Is not null",
+                                "value": "non"
+                            },
+                            "inList": {
+                                "summary": "In list",
+                                "value": "in:texto1,texto2"
+                            }
+                        }
+                    },
+                    {
+                        "name": "is_private",
+                        "in": "query",
+                        "schema": {
+                            "type": "boolean"
+                        },
+                        "description": "Filter on is_private using campo=op:valor with operators eq, lt, gt, gte, lte, ne, lk, isn, non, in.",
+                        "example": "eq:1",
+                        "examples": {
+                            "equals": {
+                                "summary": "Equal",
+                                "value": "eq:1"
+                            },
+                            "notEqual": {
+                                "summary": "Not equal",
+                                "value": "ne:0"
+                            },
+                            "isNull": {
+                                "summary": "Is null",
+                                "value": "isn"
+                            },
+                            "notNull": {
+                                "summary": "Is not null",
+                                "value": "non"
+                            }
+                        }
+                    },
+                    {
+                        "name": "edit_roles",
+                        "in": "query",
+                        "schema": {
+                            "type": "string"
+                        },
+                        "description": "Filter on edit_roles using campo=op:valor with operators eq, lt, gt, gte, lte, ne, lk, isn, non, in. Read-only field (not writable on POST/PUT).",
+                        "example": "lk:texto",
+                        "examples": {
+                            "equals": {
+                                "summary": "Equal",
+                                "value": "eq:texto"
+                            },
+                            "like": {
+                                "summary": "Contains",
+                                "value": "lk:texto"
+                            },
+                            "notEqual": {
+                                "summary": "Not equal",
+                                "value": "ne:texto"
+                            },
+                            "isNull": {
+                                "summary": "Is null",
+                                "value": "isn"
+                            },
+                            "notNull": {
+                                "summary": "Is not null",
+                                "value": "non"
+                            },
+                            "inList": {
+                                "summary": "In list",
+                                "value": "in:texto1,texto2"
+                            }
+                        }
                     }
                 ],
+                "description": "Row visibility: entries with is_private = 1 are only returned to callers authenticated with role 1, 2 or 3. Every other caller only sees entries with is_private = 0.",
                 "operationId": "get_config",
                 "x-codeSamples": [
                     {
                         "lang": "Shell",
                         "label": "cURL",
-                        "source": "curl \\\n  --url 'https://kapi.chavodigital.com/api/v5/config?page=1&limit=25&search=texto&sort=+id,-name&groupby=id&embed=pagination&fields=id,name&id=eq:1&name=lk:texto&slug=lk:texto'"
+                        "source": "curl \\\n  --url 'https://kapi.chavodigital.com/api/v5/config?page=1&limit=25&search=texto&sort=+id,-name&groupby=id&embed=pagination&fields=id,name&id=eq:1&name=lk:texto&slug=lk:texto&value=lk:texto&is_private=eq:1&edit_roles=lk:texto'"
                     },
                     {
                         "lang": "JavaScript",
                         "label": "axios",
-                        "source": "import axios from 'axios';\n\nconst options = {\n  method: 'GET',\n  url: 'https://kapi.chavodigital.com/api/v5/config?page=1&limit=25&search=texto&sort=+id,-name&groupby=id&embed=pagination&fields=id,name&id=eq:1&name=lk:texto&slug=lk:texto',\n  params: {\n    page: \"1\",\n    limit: \"25\",\n    search: \"texto\",\n    sort: \"+id,-name\",\n    groupby: \"id\",\n    embed: \"pagination\",\n    fields: \"id,name\",\n    id: \"eq:1\",\n    name: \"lk:texto\",\n    slug: \"lk:texto\"\n  },\n};\n\ntry {\n  const { data } = await axios.request(options);\n  console.log(data);\n} catch (error) {\n  console.error(error);\n}"
+                        "source": "import axios from 'axios';\n\nconst options = {\n  method: 'GET',\n  url: 'https://kapi.chavodigital.com/api/v5/config?page=1&limit=25&search=texto&sort=+id,-name&groupby=id&embed=pagination&fields=id,name&id=eq:1&name=lk:texto&slug=lk:texto&value=lk:texto&is_private=eq:1&edit_roles=lk:texto',\n  params: {\n    page: \"1\",\n    limit: \"25\",\n    search: \"texto\",\n    sort: \"+id,-name\",\n    groupby: \"id\",\n    embed: \"pagination\",\n    fields: \"id,name\",\n    id: \"eq:1\",\n    name: \"lk:texto\",\n    slug: \"lk:texto\",\n    value: \"lk:texto\",\n    is_private: \"eq:1\",\n    edit_roles: \"lk:texto\"\n  },\n};\n\ntry {\n  const { data } = await axios.request(options);\n  console.log(data);\n} catch (error) {\n  console.error(error);\n}"
                     }
                 ]
             },
@@ -12121,6 +12751,15 @@
                                         "type": "string",
                                         "maxLength": 45,
                                         "description": "Required. Max 45 characters. Must be unique in config.slug."
+                                    },
+                                    "value": {
+                                        "type": "string",
+                                        "description": "Optional field."
+                                    },
+                                    "is_private": {
+                                        "type": "boolean",
+                                        "description": "Optional field.",
+                                        "default": true
                                     }
                                 },
                                 "additionalProperties": true,
@@ -12132,7 +12771,9 @@
                             },
                             "example": {
                                 "name": "Example name",
-                                "slug": "example-slug"
+                                "slug": "example-slug",
+                                "value": "example",
+                                "is_private": true
                             }
                         }
                     }
@@ -12179,6 +12820,9 @@
                     },
                     "429": {
                         "$ref": "#/components/responses/Error429000"
+                    },
+                    "403": {
+                        "$ref": "#/components/responses/Error901009"
                     }
                 },
                 "security": [
@@ -12191,12 +12835,12 @@
                     {
                         "lang": "Shell",
                         "label": "cURL",
-                        "source": "curl \\\n  --request POST \\\n  --url 'https://kapi.chavodigital.com/api/v5/config' \\\n  --header 'Content-Type: application/json' \\\n  --data '{\n    \"name\": \"Example name\",\n    \"slug\": \"example-slug\"\n}' \\\n  --header 'Authorization: Bearer YOUR_SECRET_TOKEN'"
+                        "source": "curl \\\n  --request POST \\\n  --url 'https://kapi.chavodigital.com/api/v5/config' \\\n  --header 'Content-Type: application/json' \\\n  --data '{\n    \"name\": \"Example name\",\n    \"slug\": \"example-slug\",\n    \"value\": \"example\",\n    \"is_private\": true\n}' \\\n  --header 'Authorization: Bearer YOUR_SECRET_TOKEN'"
                     },
                     {
                         "lang": "JavaScript",
                         "label": "axios",
-                        "source": "import axios from 'axios';\n\nconst options = {\n  method: 'POST',\n  url: 'https://kapi.chavodigital.com/api/v5/config',\n  data: {\n    name: \"Example name\",\n    slug: \"example-slug\"\n  },\n  headers: {\n    \"Content-Type\": \"application/json\",\n    Authorization: \"Bearer YOUR_SECRET_TOKEN\"\n  },\n};\n\ntry {\n  const { data } = await axios.request(options);\n  console.log(data);\n} catch (error) {\n  console.error(error);\n}"
+                        "source": "import axios from 'axios';\n\nconst options = {\n  method: 'POST',\n  url: 'https://kapi.chavodigital.com/api/v5/config',\n  data: {\n    name: \"Example name\",\n    slug: \"example-slug\",\n    value: \"example\",\n    is_private: true\n  },\n  headers: {\n    \"Content-Type\": \"application/json\",\n    Authorization: \"Bearer YOUR_SECRET_TOKEN\"\n  },\n};\n\ntry {\n  const { data } = await axios.request(options);\n  console.log(data);\n} catch (error) {\n  console.error(error);\n}"
                     }
                 ]
             }
@@ -12229,7 +12873,10 @@
                                     "data": {
                                         "id": 1,
                                         "name": "Example name",
-                                        "slug": "example-slug"
+                                        "slug": "example-slug",
+                                        "value": "example",
+                                        "is_private": true,
+                                        "edit_roles": "1,2,3"
                                     },
                                     "meta": {
                                         "session_id": "uuid"
@@ -12263,22 +12910,18 @@
                         "$ref": "#/components/responses/Error429000"
                     }
                 },
-                "security": [
-                    {
-                        "bearerAuth": []
-                    }
-                ],
+                "description": "Row visibility: requesting an entry with is_private = 1 answers 404000 (APP_RESULTS_NOT_FOUND) to callers that are not authenticated with role 1, 2 or 3, as if the id did not exist.",
                 "operationId": "get_config_id",
                 "x-codeSamples": [
                     {
                         "lang": "Shell",
                         "label": "cURL",
-                        "source": "curl \\\n  --url 'https://kapi.chavodigital.com/api/v5/config/1' \\\n  --header 'Authorization: Bearer YOUR_SECRET_TOKEN'"
+                        "source": "curl \\\n  --url 'https://kapi.chavodigital.com/api/v5/config/1'"
                     },
                     {
                         "lang": "JavaScript",
                         "label": "axios",
-                        "source": "import axios from 'axios';\n\nconst options = {\n  method: 'GET',\n  url: 'https://kapi.chavodigital.com/api/v5/config/1',\n  headers: {\n    Authorization: \"Bearer YOUR_SECRET_TOKEN\"\n  },\n};\n\ntry {\n  const { data } = await axios.request(options);\n  console.log(data);\n} catch (error) {\n  console.error(error);\n}"
+                        "source": "import axios from 'axios';\n\nconst options = {\n  method: 'GET',\n  url: 'https://kapi.chavodigital.com/api/v5/config/1',\n};\n\ntry {\n  const { data } = await axios.request(options);\n  console.log(data);\n} catch (error) {\n  console.error(error);\n}"
                     }
                 ]
             },
@@ -12313,6 +12956,15 @@
                                         "type": "string",
                                         "maxLength": 45,
                                         "description": "Max 45 characters. Must be unique in config.slug."
+                                    },
+                                    "value": {
+                                        "type": "string",
+                                        "description": "Optional field."
+                                    },
+                                    "is_private": {
+                                        "type": "boolean",
+                                        "description": "Optional field.",
+                                        "default": true
                                     }
                                 },
                                 "additionalProperties": true,
@@ -12320,7 +12972,9 @@
                             },
                             "example": {
                                 "name": "Example name",
-                                "slug": "example-slug"
+                                "slug": "example-slug",
+                                "value": "example",
+                                "is_private": true
                             }
                         }
                     }
@@ -12367,6 +13021,9 @@
                     },
                     "429": {
                         "$ref": "#/components/responses/Error429000"
+                    },
+                    "403": {
+                        "$ref": "#/components/responses/Error901009"
                     }
                 },
                 "security": [
@@ -12379,12 +13036,12 @@
                     {
                         "lang": "Shell",
                         "label": "cURL",
-                        "source": "curl \\\n  --request PUT \\\n  --url 'https://kapi.chavodigital.com/api/v5/config/1' \\\n  --header 'Content-Type: application/json' \\\n  --data '{\n    \"name\": \"Example name\",\n    \"slug\": \"example-slug\"\n}' \\\n  --header 'Authorization: Bearer YOUR_SECRET_TOKEN'"
+                        "source": "curl \\\n  --request PUT \\\n  --url 'https://kapi.chavodigital.com/api/v5/config/1' \\\n  --header 'Content-Type: application/json' \\\n  --data '{\n    \"name\": \"Example name\",\n    \"slug\": \"example-slug\",\n    \"value\": \"example\",\n    \"is_private\": true\n}' \\\n  --header 'Authorization: Bearer YOUR_SECRET_TOKEN'"
                     },
                     {
                         "lang": "JavaScript",
                         "label": "axios",
-                        "source": "import axios from 'axios';\n\nconst options = {\n  method: 'PUT',\n  url: 'https://kapi.chavodigital.com/api/v5/config/1',\n  data: {\n    name: \"Example name\",\n    slug: \"example-slug\"\n  },\n  headers: {\n    \"Content-Type\": \"application/json\",\n    Authorization: \"Bearer YOUR_SECRET_TOKEN\"\n  },\n};\n\ntry {\n  const { data } = await axios.request(options);\n  console.log(data);\n} catch (error) {\n  console.error(error);\n}"
+                        "source": "import axios from 'axios';\n\nconst options = {\n  method: 'PUT',\n  url: 'https://kapi.chavodigital.com/api/v5/config/1',\n  data: {\n    name: \"Example name\",\n    slug: \"example-slug\",\n    value: \"example\",\n    is_private: true\n  },\n  headers: {\n    \"Content-Type\": \"application/json\",\n    Authorization: \"Bearer YOUR_SECRET_TOKEN\"\n  },\n};\n\ntry {\n  const { data } = await axios.request(options);\n  console.log(data);\n} catch (error) {\n  console.error(error);\n}"
                     }
                 ]
             },
@@ -12451,6 +13108,9 @@
                     },
                     "429": {
                         "$ref": "#/components/responses/Error429000"
+                    },
+                    "403": {
+                        "$ref": "#/components/responses/Error901009"
                     }
                 },
                 "security": [

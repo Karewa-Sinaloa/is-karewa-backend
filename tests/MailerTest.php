@@ -42,18 +42,48 @@ final class RecordingMailer extends PHPMailer
  */
 final class MailerTest extends TestCase
 {
+    private const MAIL_VARS = [
+        'MAIL_HOST',
+        'MAIL_PORT',
+        'MAIL_SECURITY',
+        'MAIL_USER',
+        'MAIL_PASSWORD',
+        'MAIL_AUTH',
+        'MAIL_FROM_EMAIL',
+        'MAIL_FROM_NAME',
+    ];
+
     private mixed $originalConfig = null;
+    private mixed $originalApiConfig = null;
+    private array $savedMailEnv = [];
 
     protected function setUp(): void
     {
         ApiMailer::$transport = null;
         $this->originalConfig = $GLOBALS['_config'] ?? null;
+        $this->originalApiConfig = $GLOBALS['_apiConfig'] ?? null;
+
+        // The helper resolves the settings per message, so the process
+        // environment is part of the contract: drop any MAIL_* variable the
+        // host may export so the file and row layers are what the tests assert.
+        $this->savedMailEnv = [];
+        foreach (self::MAIL_VARS as $name) {
+            $value = getenv($name);
+            if ($value !== false) {
+                putenv($name);
+                $this->savedMailEnv[$name] = $value;
+            }
+        }
     }
 
     protected function tearDown(): void
     {
         ApiMailer::$transport = null;
         $GLOBALS['_config'] = $this->originalConfig;
+        $GLOBALS['_apiConfig'] = $this->originalApiConfig;
+        foreach ($this->savedMailEnv as $name => $value) {
+            putenv($name . '=' . $value);
+        }
     }
 
     private function configureMailing(): void
@@ -84,6 +114,18 @@ final class MailerTest extends TestCase
         ];
     }
 
+    private function configureSmtpRow(array $overrides = []): void
+    {
+        $GLOBALS['_apiConfig'] = (object) ['smtp_config' => json_encode(array_merge([
+            'host'     => 'smtp.zoho.com',
+            'port'     => 465,
+            'user'     => 'row-user',
+            'pass'     => 'row-pass',
+            'from'     => 'row@example.com',
+            'security' => 'ssl',
+        ], $overrides))];
+    }
+
     private function sendWith(RecordingMailer $mail, array $params): void
     {
         ApiMailer::$transport = fn() => $mail;
@@ -105,6 +147,46 @@ final class MailerTest extends TestCase
         $this->assertSame('smtp-pass', $mail->Password);
         $this->assertTrue($mail->SMTPAuth);
         $this->assertSame('UTF-8', $mail->CharSet);
+    }
+
+    public function testTransportTakesStoredSmtpRowSettings(): void
+    {
+        $this->configureMailing();
+        $this->configureSmtpRow();
+        $mail = new RecordingMailer(true);
+
+        $this->sendWith($mail, $this->minimalParams());
+
+        $this->assertTrue($mail->sent);
+        $this->assertSame('smtp.zoho.com', $mail->Host);
+        $this->assertSame(465, $mail->Port);
+        $this->assertSame('ssl', $mail->SMTPSecure);
+        $this->assertSame('row-user', $mail->Username);
+        $this->assertSame('row-pass', $mail->Password);
+        $this->assertTrue($mail->SMTPAuth);
+        $this->assertSame(0, $mail->SMTPDebug);
+    }
+
+    public function testRowUpdatedBetweenTwoSendsTakesEffectWithoutRestart(): void
+    {
+        $this->configureMailing();
+        $this->configureSmtpRow();
+
+        $first = new RecordingMailer(true);
+        $this->sendWith($first, $this->minimalParams());
+
+        $this->assertTrue($first->sent);
+        $this->assertSame('smtp.zoho.com', $first->Host);
+
+        $this->configureSmtpRow(['host' => 'smtp.new-provider.example', 'user' => 'new-user']);
+
+        $second = new RecordingMailer(true);
+        $this->sendWith($second, $this->minimalParams());
+
+        $this->assertTrue($second->sent);
+        $this->assertSame('smtp.new-provider.example', $second->Host);
+        $this->assertSame('new-user', $second->Username);
+        $this->assertSame('row-pass', $second->Password);
     }
 
     public function testSenderComesFromCallerAndIsApplied(): void

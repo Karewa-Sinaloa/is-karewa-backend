@@ -55,7 +55,13 @@ abstract class ModuleHandler {
 			if($auth && $altAuth) {
 				define('AUTHENTICATED', true);
 			} else {
-				define('AUTHENTICATED', false);
+				// Autenticación oportunista: el método es público, pero si el
+				// request presenta un token válido su rol queda disponible para
+				// el módulo (p. ej. la visibilidad por fila de config). Un token
+				// ausente, caducado o mal formado no produce ninguna respuesta
+				// de autenticación: el método sigue como anónimo.
+				$opportunistic = $authSet ? SessionSet::ValidateOptional($access_token) : false;
+				define('AUTHENTICATED', (bool) $opportunistic);
 			}
 			return true;
 		}

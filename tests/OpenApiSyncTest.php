@@ -357,6 +357,101 @@ final class OpenApiSyncTest extends TestCase
     }
 
     /**
+     * The config module maps id, name, slug and value; the last entry of its
+     * `$moduleFields` array has no trailing comma, which used to drop `value`
+     * from the contract on GET, POST and PUT.
+     */
+    public function testConfigDocumentsValueField(): void
+    {
+        $filterNames = array_column(self::$spec['paths']['/config']['get']['parameters'] ?? [], 'name');
+        $this->assertContains('value', $filterNames, 'GET /config must document the value filter');
+
+        foreach ([['post', '/config'], ['put', '/config/{id}']] as [$verb, $path]) {
+            $schema = self::$spec['paths'][$path][$verb]['requestBody']['content']['application/json']['schema'];
+            $this->assertArrayHasKey('value', $schema['properties'], strtoupper($verb) . ' ' . $path . ' must document value');
+        }
+    }
+
+    /**
+     * Row visibility is part of the contract: both config reads carry the
+     * visibility rule as a description, the item operation requires no
+     * security (show is anonymous), and is_private is documented as a boolean
+     * field with default true while `data` and `public` stay undocumented.
+     */
+    public function testConfigDocumentsVisibilityFlag(): void
+    {
+        $listOp = self::$spec['paths']['/config']['get'] ?? null;
+        $itemOp = self::$spec['paths']['/config/{id}']['get'] ?? null;
+        $this->assertIsArray($listOp, 'GET /config must be documented');
+        $this->assertIsArray($itemOp, 'GET /config/{id} must be documented');
+
+        $this->assertArrayNotHasKey('security', $itemOp, 'GET /config/{id} is a public method and must declare no security');
+        $this->assertArrayHasKey('description', $listOp, 'GET /config must describe the row visibility rule');
+        $this->assertArrayHasKey('description', $itemOp, 'GET /config/{id} must describe the row visibility rule');
+        $this->assertStringContainsString('is_private = 1', $listOp['description']);
+        $this->assertStringContainsString('role 1, 2 or 3', $listOp['description']);
+        $this->assertStringContainsString('404000', $itemOp['description']);
+
+        $filterNames = array_column($listOp['parameters'] ?? [], 'name');
+        $this->assertContains('is_private', $filterNames, 'GET /config must document the is_private filter');
+        foreach (['data', 'public'] as $removed) {
+            $this->assertNotContains($removed, $filterNames, "{$removed} must not be documented");
+        }
+        $flagParam = array_values(array_filter($listOp['parameters'], fn($p) => $p['name'] === 'is_private'))[0] ?? null;
+        $this->assertSame('boolean', $flagParam['schema']['type'] ?? null, 'The is_private filter is a boolean');
+
+        foreach ([['post', '/config'], ['put', '/config/{id}']] as [$verb, $path]) {
+            $schema = self::$spec['paths'][$path][$verb]['requestBody']['content']['application/json']['schema'];
+            foreach (['data', 'public'] as $removed) {
+                $this->assertArrayNotHasKey($removed, $schema['properties'], strtoupper($verb) . ' ' . $path . " must not document {$removed}");
+            }
+            $flag = $schema['properties']['is_private'] ?? null;
+            $this->assertIsArray($flag, strtoupper($verb) . ' ' . $path . ' must document is_private');
+            $this->assertSame('boolean', $flag['type'], strtoupper($verb) . ' ' . $path);
+            $this->assertTrue($flag['default'], strtoupper($verb) . ' ' . $path . ' must default to private');
+        }
+
+        $itemExample = $itemOp['responses']['200']['content']['application/json']['example']['data'] ?? null;
+        $this->assertIsArray($itemExample);
+        $this->assertTrue($itemExample['is_private'] ?? null, 'The item example must show a private entry');
+    }
+
+    /**
+     * The config module documents per-row edit permissions: the write
+     * operations answer 403 (APP_AUTH_ROW_FORBIDDEN) for a row the caller may
+     * not modify, the list documents edit_roles as a filter, responses carry
+     * the stored list, and no write body accepts it.
+     */
+    public function testConfigDocumentsRowEditPermissions(): void
+    {
+        foreach ([['put', '/config/{id}'], ['delete', '/config/{id}']] as [$verb, $path]) {
+            $op = self::$spec['paths'][$path][$verb] ?? null;
+            $this->assertIsArray($op, strtoupper($verb) . ' ' . $path . ' must be documented');
+            $ref = $op['responses']['403']['$ref'] ?? null;
+            $this->assertIsString($ref, strtoupper($verb) . ' ' . $path . ' must document 403');
+            $example = $this->resolveResponse(['$ref' => $ref])['content']['application/json']['example'];
+            $this->assertSame('APP_AUTH_ROW_FORBIDDEN', $example['code'], strtoupper($verb) . ' ' . $path);
+            $this->assertSame(403, $example['http_code'], strtoupper($verb) . ' ' . $path);
+        }
+
+        $filterNames = array_column(self::$spec['paths']['/config']['get']['parameters'] ?? [], 'name');
+        $this->assertContains('edit_roles', $filterNames, 'GET /config must document the edit_roles filter');
+
+        $itemExample = self::$spec['paths']['/config/{id}']['get']['responses']['200']['content']['application/json']['example']['data'] ?? null;
+        $this->assertIsArray($itemExample);
+        $this->assertSame('1,2,3', $itemExample['edit_roles'] ?? null, 'Responses must expose the stored list');
+
+        foreach ([['post', '/config'], ['put', '/config/{id}']] as [$verb, $path]) {
+            $schema = self::$spec['paths'][$path][$verb]['requestBody']['content']['application/json']['schema'];
+            $this->assertArrayNotHasKey(
+                'edit_roles',
+                $schema['properties'],
+                strtoupper($verb) . ' ' . $path . ' must not accept a new list (configured in the database)'
+            );
+        }
+    }
+
+    /**
      * Counter-projection: regenerate the contract from the current modules into
      * a temp file and compare structurally with the published copy. Fails when
      * a controller/$moduleFields changed without regenerating.

@@ -92,11 +92,46 @@ class BaseModel {
         $get_filters[$key] = $filter;
       }
     }
+    // Visibilidad por fila declarada por el modulo (p. ej. config.is_private):
+    // quien no tiene el rol autorizado solo ve las filas publicas. Se agrega al
+    // final para que ni el query string ni los filtros del modulo lo quiten.
+    $visibility = $params->visibility ?? null;
+    if (is_array($visibility) && !empty($visibility['column'])) {
+      $visible_roles = isset($visibility['roles']) ? (array) $visibility['roles'] : [];
+      $current_role  = defined('USER_ROLE') ? USER_ROLE : null;
+      if ($current_role === null || !in_array($current_role, $visible_roles)) {
+        $column = $visibility['column'];
+        $get_filters[$column] = [$column, $visibility['value'] ?? 0, '='];
+      }
+    }
     // Joins solicitados desde el modulo, no se pueden solicitar desde el API
     $get_joins = [];
     if (!empty($params->joins)) {
       foreach ($params->joins as $key => $join) {
         array_push($get_joins, $join);
+      }
+    }
+    // Permisos de edicion por fila declarados por el modulo (p. ej.
+    // config.edit_roles): en update/destroy solo un rol de la lista puede
+    // tocar la fila, mas siempre los declarados en `always` (rol 1). Se carga
+    // la fila por id y se responde 901009 sin tocar datos si no esta autorizado.
+    $edit_roles = $params->edit_roles ?? null;
+    if (is_array($edit_roles) && !empty($edit_roles['column'])
+      && in_array(REQUEST_TYPE, ['update', 'destroy'], true) && defined('USER_ROLE')) {
+      $entry_id = trim(strip_tags((string) $this->entryId));
+      $row = $entry_id !== '' ? DBGet::Get([
+        'table'   => $params->table,
+        'filters' => ['id' => ['id', $entry_id, '=']],
+        'fields'  => [],
+      ]) : null;
+      if (is_array($row) && array_key_exists($edit_roles['column'], $row)) {
+        $allowed = array_map('intval', array_filter(explode(',', (string) $row[$edit_roles['column']]), 'strlen'));
+        $always  = array_map('intval', (array) ($edit_roles['always'] ?? []));
+        $role_id = (int) USER_ROLE;
+        if (!in_array($role_id, $always, true) && !in_array($role_id, $allowed, true)) {
+          error_logs([defined('MODULE') ? MODULE : 'model', 403, 'Row not editable by role ' . $role_id, __FILE__, __LINE__]);
+          ApiResponse::Set(901009);
+        }
       }
     }
     return [
@@ -416,11 +451,16 @@ class BaseModel {
     $vars   = [];
     foreach ($this->availableFields as $key => $field) {
 	  $field_exists = array_key_exists($key, (array) $this->payload);
-		// Si el campo no existe y es opcional no se agrega
-      if((!$field_exists && $field['optional']) || (REQUEST_TYPE == 'update' && (empty($this->payload->$key) || !$field_exists)) || ($field['roles'] && !in_array(USER_ROLE, $field['roles'])) || !$field['saved'] ) {
+      // Marca zero_is_value: el 0 es un valor que se persiste tal cual, sin
+      // sustituirlo por el default y sin omitirlo en update (p. ej. config.is_private).
+      $zero_is_value = $field_exists && !empty($field['zero_is_value']);
+      // Si el campo no existe y es opcional no se agrega
+      if((!$field_exists && $field['optional']) || (REQUEST_TYPE == 'update' && !$zero_is_value && (empty($this->payload->$key) || !$field_exists)) || ($field['roles'] && !in_array(USER_ROLE, $field['roles'])) || !$field['saved'] ) {
         // No action
       } else {
-        $value = (empty($this->payload->$key) && $field['default']) ? $field['default'] : $this->payload->$key;
+        $value = $zero_is_value
+          ? $this->payload->$key
+          : ((empty($this->payload->$key) && $field['default']) ? $field['default'] : $this->payload->$key);
         $vars[$key] = [$field['field'], $value];
       }
     }
@@ -447,6 +487,7 @@ class BaseModel {
       'default'  => null,
       'optional' => false,
       'roles'    => false,
+      'zero_is_value' => false,
     ];
     $response = [];
     foreach ($this->moduleFields as $name => $field) {

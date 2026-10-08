@@ -76,33 +76,85 @@ abstract class SessionSet
             }
 
             $access_granted = true;
-            if (!defined('USER_ROLE')) {
-                define('USER_ROLE', $token_data->data->role_id);
-            }
-            if (!defined('USER_ID')) {
-                define('USER_ID', $token_data->data->id);
-            }
-            if (!defined('USER_NAME')) {
-                define('USER_NAME', $token_data->data->first_name);
-            }
-            if (!defined('USER_LASTNAME')) {
-                define('USER_LASTNAME', $token_data->data->last_name);
-            }
-            if (!defined('USER_EMAIL')) {
-                define('USER_EMAIL', $token_data->data->email);
-            }
-            if (!defined('EXPIRATION')) {
-                define('EXPIRATION', $token_data->exp);
-            }
-            if (is_string($jti) && $jti !== '' && !defined('USER_JTI')) {
-                define('USER_JTI', $jti);
-            }
+            self::applySession($token_data);
         } else {
             if (!defined('USER_ID')) {
                 define('USER_ID', IDENTIFIER_UID);
             }
         }
         return $access_granted;
+    }
+
+    /**
+     * Expose los datos de la sesión de un token ya validado como constantes,
+     * la primera vez que se ven en la petición.
+     */
+    private static function applySession(object $token_data): void
+    {
+        $jti = $token_data->jti ?? null;
+
+        if (!defined('USER_ROLE')) {
+            define('USER_ROLE', $token_data->data->role_id);
+        }
+        if (!defined('USER_ID')) {
+            define('USER_ID', $token_data->data->id);
+        }
+        if (!defined('USER_NAME')) {
+            define('USER_NAME', $token_data->data->first_name);
+        }
+        if (!defined('USER_LASTNAME')) {
+            define('USER_LASTNAME', $token_data->data->last_name);
+        }
+        if (!defined('USER_EMAIL')) {
+            define('USER_EMAIL', $token_data->data->email);
+        }
+        if (!defined('EXPIRATION')) {
+            define('EXPIRATION', $token_data->exp);
+        }
+        if (is_string($jti) && $jti !== '' && !defined('USER_JTI')) {
+            define('USER_JTI', $jti);
+        }
+    }
+
+    /**
+     * Validación que nunca termina la petición, para los métodos que no exigen
+     * token pero sí quieren exponer el rol de quien lo presenta (p. ej. el
+     * listado anónimo de config, donde ese rol decide qué filas se ven).
+     *
+     * Si el token falta, expiró, está mal formado o su sesión ya no es la
+     * activa, devuelve false: el método corre como anónimo y no se devuelve
+     * ninguna respuesta de autenticación. A diferencia de Validate(), tampoco
+     * cancela ni pone en la lista negra la sesión presentada.
+     */
+    public static function ValidateOptional(?string $access_token = null): bool
+    {
+        if (!is_string($access_token) || $access_token === '') {
+            return false;
+        }
+
+        try {
+            $jwt_validation = jwtToken::decode($access_token);
+        } catch (\AppException $e) {
+            return false;
+        }
+
+        if (empty($jwt_validation->status) || !is_object($jwt_validation->token_data)) {
+            return false;
+        }
+
+        $token_data = $jwt_validation->token_data;
+        $jti        = $token_data->jti ?? null;
+        $user_id    = (int) ($token_data->data->id ?? 0);
+
+        $blacklisted = is_string($jti) && $jti !== '' && \SessionManager::isBlacklisted($jti);
+        $is_active   = is_string($jti) && $jti !== '' && \SessionManager::isActive($user_id, $jti);
+
+        if (!$is_active || $blacklisted) {
+            return false;
+        }
+
+        self::applySession($token_data);
+        return true;
     }
 
     /**

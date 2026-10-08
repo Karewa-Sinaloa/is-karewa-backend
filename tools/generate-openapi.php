@@ -67,37 +67,64 @@ function extract_property_array(string $text, string $property): ?string {
     return null;
 }
 
+/**
+ * Parse `$moduleFields` entries: `'name' => ['field' => ..., ...]`.
+ *
+ * Each entry is delimited by bracket depth instead of a required trailing comma,
+ * so the last entry of the array is kept whether or not it ends with `,`.
+ */
 function parse_module_fields(string $block): array {
     $fields = [];
-    if (preg_match_all("/'([^']+)'\s*=>\s*\[(.*?)\],/s", $block, $matches, PREG_SET_ORDER)) {
-        foreach ($matches as $m) {
-            $name = $m[1];
-            $inner = $m[2];
-            $meta = [];
-            if (preg_match_all("/'([^']+)'\s*=>\s*([^,\]]+|\[[^\]]*\])(?:,|$)/s", $inner, $pairs, PREG_SET_ORDER)) {
-                foreach ($pairs as $p) {
-                    $key = $p[1];
-                    $raw = trim($p[2]);
-                    if ($raw === 'true') $value = true;
-                    elseif ($raw === 'false') $value = false;
-                    elseif ($raw === 'NULL' || $raw === 'null') $value = null;
-                    elseif ($raw !== '' && $raw[0] === '[') {
-                        $value = [];
-                        if (preg_match_all("/'([^']+)'/", $raw, $arrMatches)) {
-                            $value = $arrMatches[1];
-                        }
-                    } elseif ($raw !== '' && ($raw[0] === '"' || $raw[0] === "'")) {
-                        $value = trim($raw, "'\"");
-                    } elseif (is_numeric($raw)) {
-                        $value = $raw + 0;
-                    } else {
-                        $value = $raw;
-                    }
-                    $meta[$key] = $value;
-                }
+    $len = strlen($block);
+    $offset = 0;
+    while (preg_match("/'([^']+)'\s*=>\s*\[/", $block, $m, PREG_OFFSET_CAPTURE, $offset)) {
+        $name = $m[1][0];
+        $start = $m[0][1] + strlen($m[0][0]) - 1;
+        $depth = 0;
+        $inSingle = false;
+        $inDouble = false;
+        $escape = false;
+        $end = null;
+        for ($i = $start; $i < $len; $i++) {
+            $ch = $block[$i];
+            if ($escape) { $escape = false; continue; }
+            if ($ch === '\\') { $escape = true; continue; }
+            if (!$inDouble && $ch === "'") { $inSingle = !$inSingle; continue; }
+            if (!$inSingle && $ch === '"') { $inDouble = !$inDouble; continue; }
+            if ($inSingle || $inDouble) continue;
+            if ($ch === '[') { $depth++; continue; }
+            if ($ch === ']') {
+                $depth--;
+                if ($depth === 0) { $end = $i; break; }
             }
-            $fields[$name] = $meta;
         }
+        if ($end === null) break;
+        $inner = substr($block, $start + 1, $end - $start - 1);
+        $offset = $end + 1;
+        $meta = [];
+        if (preg_match_all("/'([^']+)'\s*=>\s*([^,\]]+|\[[^\]]*\])(?:,|$)/s", $inner, $pairs, PREG_SET_ORDER)) {
+            foreach ($pairs as $p) {
+                $key = $p[1];
+                $raw = trim($p[2]);
+                if ($raw === 'true') $value = true;
+                elseif ($raw === 'false') $value = false;
+                elseif ($raw === 'NULL' || $raw === 'null') $value = null;
+                elseif ($raw !== '' && $raw[0] === '[') {
+                    $value = [];
+                    if (preg_match_all("/'([^']+)'/", $raw, $arrMatches)) {
+                        $value = $arrMatches[1];
+                    }
+                } elseif ($raw !== '' && ($raw[0] === '"' || $raw[0] === "'")) {
+                    $value = trim($raw, "'\"");
+                } elseif (is_numeric($raw)) {
+                    $value = $raw + 0;
+                } else {
+                    $value = $raw;
+                }
+                $meta[$key] = $value;
+            }
+        }
+        $fields[$name] = $meta;
     }
     return $fields;
 }
@@ -200,7 +227,7 @@ function guess_field_kind(string $name): string {
     if (in_array($name, ['password', 'token', 'code'], true)) return 'secret';
     if (preg_match('/(^|_)(id|status_id|role_id|period_id|provider_id|admin_unit_type_id|partida_id|contract_type_id|organization_id|subject_id|procedure_id|applicant_admin_unit_id|organizer_admin_unit_id)$/', $name)) return 'integer';
     if (preg_match('/(date|updated_at|created_at|dob|birthday|period)/', $name)) return 'date';
-    if (in_array($name, ['amount_was_exceeded', 'phone_verified', 'email_verified', 'public'], true)) return 'boolean';
+    if (in_array($name, ['amount_was_exceeded', 'phone_verified', 'email_verified', 'public', 'is_private'], true)) return 'boolean';
     if (in_array($name, ['total_amount', 'min_amount', 'max_amount', 'subtotal', 'exceeded_amount'], true)) return 'number';
     if (in_array($name, ['postal_code', 'phone', 'phone_country_code'], true)) return 'integer';
     return 'string';
@@ -400,7 +427,7 @@ function build_query_param_definitions(array $fields, array $searchFields, array
         $params[] = [
             'name' => $name,
             'in' => 'query',
-            'schema' => ['type' => 'string'],
+            'schema' => ['type' => guess_field_kind($name) === 'boolean' ? 'boolean' : 'string'],
             'description' => trim('Filter on ' . $name . ' using campo=op:valor with operators eq, lt, gt, gte, lte, ne, lk, isn, non, in. ' . implode(' ', $notes)),
             'example' => guess_field_kind($name) === 'string' ? 'lk:texto' : 'eq:1',
             'examples' => build_filter_examples($name),
@@ -515,6 +542,10 @@ function add_error_responses(array &$op, array $codes, string $kind, array $omit
     if ($kind === 'docs') {
         $selected = ['429000'];
     }
+    if ($kind === 'config') {
+        // El modulo config deniega la edicion por fila con 901009 (403).
+        $selected = array_merge($selected, ['901009']);
+    }
     $selected = array_values(array_diff(array_unique($selected), $omit));
     foreach ($selected as $code) {
         if (!isset($codes[$code])) continue;
@@ -531,6 +562,19 @@ function add_error_responses(array &$op, array $codes, string $kind, array $omit
         ];
         $op['responses'][$status] = ['$ref' => '#/components/responses/' . $name];
     }
+}
+
+/**
+ * Error catalogue selection for an operation. The upload/access/mailing
+ * variants extend the shared crud set; config write operations add the
+ * per-row permission denial (901009).
+ */
+function error_kind_for(string $module, string $method): string {
+    if ($module === 'config' && in_array($method, ['store', 'update', 'destroy'], true)) return 'config';
+    if (in_array($method, ['index', 'show', 'store'], true) && in_array($module, ['attachments', 'image-upload'], true)) return 'upload';
+    if (in_array($method, ['index', 'store'], true) && $module === 'access') return 'access';
+    if (in_array($method, ['index', 'store'], true) && $module === 'mailings') return 'mailing';
+    return 'crud';
 }
 
 $paths = [];
@@ -600,7 +644,7 @@ function schema_type_for_field(string $name, array $parts): array {
     if (preg_match('/(date|updated_at|created_at|dob|birthday|period)/', $name)) {
         $schema = ['type' => 'string'];
     }
-    if (in_array($name, ['amount_was_exceeded', 'phone_verified', 'email_verified'], true)) {
+    if (in_array($name, ['amount_was_exceeded', 'phone_verified', 'email_verified', 'is_private'], true)) {
         $schema = ['type' => 'boolean'];
     }
     if (in_array($name, ['total_amount', 'min_amount', 'max_amount', 'subtotal', 'exceeded_amount'], true)) {
@@ -658,7 +702,8 @@ function build_request_schema(array $fields, array $rules, string $method): arra
         if ($m['roles']) $notes[] = 'Writable only for roles ' . implode(', ', (array) $m['roles']) . '.';
         $prop['description'] = $notes ? implode(' ', $notes) : 'Optional field.';
         if ($m['default'] !== null) {
-            $prop['default'] = $m['default'];
+            // Un booleano se documenta con default booleano (is_private guarda 1/0).
+            $prop['default'] = ($prop['type'] ?? null) === 'boolean' ? (bool) $m['default'] : $m['default'];
         }
         $props[$name] = $prop;
     }
@@ -698,6 +743,8 @@ function example_value_for_field(string $name, array $meta = []): mixed {
         return false;
     }
     if ($name === 'public') return 0;
+    if ($name === 'is_private') return true;
+    if ($name === 'edit_roles') return '1,2,3';
     if ($name === 'slug') return 'example-slug';
     if ($name === 'name') return 'Example name';
     if ($name === 'shortname') return 'Example';
@@ -835,6 +882,17 @@ function attach_examples(array &$op, array $fields, string $module, string $meth
     }
 }
 
+/**
+ * Per-operation descriptions for rules a reader cannot infer from the field
+ * map: how row visibility (is_private) decides what each caller gets.
+ */
+$operationDescriptions = [
+    'config' => [
+        'index' => 'Row visibility: entries with is_private = 1 are only returned to callers authenticated with role 1, 2 or 3. Every other caller only sees entries with is_private = 0.',
+        'show'  => 'Row visibility: requesting an entry with is_private = 1 answers 404000 (APP_RESULTS_NOT_FOUND) to callers that are not authenticated with role 1, 2 or 3, as if the id did not exist.',
+    ],
+];
+
 foreach ($apiRoutes as $module => $methods) {
     $fields = $moduleFieldsMap[$module] ?? [];
     $searchFields = $searchFieldsMap[$module] ?? [];
@@ -955,6 +1013,9 @@ foreach ($apiRoutes as $module => $methods) {
         'responses' => ['200' => ['description' => 'List response']],
     ];
     $collectionOp['parameters'] = build_query_param_definitions($fields, $searchFields, $moduleRulesMap[$module] ?? []);
+    if (isset($operationDescriptions[$module]['index'])) {
+        $collectionOp['description'] = $operationDescriptions[$module]['index'];
+    }
     $collectionOp['responses']['200']['content'] = ['application/json' => ['example' => [
         'message' => 'Success',
         'code' => 'SUCCESS',
@@ -963,36 +1024,39 @@ foreach ($apiRoutes as $module => $methods) {
         'meta' => ['session_id' => 'uuid'],
     ]]];
     apply_security($collectionOp, $acceptedMethodsMap[$module] ?? [], 'index');
-    add_error_responses($collectionOp, $apiCodes, in_array($module, ['attachments', 'image-upload'], true) ? 'upload' : (in_array($module, ['access'], true) ? 'access' : (in_array($module, ['mailings'], true) ? 'mailing' : 'crud')), ['404000']);
+    add_error_responses($collectionOp, $apiCodes, error_kind_for($module, 'index'), ['404000']);
     if (isset($methods['index'])) {
         $paths[$base] = [strtolower($methods['index']) => $collectionOp];
     }
     if (isset($methods['show'])) {
         $op = ['tags' => [ucwords(str_replace('-', ' ', $module))], 'summary' => 'Get ' . str_replace('-', ' ', $module), 'parameters' => [['name' => 'id', 'in' => 'path', 'required' => true, 'schema' => ['type' => 'integer']]], 'responses' => ['200' => ['description' => 'Item response']]];
+        if (isset($operationDescriptions[$module]['show'])) {
+            $op['description'] = $operationDescriptions[$module]['show'];
+        }
         apply_security($op, $acceptedMethodsMap[$module] ?? [], 'show');
         attach_examples($op, $fields, $module, 'show');
-        add_error_responses($op, $apiCodes, in_array($module, ['attachments', 'image-upload'], true) ? 'upload' : 'crud');
+        add_error_responses($op, $apiCodes, error_kind_for($module, 'show'));
         $paths[$base . '/{id}']['get'] = $op;
     }
     if (isset($methods['store'])) {
         $op = ['tags' => [ucwords(str_replace('-', ' ', $module))], 'summary' => 'Create ' . str_replace('-', ' ', $module), 'requestBody' => ['required' => true, 'content' => ['application/json' => ['schema' => build_request_schema($fields, $moduleRulesMap[$module] ?? [], 'store')]]], 'responses' => ['201' => ['description' => 'Created']]];
         apply_security($op, $acceptedMethodsMap[$module] ?? [], 'store');
         attach_examples($op, $fields, $module, 'store');
-        add_error_responses($op, $apiCodes, in_array($module, ['attachments', 'image-upload'], true) ? 'upload' : (in_array($module, ['access'], true) ? 'access' : (in_array($module, ['mailings'], true) ? 'mailing' : 'crud')));
+        add_error_responses($op, $apiCodes, error_kind_for($module, 'store'));
         $paths[$base]['post'] = $op;
     }
     if (isset($methods['update'])) {
         $op = ['tags' => [ucwords(str_replace('-', ' ', $module))], 'summary' => 'Update ' . str_replace('-', ' ', $module), 'parameters' => [['name' => 'id', 'in' => 'path', 'required' => true, 'schema' => ['type' => 'integer']]], 'requestBody' => ['required' => true, 'content' => ['application/json' => ['schema' => build_request_schema($fields, $moduleRulesMap[$module] ?? [], 'update')]]], 'responses' => ['200' => ['description' => 'Updated']]];
         apply_security($op, $acceptedMethodsMap[$module] ?? [], 'update');
         attach_examples($op, $fields, $module, 'update');
-        add_error_responses($op, $apiCodes, 'crud');
+        add_error_responses($op, $apiCodes, error_kind_for($module, 'update'));
         $paths[$base . '/{id}']['put'] = $op;
     }
     if (isset($methods['destroy'])) {
         $op = ['tags' => [ucwords(str_replace('-', ' ', $module))], 'summary' => 'Delete ' . str_replace('-', ' ', $module), 'parameters' => [['name' => 'id', 'in' => 'path', 'required' => true, 'schema' => ['type' => 'integer']]], 'responses' => ['200' => ['description' => 'Deleted']]];
         apply_security($op, $acceptedMethodsMap[$module] ?? [], 'destroy');
         attach_examples($op, $fields, $module, 'destroy');
-        add_error_responses($op, $apiCodes, 'crud');
+        add_error_responses($op, $apiCodes, error_kind_for($module, 'destroy'));
         $paths[$base . '/{id}']['delete'] = $op;
     }
 }

@@ -115,7 +115,7 @@ abstract class DBGet {
         }
 
         if ($value[2] == 'OR') {
-          $where .= $wVal . ' && ';
+          $where .= $wVal . ' AND ';
         } elseif (!empty($value[3])) {
           if ($value[3] == 'CONCAT') {
             $coal   = '';
@@ -125,16 +125,16 @@ abstract class DBGet {
               $coal .= 'COALESCE(' . trim($coalV) . ", ''), ";
             }
             $coal = trim($coal, ', ');
-            $where .= $value[3] . '(' . $coal . ') ' . $operator . $wVal . ' && ';
+            $where .= $value[3] . '(' . $coal . ') ' . $operator . $wVal . ' AND ';
           } else {
-            $where .= $value[3] . '(' . $value[0] . ') ' . $operator . $wVal . ' && ';
+            $where .= $value[3] . '(' . $value[0] . ') ' . $operator . $wVal . ' AND ';
           }
         } else {
-          $where .= $value[0] . ' ' . $operator . $wVal . ' && ';
+          $where .= $value[0] . ' ' . $operator . $wVal . ' AND ';
         }
         $sec++;
       }
-      $where = trim($where, ' && ') . ' ';
+      $where = trim($where, ' AND ') . ' ';
     }
     return $where;
   }

@@ -101,13 +101,51 @@ curl "https://<api>/api/v5/<modulo>?_key=<token>"
 Al validar, el módulo debe aportar el mismo payload con el que se acuñó el token;
 si el payload no coincide, la validación falla.
 
+## Permisos de edición por fila en `config`
+
+Además del gate de método (`$accepted_methods`, que en `config` deja escribir a los
+roles 1, 2 y 3), cada fila de la tabla `config` lleva una columna `edit_roles` con la
+lista de roles que pueden modificar **esa** fila. La lectura de la fila no la gobierna
+esta columna: la gobierna `is_private`.
+
+- **Formato:** ids de rol separados por coma y sin espacios, por ejemplo `1,2,3`,
+  `1,2` o `1`.
+- **Default:** `1,2,3`, así que las filas existentes conservan el comportamiento de
+  escritura que tenían antes.
+- **Piso:** el rol 1 (administrador) siempre puede editar, aunque no aparezca en la
+  lista, de modo que ninguna fila se queda sin nadie que pueda modificarla.
+- **Denegación:** si el rol del usuario no está en la lista, `PUT /config/{id}` y
+  `DELETE /config/{id}` responden `901009` (`APP_AUTH_ROW_FORBIDDEN`, HTTP `403`) y
+  la fila queda intacta.
+- **Solo base de datos:** la columna se devuelve por API (en `GET /config` y como
+  filtro `?edit_roles=`) pero no se puede escribir por API: no aparece en los bodies
+  de `POST /config` ni de `PUT /config/{id}`. Se cambia con un `UPDATE` directo.
+
+```sql
+-- Reservar una fila a los roles 1 y 2 (la tabla lleva el prefijo del entorno;
+-- en los dumps se llama dev_config)
+UPDATE dev_config SET edit_roles = '1,2' WHERE slug = 'smtp_config';
+
+-- Reservar una fila solo al administrador
+UPDATE dev_config SET edit_roles = '1' WHERE slug = '<slug>';
+```
+
+Si la lista se escribe con otro formato (espacios, `|`, ids desconocidos), ningún rol
+coincide y solo el rol 1 podrá editar la fila hasta corregirla.
+
 ## Envío de correo (mailer)
 
 `App\Helpers\ApiMailer::Send()` ensambla y envía un mensaje usando las
-credenciales SMTP de la sección `mailing` de `app/config.yml`
-(`host`, `port`, `security`, `user`, `password`, `from_email`, `from_name`). Los
-campos opcionales se aplican solo cuando están presentes y no vacíos, de modo
-que un mensaje mínimo no falla.
+credenciales SMTP que se resuelven **en cada envío** con esta prelación:
+variables `MAIL_*` del entorno > fila `smtp_config` de la tabla `config` >
+sección `mailing` de `app/config.yml` (respaldo). La fila conserva sus propias
+claves (`host`, `port`, `user`, `pass`, `from`, `security`): `pass` es la
+contraseña, `from` el remitente, `smtp_auth` se deriva de `user` y `pass`, `debug`
+queda en `0` y `from_name` queda vacío (para fijar el nombre del remitente usa
+`MAIL_FROM_NAME`). Si la fila no existe o su `value` no es JSON válido, se usan
+los valores de `app/config.yml` y el problema queda registrado con `error_logs()`.
+Los campos opcionales del mensaje se aplican solo cuando están presentes y no
+vacíos, de modo que un mensaje mínimo no falla.
 
 ```php
 App\Helpers\ApiMailer::Send([
@@ -126,10 +164,15 @@ App\Helpers\ApiMailer::Send([
 ```
 
 - **Remitente:** `from.email` y `from.name` los aporta quien llama; el flujo de
-  recuperación de acceso usa `mailing.from_email` / `mailing.from_name`.
+  recuperación de acceso arma su remitente con las settings resueltas
+  (`from_email` / `from_name`).
+- **Fuente guardada:** la fila `smtp_config` de la tabla `config` es el origen
+  editable desde la API (`PUT /api/v5/config/{id}`); un cambio publicado ahí
+  surte efecto en el siguiente mensaje, sin reiniciar la aplicación.
 - **Sobrescritura local:** en el stack Docker, las variables `MAIL_HOST`,
   `MAIL_PORT`, `MAIL_SECURITY`, `MAIL_USER`, `MAIL_PASSWORD`, `MAIL_AUTH`,
-  `MAIL_FROM_EMAIL` y `MAIL_FROM_NAME` de `.env` sobrescriben la sección `mailing`.
+  `MAIL_FROM_EMAIL` y `MAIL_FROM_NAME` de `.env` ganan sobre la fila y sobre
+  `app/config.yml`.
   `.env.example` las deja apuntando al servicio Mailpit, por lo que el correo local
   se captura en `http://localhost:8025`.
 - **Contenido:** el asunto y el cuerpo se envían como UTF-8.

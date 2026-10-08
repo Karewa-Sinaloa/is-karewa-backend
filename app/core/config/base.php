@@ -34,12 +34,11 @@ if (empty((array) $_config) || !is_object($_config)) {
 	]));
 }
 /**
- * Los ajustes de correo pueden sobrescribirse con variables de entorno para
- * que un entorno local apunte a Mailpit sin editar config.yml.
+ * Los ajustes de correo de este archivo son solo la capa de respaldo: la
+ * prelación entorno > fila smtp_config > archivo se resuelve por envío con
+ * resolve_mailing_settings() (app/core/config/mail_env.php), así que aquí no
+ * se aplica ningún overlay.
  */
-$_config->mailing = apply_mail_env_overrides(
-	is_object($_config->mailing ?? null) ? $_config->mailing : new stdClass()
-);
 /**
  * Ubicación del archivo de logs de errores del API
  */

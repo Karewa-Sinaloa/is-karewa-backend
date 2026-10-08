@@ -70,6 +70,10 @@ DELETED:
   message: Session revoked or superseded
   code: APP_AUTH_SESSION_REVOKED
   http_code: 401
+901009:
+  message: Not allowed to modify this entry
+  code: APP_AUTH_ROW_FORBIDDEN
+  http_code: 403
 400000:
   message: Error validating payload data
   code: APP_PAYLOAD_VALIDATION

@@ -305,8 +305,7 @@ class AppAccess extends BaseModel {
 	}
 
 	private function loginMailer($email, $name, $subject, $code, $role) {
-		global $_config;
-		$mailing = $_config->mailing;
+		$mailing = resolve_mailing_settings();
 		$key = HashAuth::Create([$code]);
 		$hash = base64_encode(
 			json_encode([

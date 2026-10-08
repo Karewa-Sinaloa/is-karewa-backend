@@ -3,6 +3,8 @@ namespace App\Helpers;
 use PHPMailer\PHPMailer\PHPMailer;
 use PHPMailer\PHPMailer\Exception;
 
+require_once __DIR__ . '/../config/mail_env.php';
+
 abstract class ApiMailer {
 	/**
 	 * Seam for the mail transport. Defaults to a new PHPMailer instance; tests
@@ -13,13 +15,12 @@ abstract class ApiMailer {
 	public static $transport = null;
 
 	static public function Send(Array $params) {
-		global $_config;
-		$mailing = (object) (($_config ?? NULL)?->mailing ?? []);
+		$mailing = \resolve_mailing_settings();
 		$mail = self::$transport !== NULL
 			? call_user_func(self::$transport, true)
 			: new PHPMailer(true);
 		try {
-			//Server settings, read from the `mailing` configuration section
+			//Server settings, resolved per message (environment > smtp_config row > config.yml)
 			$mail->SMTPDebug  = (int) ($mailing->debug ?? 0);
 			$mail->isSMTP();
 			$mail->Host       = $mailing->host ?? '';
