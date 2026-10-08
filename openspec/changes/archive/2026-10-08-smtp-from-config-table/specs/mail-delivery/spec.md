@@ -1,29 +1,11 @@
-# Mail Delivery
+# Spec Delta
 
-## Purpose
+## RENAMED Requirements
 
-Defines how the shared mail helper builds and sends a message from its parameters and configuration, so callers can send a plain message without supplying every optional field and credentials come from the correct source.
+- FROM: `### Requirement: SMTP settings come from the configured section`
+- TO: `### Requirement: SMTP settings come from the smtp_config row`
 
-## Requirements
-
-### Requirement: Optional message fields are optional
-The mail helper SHALL use `cc`, `bcc`, `attachments`, and `reply_to` only when they are present and non-empty, and SHALL send a valid message when they are absent.
-
-#### Scenario: Only required fields
-- **WHEN** a message is sent with only sender, recipients, subject, and body
-- **THEN** it is sent without error
-- **AND** no warning or fatal is raised for the absent optional fields
-
-#### Scenario: Optional fields provided
-- **WHEN** a message includes `cc`, `bcc`, `attachments`, or `reply_to`
-- **THEN** each provided field is applied to the message
-
-### Requirement: Sender is read correctly
-The mail helper SHALL read the sender address and sender name from the caller-supplied sender data, and the sent message SHALL carry that name.
-
-#### Scenario: Sender name applied
-- **WHEN** a caller supplies a sender address and name
-- **THEN** the sent message shows that name as the sender
+## MODIFIED Requirements
 
 ### Requirement: SMTP settings come from the smtp_config row
 The mail helper SHALL configure the transport from the `config` table row whose `slug` is `smtp_config`, decoding its `value` as JSON and mapping `host`, `port`, `security`, `user`, `pass` and `from` to host, port, security, username, password and sender address. Because the row carries no `smtp_auth`, `debug` or `from_name`, the helper SHALL derive `smtp_auth` from `user` and `pass`, run with debugging off, and use no sender name.
@@ -46,6 +28,8 @@ The mail helper SHALL configure the transport from the `config` table row whose 
 - **THEN** transport debugging is off
 - **AND** the message carries no configured sender name
 
+## ADDED Requirements
+
 ### Requirement: A missing or malformed SMTP row does not block sending
 When the `config` table has no row with `slug = smtp_config`, or that row's `value` is not valid JSON, the mail helper SHALL fall back to the `mailing` settings from `app/config.yml` and SHALL record the problem with `error_logs()` instead of failing the send.
 
@@ -67,19 +51,3 @@ The mail helper SHALL resolve the SMTP settings when it sends a message, so that
 #### Scenario: Row updated through the API
 - **WHEN** an authorized client updates the `smtp_config` row and a message is sent afterwards
 - **THEN** the message uses the host and credentials stored in the updated row
-
-### Requirement: Mail is sent as UTF-8
-The mail helper SHALL send the subject and body without the removed `utf8_decode()` function and SHALL declare a UTF-8 charset.
-
-#### Scenario: Non-ASCII content
-- **WHEN** a subject or body contains non-ASCII characters
-- **THEN** the message is sent using UTF-8
-- **AND** no call to a removed PHP function occurs
-
-### Requirement: Failures are reported
-When a message cannot be sent, the mail helper SHALL signal failure to the caller rather than returning silently.
-
-#### Scenario: Send failure
-- **WHEN** the transport or the mail server rejects the message
-- **THEN** the helper signals failure with an application error
-- **AND** the error identifies the sender/message context for troubleshooting

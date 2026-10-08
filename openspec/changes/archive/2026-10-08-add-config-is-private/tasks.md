@@ -1,0 +1,18 @@
+# Tasks
+
+## 1. Esquema y módulo config
+
+- [x] 1.1 Crear `resources/migrations/config_is_private.sql` con `ALTER TABLE dev_config ADD COLUMN is_private TINYINT(1) NOT NULL DEFAULT 1;` y agregar la columna a los dumps `app/karewa_dev_dev.sql` y `resources/karewa_dev.sql`. Verificar con `grep -n "is_private" resources/migrations/config_is_private.sql app/karewa_dev_dev.sql resources/karewa_dev.sql` (la columna aparece en los tres archivos con `DEFAULT 1`).
+- [x] 1.2 Declarar `is_private` en `$moduleFields` de `app/core/modules/config/controller.php` (`field`, `listed`, `filter`, `saved`, `default => 1`) y `'visibility' => ['column' => 'is_private', 'roles' => [1, 2, 3]]` en `$get_params`; en `app/core/modules/config/index.php` cambiar `'show'` a `[false, NULL]`. Verificar con `php -l` en ambos archivos y con `./vendor/bin/phpunit tests/ConfigFieldMappingTest.php` tras ampliarlo para afirmar que el campo existe con default `1`, que `$get_params['visibility']` apunta a esa columna y que `show` ya no exige token.
+
+## 2. Núcleo: visibilidad por fila y rol
+
+- [x] 2.1 Inyectar el filtro de visibilidad en `BaseModel::init()` (`app/core/bootstrap/midelware.php`): si `$get_params['visibility']` existe y `USER_ROLE` no está en la lista de roles, añadir `['is_private', 0, '=']` a los filtros, pisando cualquier intento del query string. Verificar con `tests/ConfigVisibilityFilterTest.php`: sin `USER_ROLE` y con rol 4 el filtro está, con rol 1, 2 o 3 no lo está, y `?is_private=eq:1` no lo elimina (`./vendor/bin/phpunit tests/ConfigVisibilityFilterTest.php`).
+- [x] 2.2 Aceptar el `0` en `queryFields()` mediante la marca `'zero_is_value' => true` en el campo (presencia por `array_key_exists`, `default` solo cuando la clave no existe) y declararla en `config.is_private`. Verificar con los casos de creación y actualización de `tests/ConfigVisibilityFilterTest.php`: enviar `is_private = 0` persiste `0` y omitirlo persiste `1` (`./vendor/bin/phpunit tests/ConfigVisibilityFilterTest.php`).
+- [x] 2.3 Validar de forma oportunista el token en `ModuleHandler::Authenticate()` (`app/core/auth/module.access.controller.php`) cuando `auth = false` y el request trae un token: válido define `AUTHENTICATED` y `USER_ROLE`; ausente o inválido deja el método como anónimo sin responder `901004`. Verificar con un test que sigue el patrón de `tests/SessionSetTest.php` (subproceso con JWT firmado): token válido expone el rol, sin token corre anónimo y token corrupto no produce error de autenticación.
+- [x] 2.4 Probar la visibilidad contra datos reales con SQLite, siguiendo el patrón de `tests/Support/OrTestCase.php`: con filas públicas y privadas, el listado anónimo devuelve solo las públicas con su conteo, el rol 1/2/3 ve todas, y el detalle de una fila privada para un caller sin rol responde `404000` (usar el patrón de subproceso de `tests/ModuleFatalErrorsTest.php` si la respuesta termina el request). Verificar con `./vendor/bin/phpunit tests/ConfigVisibilityDataTest.php`.
+
+## 3. Contrato OpenAPI
+
+- [x] 3.1 En `tools/generate-openapi.php`: tratar `is_private` como booleano (tipo `boolean`, ejemplo `true` y `default` numérico normalizado a `true`) y añadir el mapa de descripciones que escribe la regla de visibilidad en `GET /config` y `GET /config/{id}`; regenerar con `php tools/generate-openapi.php`. Verificar con `./vendor/bin/phpunit tests/OpenApiSyncTest.php` y con una aserción de que `GET /config/{id}` ya no declara `security` y que ambas operaciones de config llevan `description`.
+- [x] 3.2 Correr la suite completa `./vendor/bin/phpunit` y confirmar 0 fallos (los 2 warnings y 2 deprecations preexistentes de `update.php`/`fields.php` se mantienen).
