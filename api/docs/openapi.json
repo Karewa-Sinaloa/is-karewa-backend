@@ -770,6 +770,23 @@
                                     "data": [],
                                     "meta": {
                                         "session_id": "uuid"
+                                    },
+                                    "allowed_roles": {
+                                        "create": [
+                                            1,
+                                            2,
+                                            3
+                                        ],
+                                        "edit": [
+                                            1,
+                                            2,
+                                            3
+                                        ],
+                                        "delete": [
+                                            1,
+                                            2,
+                                            3
+                                        ]
                                     }
                                 },
                                 "schema": {
@@ -1398,6 +1415,23 @@
                                     },
                                     "meta": {
                                         "session_id": "uuid"
+                                    },
+                                    "allowed_roles": {
+                                        "create": [
+                                            1,
+                                            2,
+                                            3
+                                        ],
+                                        "edit": [
+                                            1,
+                                            2,
+                                            3
+                                        ],
+                                        "delete": [
+                                            1,
+                                            2,
+                                            3
+                                        ]
                                     }
                                 },
                                 "schema": {
@@ -2573,6 +2607,21 @@
                                     },
                                     "meta": {
                                         "session_id": "uuid"
+                                    },
+                                    "allowed_roles": {
+                                        "create": [],
+                                        "edit": [
+                                            1,
+                                            2,
+                                            3,
+                                            4,
+                                            5
+                                        ],
+                                        "delete": [
+                                            1,
+                                            2,
+                                            3
+                                        ]
                                     }
                                 },
                                 "schema": {
@@ -4738,6 +4787,18 @@
                                     },
                                     "meta": {
                                         "session_id": "uuid"
+                                    },
+                                    "allowed_roles": {
+                                        "create": [
+                                            1,
+                                            2,
+                                            3
+                                        ],
+                                        "edit": [
+                                            1,
+                                            2,
+                                            3
+                                        ]
                                     }
                                 },
                                 "schema": {
@@ -4992,6 +5053,23 @@
                                     "data": [],
                                     "meta": {
                                         "session_id": "uuid"
+                                    },
+                                    "allowed_roles": {
+                                        "create": [
+                                            1,
+                                            2,
+                                            3
+                                        ],
+                                        "edit": [
+                                            1,
+                                            2,
+                                            3
+                                        ],
+                                        "delete": [
+                                            1,
+                                            2,
+                                            3
+                                        ]
                                     }
                                 },
                                 "schema": {
@@ -5039,6 +5117,15 @@
                         },
                         "description": "Max results per page",
                         "example": 25
+                    },
+                    {
+                        "name": "search",
+                        "in": "query",
+                        "schema": {
+                            "type": "string"
+                        },
+                        "description": "Full-text search over: c.work_description, c.contract_number, c.area_in_charge, c.notes, c.organization_notes, pr.name, au1.name, au2.name, ut.name, ct.name, per.name, p.name, m.name, pt.name, s.name. Accents and stopwords are normalized before matching.",
+                        "example": "texto"
                     },
                     {
                         "name": "sort",
@@ -6905,12 +6992,12 @@
                     {
                         "lang": "Shell",
                         "label": "cURL",
-                        "source": "curl \\\n  --url 'https://kapi.chavodigital.com/api/v5/contracts?page=1&limit=25&sort=+id,-procedure_id&groupby=id&embed=pagination&fields=id,procedure_id&id=eq:1&procedure_id=eq:1&subject_id=eq:1&admin_period_start=eq:1&admin_period_end=eq:1&fiscal_year=lk:texto&period_id=eq:1&contract_id=eq:1&partida_type=lk:texto&partida_id=eq:1&status_id=eq:1&call_link=lk:texto&call_date=eq:1&work_description=lk:texto&clarification_meeting_date=eq:1&proposals_url=lk:texto&proposal_url=lk:texto&provider_id=eq:1&organizer_admin_unit_id=eq:1&applicant_admin_unit_id=eq:1&admin_unit_type_id=eq:1&contract_number=lk:texto&contract_date=eq:1&contract_type_id=eq:1&total_amount=eq:1&min_amount=eq:1&max_amount=eq:1&subtotal=eq:1&contract_link=lk:texto&area_in_charge=lk:texto&contract_updated_at=eq:1&notes=lk:texto&organization_notes=lk:texto&information_date=eq:1&amount_was_exceeded=eq:1&exceeded_amount=eq:1&contract_backup=lk:texto&announcement_backup=lk:texto&created_at=eq:1&updated_at=eq:1&provider_name=lk:texto&organizer_admin_unit_name=lk:texto&applicant_admin_unit_name=lk:texto&admin_unit_type_name=lk:texto&contract_type_name=lk:texto&period_name=eq:1&procedure_name=lk:texto&subject_name=lk:texto&partida_type_name=lk:texto&status_name=lk:texto'"
+                        "source": "curl \\\n  --url 'https://kapi.chavodigital.com/api/v5/contracts?page=1&limit=25&search=texto&sort=+id,-procedure_id&groupby=id&embed=pagination&fields=id,procedure_id&id=eq:1&procedure_id=eq:1&subject_id=eq:1&admin_period_start=eq:1&admin_period_end=eq:1&fiscal_year=lk:texto&period_id=eq:1&contract_id=eq:1&partida_type=lk:texto&partida_id=eq:1&status_id=eq:1&call_link=lk:texto&call_date=eq:1&work_description=lk:texto&clarification_meeting_date=eq:1&proposals_url=lk:texto&proposal_url=lk:texto&provider_id=eq:1&organizer_admin_unit_id=eq:1&applicant_admin_unit_id=eq:1&admin_unit_type_id=eq:1&contract_number=lk:texto&contract_date=eq:1&contract_type_id=eq:1&total_amount=eq:1&min_amount=eq:1&max_amount=eq:1&subtotal=eq:1&contract_link=lk:texto&area_in_charge=lk:texto&contract_updated_at=eq:1&notes=lk:texto&organization_notes=lk:texto&information_date=eq:1&amount_was_exceeded=eq:1&exceeded_amount=eq:1&contract_backup=lk:texto&announcement_backup=lk:texto&created_at=eq:1&updated_at=eq:1&provider_name=lk:texto&organizer_admin_unit_name=lk:texto&applicant_admin_unit_name=lk:texto&admin_unit_type_name=lk:texto&contract_type_name=lk:texto&period_name=eq:1&procedure_name=lk:texto&subject_name=lk:texto&partida_type_name=lk:texto&status_name=lk:texto'"
                     },
                     {
                         "lang": "JavaScript",
                         "label": "axios",
-                        "source": "import axios from 'axios';\n\nconst options = {\n  method: 'GET',\n  url: 'https://kapi.chavodigital.com/api/v5/contracts?page=1&limit=25&sort=+id,-procedure_id&groupby=id&embed=pagination&fields=id,procedure_id&id=eq:1&procedure_id=eq:1&subject_id=eq:1&admin_period_start=eq:1&admin_period_end=eq:1&fiscal_year=lk:texto&period_id=eq:1&contract_id=eq:1&partida_type=lk:texto&partida_id=eq:1&status_id=eq:1&call_link=lk:texto&call_date=eq:1&work_description=lk:texto&clarification_meeting_date=eq:1&proposals_url=lk:texto&proposal_url=lk:texto&provider_id=eq:1&organizer_admin_unit_id=eq:1&applicant_admin_unit_id=eq:1&admin_unit_type_id=eq:1&contract_number=lk:texto&contract_date=eq:1&contract_type_id=eq:1&total_amount=eq:1&min_amount=eq:1&max_amount=eq:1&subtotal=eq:1&contract_link=lk:texto&area_in_charge=lk:texto&contract_updated_at=eq:1&notes=lk:texto&organization_notes=lk:texto&information_date=eq:1&amount_was_exceeded=eq:1&exceeded_amount=eq:1&contract_backup=lk:texto&announcement_backup=lk:texto&created_at=eq:1&updated_at=eq:1&provider_name=lk:texto&organizer_admin_unit_name=lk:texto&applicant_admin_unit_name=lk:texto&admin_unit_type_name=lk:texto&contract_type_name=lk:texto&period_name=eq:1&procedure_name=lk:texto&subject_name=lk:texto&partida_type_name=lk:texto&status_name=lk:texto',\n  params: {\n    page: \"1\",\n    limit: \"25\",\n    sort: \"+id,-procedure_id\",\n    groupby: \"id\",\n    embed: \"pagination\",\n    fields: \"id,procedure_id\",\n    id: \"eq:1\",\n    procedure_id: \"eq:1\",\n    subject_id: \"eq:1\",\n    admin_period_start: \"eq:1\",\n    admin_period_end: \"eq:1\",\n    fiscal_year: \"lk:texto\",\n    period_id: \"eq:1\",\n    contract_id: \"eq:1\",\n    partida_type: \"lk:texto\",\n    partida_id: \"eq:1\",\n    status_id: \"eq:1\",\n    call_link: \"lk:texto\",\n    call_date: \"eq:1\",\n    work_description: \"lk:texto\",\n    clarification_meeting_date: \"eq:1\",\n    proposals_url: \"lk:texto\",\n    proposal_url: \"lk:texto\",\n    provider_id: \"eq:1\",\n    organizer_admin_unit_id: \"eq:1\",\n    applicant_admin_unit_id: \"eq:1\",\n    admin_unit_type_id: \"eq:1\",\n    contract_number: \"lk:texto\",\n    contract_date: \"eq:1\",\n    contract_type_id: \"eq:1\",\n    total_amount: \"eq:1\",\n    min_amount: \"eq:1\",\n    max_amount: \"eq:1\",\n    subtotal: \"eq:1\",\n    contract_link: \"lk:texto\",\n    area_in_charge: \"lk:texto\",\n    contract_updated_at: \"eq:1\",\n    notes: \"lk:texto\",\n    organization_notes: \"lk:texto\",\n    information_date: \"eq:1\",\n    amount_was_exceeded: \"eq:1\",\n    exceeded_amount: \"eq:1\",\n    contract_backup: \"lk:texto\",\n    announcement_backup: \"lk:texto\",\n    created_at: \"eq:1\",\n    updated_at: \"eq:1\",\n    provider_name: \"lk:texto\",\n    organizer_admin_unit_name: \"lk:texto\",\n    applicant_admin_unit_name: \"lk:texto\",\n    admin_unit_type_name: \"lk:texto\",\n    contract_type_name: \"lk:texto\",\n    period_name: \"eq:1\",\n    procedure_name: \"lk:texto\",\n    subject_name: \"lk:texto\",\n    partida_type_name: \"lk:texto\",\n    status_name: \"lk:texto\"\n  },\n};\n\ntry {\n  const { data } = await axios.request(options);\n  console.log(data);\n} catch (error) {\n  console.error(error);\n}"
+                        "source": "import axios from 'axios';\n\nconst options = {\n  method: 'GET',\n  url: 'https://kapi.chavodigital.com/api/v5/contracts?page=1&limit=25&search=texto&sort=+id,-procedure_id&groupby=id&embed=pagination&fields=id,procedure_id&id=eq:1&procedure_id=eq:1&subject_id=eq:1&admin_period_start=eq:1&admin_period_end=eq:1&fiscal_year=lk:texto&period_id=eq:1&contract_id=eq:1&partida_type=lk:texto&partida_id=eq:1&status_id=eq:1&call_link=lk:texto&call_date=eq:1&work_description=lk:texto&clarification_meeting_date=eq:1&proposals_url=lk:texto&proposal_url=lk:texto&provider_id=eq:1&organizer_admin_unit_id=eq:1&applicant_admin_unit_id=eq:1&admin_unit_type_id=eq:1&contract_number=lk:texto&contract_date=eq:1&contract_type_id=eq:1&total_amount=eq:1&min_amount=eq:1&max_amount=eq:1&subtotal=eq:1&contract_link=lk:texto&area_in_charge=lk:texto&contract_updated_at=eq:1&notes=lk:texto&organization_notes=lk:texto&information_date=eq:1&amount_was_exceeded=eq:1&exceeded_amount=eq:1&contract_backup=lk:texto&announcement_backup=lk:texto&created_at=eq:1&updated_at=eq:1&provider_name=lk:texto&organizer_admin_unit_name=lk:texto&applicant_admin_unit_name=lk:texto&admin_unit_type_name=lk:texto&contract_type_name=lk:texto&period_name=eq:1&procedure_name=lk:texto&subject_name=lk:texto&partida_type_name=lk:texto&status_name=lk:texto',\n  params: {\n    page: \"1\",\n    limit: \"25\",\n    search: \"texto\",\n    sort: \"+id,-procedure_id\",\n    groupby: \"id\",\n    embed: \"pagination\",\n    fields: \"id,procedure_id\",\n    id: \"eq:1\",\n    procedure_id: \"eq:1\",\n    subject_id: \"eq:1\",\n    admin_period_start: \"eq:1\",\n    admin_period_end: \"eq:1\",\n    fiscal_year: \"lk:texto\",\n    period_id: \"eq:1\",\n    contract_id: \"eq:1\",\n    partida_type: \"lk:texto\",\n    partida_id: \"eq:1\",\n    status_id: \"eq:1\",\n    call_link: \"lk:texto\",\n    call_date: \"eq:1\",\n    work_description: \"lk:texto\",\n    clarification_meeting_date: \"eq:1\",\n    proposals_url: \"lk:texto\",\n    proposal_url: \"lk:texto\",\n    provider_id: \"eq:1\",\n    organizer_admin_unit_id: \"eq:1\",\n    applicant_admin_unit_id: \"eq:1\",\n    admin_unit_type_id: \"eq:1\",\n    contract_number: \"lk:texto\",\n    contract_date: \"eq:1\",\n    contract_type_id: \"eq:1\",\n    total_amount: \"eq:1\",\n    min_amount: \"eq:1\",\n    max_amount: \"eq:1\",\n    subtotal: \"eq:1\",\n    contract_link: \"lk:texto\",\n    area_in_charge: \"lk:texto\",\n    contract_updated_at: \"eq:1\",\n    notes: \"lk:texto\",\n    organization_notes: \"lk:texto\",\n    information_date: \"eq:1\",\n    amount_was_exceeded: \"eq:1\",\n    exceeded_amount: \"eq:1\",\n    contract_backup: \"lk:texto\",\n    announcement_backup: \"lk:texto\",\n    created_at: \"eq:1\",\n    updated_at: \"eq:1\",\n    provider_name: \"lk:texto\",\n    organizer_admin_unit_name: \"lk:texto\",\n    applicant_admin_unit_name: \"lk:texto\",\n    admin_unit_type_name: \"lk:texto\",\n    contract_type_name: \"lk:texto\",\n    period_name: \"eq:1\",\n    procedure_name: \"lk:texto\",\n    subject_name: \"lk:texto\",\n    partida_type_name: \"lk:texto\",\n    status_name: \"lk:texto\"\n  },\n};\n\ntry {\n  const { data } = await axios.request(options);\n  console.log(data);\n} catch (error) {\n  console.error(error);\n}"
                     }
                 ]
             },
@@ -7340,6 +7427,23 @@
                                     },
                                     "meta": {
                                         "session_id": "uuid"
+                                    },
+                                    "allowed_roles": {
+                                        "create": [
+                                            1,
+                                            2,
+                                            3
+                                        ],
+                                        "edit": [
+                                            1,
+                                            2,
+                                            3
+                                        ],
+                                        "delete": [
+                                            1,
+                                            2,
+                                            3
+                                        ]
                                     }
                                 },
                                 "schema": {
@@ -7917,6 +8021,23 @@
                                     "data": [],
                                     "meta": {
                                         "session_id": "uuid"
+                                    },
+                                    "allowed_roles": {
+                                        "create": [
+                                            1,
+                                            2,
+                                            3
+                                        ],
+                                        "edit": [
+                                            1,
+                                            2,
+                                            3
+                                        ],
+                                        "delete": [
+                                            1,
+                                            2,
+                                            3
+                                        ]
                                     }
                                 },
                                 "schema": {
@@ -8325,6 +8446,23 @@
                                     },
                                     "meta": {
                                         "session_id": "uuid"
+                                    },
+                                    "allowed_roles": {
+                                        "create": [
+                                            1,
+                                            2,
+                                            3
+                                        ],
+                                        "edit": [
+                                            1,
+                                            2,
+                                            3
+                                        ],
+                                        "delete": [
+                                            1,
+                                            2,
+                                            3
+                                        ]
                                     }
                                 },
                                 "schema": {
@@ -8723,6 +8861,23 @@
                                     "data": [],
                                     "meta": {
                                         "session_id": "uuid"
+                                    },
+                                    "allowed_roles": {
+                                        "create": [
+                                            1,
+                                            2,
+                                            3
+                                        ],
+                                        "edit": [
+                                            1,
+                                            2,
+                                            3
+                                        ],
+                                        "delete": [
+                                            1,
+                                            2,
+                                            3
+                                        ]
                                     }
                                 },
                                 "schema": {
@@ -9131,6 +9286,23 @@
                                     },
                                     "meta": {
                                         "session_id": "uuid"
+                                    },
+                                    "allowed_roles": {
+                                        "create": [
+                                            1,
+                                            2,
+                                            3
+                                        ],
+                                        "edit": [
+                                            1,
+                                            2,
+                                            3
+                                        ],
+                                        "delete": [
+                                            1,
+                                            2,
+                                            3
+                                        ]
                                     }
                                 },
                                 "schema": {
@@ -9529,6 +9701,23 @@
                                     "data": [],
                                     "meta": {
                                         "session_id": "uuid"
+                                    },
+                                    "allowed_roles": {
+                                        "create": [
+                                            1,
+                                            2,
+                                            3
+                                        ],
+                                        "edit": [
+                                            1,
+                                            2,
+                                            3
+                                        ],
+                                        "delete": [
+                                            1,
+                                            2,
+                                            3
+                                        ]
                                     }
                                 },
                                 "schema": {
@@ -9937,6 +10126,23 @@
                                     },
                                     "meta": {
                                         "session_id": "uuid"
+                                    },
+                                    "allowed_roles": {
+                                        "create": [
+                                            1,
+                                            2,
+                                            3
+                                        ],
+                                        "edit": [
+                                            1,
+                                            2,
+                                            3
+                                        ],
+                                        "delete": [
+                                            1,
+                                            2,
+                                            3
+                                        ]
                                     }
                                 },
                                 "schema": {
@@ -10335,6 +10541,23 @@
                                     "data": [],
                                     "meta": {
                                         "session_id": "uuid"
+                                    },
+                                    "allowed_roles": {
+                                        "create": [
+                                            1,
+                                            2,
+                                            3
+                                        ],
+                                        "edit": [
+                                            1,
+                                            2,
+                                            3
+                                        ],
+                                        "delete": [
+                                            1,
+                                            2,
+                                            3
+                                        ]
                                     }
                                 },
                                 "schema": {
@@ -10743,6 +10966,23 @@
                                     },
                                     "meta": {
                                         "session_id": "uuid"
+                                    },
+                                    "allowed_roles": {
+                                        "create": [
+                                            1,
+                                            2,
+                                            3
+                                        ],
+                                        "edit": [
+                                            1,
+                                            2,
+                                            3
+                                        ],
+                                        "delete": [
+                                            1,
+                                            2,
+                                            3
+                                        ]
                                     }
                                 },
                                 "schema": {
@@ -11141,6 +11381,23 @@
                                     "data": [],
                                     "meta": {
                                         "session_id": "uuid"
+                                    },
+                                    "allowed_roles": {
+                                        "create": [
+                                            1,
+                                            2,
+                                            3
+                                        ],
+                                        "edit": [
+                                            1,
+                                            2,
+                                            3
+                                        ],
+                                        "delete": [
+                                            1,
+                                            2,
+                                            3
+                                        ]
                                     }
                                 },
                                 "schema": {
@@ -11549,6 +11806,23 @@
                                     },
                                     "meta": {
                                         "session_id": "uuid"
+                                    },
+                                    "allowed_roles": {
+                                        "create": [
+                                            1,
+                                            2,
+                                            3
+                                        ],
+                                        "edit": [
+                                            1,
+                                            2,
+                                            3
+                                        ],
+                                        "delete": [
+                                            1,
+                                            2,
+                                            3
+                                        ]
                                     }
                                 },
                                 "schema": {
@@ -11947,6 +12221,23 @@
                                     "data": [],
                                     "meta": {
                                         "session_id": "uuid"
+                                    },
+                                    "allowed_roles": {
+                                        "create": [
+                                            1,
+                                            2,
+                                            3
+                                        ],
+                                        "edit": [
+                                            1,
+                                            2,
+                                            3
+                                        ],
+                                        "delete": [
+                                            1,
+                                            2,
+                                            3
+                                        ]
                                     }
                                 },
                                 "schema": {
@@ -12437,6 +12728,23 @@
                                     },
                                     "meta": {
                                         "session_id": "uuid"
+                                    },
+                                    "allowed_roles": {
+                                        "create": [
+                                            1,
+                                            2,
+                                            3
+                                        ],
+                                        "edit": [
+                                            1,
+                                            2,
+                                            3
+                                        ],
+                                        "delete": [
+                                            1,
+                                            2,
+                                            3
+                                        ]
                                     }
                                 },
                                 "schema": {
@@ -12845,6 +13153,23 @@
                                     "data": [],
                                     "meta": {
                                         "session_id": "uuid"
+                                    },
+                                    "allowed_roles": {
+                                        "create": [
+                                            1,
+                                            2,
+                                            3
+                                        ],
+                                        "edit": [
+                                            1,
+                                            2,
+                                            3
+                                        ],
+                                        "delete": [
+                                            1,
+                                            2,
+                                            3
+                                        ]
                                     }
                                 },
                                 "schema": {
@@ -13253,6 +13578,23 @@
                                     },
                                     "meta": {
                                         "session_id": "uuid"
+                                    },
+                                    "allowed_roles": {
+                                        "create": [
+                                            1,
+                                            2,
+                                            3
+                                        ],
+                                        "edit": [
+                                            1,
+                                            2,
+                                            3
+                                        ],
+                                        "delete": [
+                                            1,
+                                            2,
+                                            3
+                                        ]
                                     }
                                 },
                                 "schema": {
@@ -13651,6 +13993,23 @@
                                     "data": [],
                                     "meta": {
                                         "session_id": "uuid"
+                                    },
+                                    "allowed_roles": {
+                                        "create": [
+                                            1,
+                                            2,
+                                            3
+                                        ],
+                                        "edit": [
+                                            1,
+                                            2,
+                                            3
+                                        ],
+                                        "delete": [
+                                            1,
+                                            2,
+                                            3
+                                        ]
                                     }
                                 },
                                 "schema": {
@@ -14057,6 +14416,23 @@
                                     },
                                     "meta": {
                                         "session_id": "uuid"
+                                    },
+                                    "allowed_roles": {
+                                        "create": [
+                                            1,
+                                            2,
+                                            3
+                                        ],
+                                        "edit": [
+                                            1,
+                                            2,
+                                            3
+                                        ],
+                                        "delete": [
+                                            1,
+                                            2,
+                                            3
+                                        ]
                                     }
                                 },
                                 "schema": {
@@ -14454,6 +14830,23 @@
                                     "data": [],
                                     "meta": {
                                         "session_id": "uuid"
+                                    },
+                                    "allowed_roles": {
+                                        "create": [
+                                            1,
+                                            2,
+                                            3
+                                        ],
+                                        "edit": [
+                                            1,
+                                            2,
+                                            3
+                                        ],
+                                        "delete": [
+                                            1,
+                                            2,
+                                            3
+                                        ]
                                     }
                                 },
                                 "schema": {
@@ -14862,6 +15255,23 @@
                                     },
                                     "meta": {
                                         "session_id": "uuid"
+                                    },
+                                    "allowed_roles": {
+                                        "create": [
+                                            1,
+                                            2,
+                                            3
+                                        ],
+                                        "edit": [
+                                            1,
+                                            2,
+                                            3
+                                        ],
+                                        "delete": [
+                                            1,
+                                            2,
+                                            3
+                                        ]
                                     }
                                 },
                                 "schema": {
@@ -15260,6 +15670,23 @@
                                     "data": [],
                                     "meta": {
                                         "session_id": "uuid"
+                                    },
+                                    "allowed_roles": {
+                                        "create": [
+                                            1,
+                                            2,
+                                            3
+                                        ],
+                                        "edit": [
+                                            1,
+                                            2,
+                                            3
+                                        ],
+                                        "delete": [
+                                            1,
+                                            2,
+                                            3
+                                        ]
                                     }
                                 },
                                 "schema": {
@@ -15792,6 +16219,23 @@
                                     },
                                     "meta": {
                                         "session_id": "uuid"
+                                    },
+                                    "allowed_roles": {
+                                        "create": [
+                                            1,
+                                            2,
+                                            3
+                                        ],
+                                        "edit": [
+                                            1,
+                                            2,
+                                            3
+                                        ],
+                                        "delete": [
+                                            1,
+                                            2,
+                                            3
+                                        ]
                                     }
                                 },
                                 "schema": {
@@ -16223,6 +16667,19 @@
                                     },
                                     "meta": {
                                         "session_id": "uuid"
+                                    },
+                                    "allowed_roles": {
+                                        "create": [],
+                                        "edit": [
+                                            1,
+                                            2,
+                                            3
+                                        ],
+                                        "delete": [
+                                            1,
+                                            2,
+                                            3
+                                        ]
                                     }
                                 },
                                 "schema": {
@@ -16292,6 +16749,23 @@
                                     "data": [],
                                     "meta": {
                                         "session_id": "uuid"
+                                    },
+                                    "allowed_roles": {
+                                        "create": [
+                                            1,
+                                            2,
+                                            3
+                                        ],
+                                        "edit": [
+                                            1,
+                                            2,
+                                            3
+                                        ],
+                                        "delete": [
+                                            1,
+                                            2,
+                                            3
+                                        ]
                                     }
                                 },
                                 "schema": {
@@ -16580,6 +17054,23 @@
                                     "data": [],
                                     "meta": {
                                         "session_id": "uuid"
+                                    },
+                                    "allowed_roles": {
+                                        "create": [
+                                            1,
+                                            2,
+                                            3
+                                        ],
+                                        "edit": [
+                                            1,
+                                            2,
+                                            3
+                                        ],
+                                        "delete": [
+                                            1,
+                                            2,
+                                            3
+                                        ]
                                     }
                                 },
                                 "schema": {
@@ -16839,6 +17330,9 @@
                                     },
                                     "meta": {
                                         "session_id": "uuid"
+                                    },
+                                    "allowed_roles": {
+                                        "create": []
                                     }
                                 },
                                 "schema": {

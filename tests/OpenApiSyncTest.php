@@ -281,6 +281,29 @@ final class OpenApiSyncTest extends TestCase
         $this->assertGreaterThan(0, $anonymous, 'Expected at least one anonymous operation omitting allowed_roles');
     }
 
+    public function testSuccessExamplesCarryAllowedRoles(): void
+    {
+        $documented = 0;
+        foreach (self::$spec['paths'] as $path => $ops) {
+            foreach ($ops as $verb => $op) {
+                if (!is_array($op)) continue;
+                foreach (['200', '201', '202'] as $status) {
+                    $example = $op['responses'][$status]['content']['application/json']['example'] ?? null;
+                    if ($example === null) continue;
+                    $module = explode('/', trim($path, '/'))[0];
+                    if (self::acceptedMethods($module) === null) {
+                        $this->assertArrayNotHasKey('allowed_roles', $example, "{$verb} {$path} {$status} example must stay free of allowed_roles");
+                        continue;
+                    }
+                    $this->assertArrayHasKey('allowed_roles', $example, "Success example {$verb} {$path} {$status} must show allowed_roles");
+                    $this->assertIsArray($example['allowed_roles'], "Success example {$verb} {$path} {$status} allowed_roles must be an object");
+                    $documented++;
+                }
+            }
+        }
+        $this->assertGreaterThan(50, $documented, 'Expected most success examples to show allowed_roles');
+    }
+
     public function testCollectionListingsHaveNo404AndEmptyExample(): void
     {
         foreach (self::$spec['paths'] as $path => $ops) {

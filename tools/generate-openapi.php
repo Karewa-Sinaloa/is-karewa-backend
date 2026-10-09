@@ -1122,12 +1122,12 @@ foreach ($paths as $path => &$item) {
                             ['type' => 'object', 'properties' => ['allowed_roles' => allowed_roles_schema()]],
                         ],
                     ];
-                    $moduleForPath = explode('/', trim($path, '/'))[0];
-                    if (isset($response['content']['application/json']['example'])) {
-                        $response['content']['application/json']['example']['allowed_roles'] = allowed_roles_example($acceptedMethodsMap[$moduleForPath] ?? []);
-                    }
                 } else {
                     $response['content']['application/json']['schema'] = ['$ref' => '#/components/schemas/ResponseEnvelope'];
+                }
+                if (isset($response['content']['application/json']['example']) && isset($acceptedMethodsMap[explode('/', trim($path, '/'))[0]])) {
+                    $moduleForPath = explode('/', trim($path, '/'))[0];
+                    $response['content']['application/json']['example']['allowed_roles'] = allowed_roles_example($acceptedMethodsMap[$moduleForPath]);
                 }
                 $op['responses'][$status] = $response;
             }

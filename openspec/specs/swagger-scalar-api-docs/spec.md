@@ -103,6 +103,20 @@ Every success response SHALL declare a JSON schema of the response envelope (`me
 - **WHEN** a reader opens a documented success response of an operation with no security requirement
 - **THEN** the schema does not declare an `allowed_roles` property
 
+### Requirement: Success response examples show allowed_roles
+
+Every documented JSON success response example of a module that declares `$accepted_methods` SHALL carry a top-level `allowed_roles` object with the module's declared actions, whether or not the operation declares the bearer security scheme, so readers of anonymous operations learn the field's shape. The examples document the authenticated variant only; the runtime keeps emitting `allowed_roles` exclusively on authenticated responses, as specified by `allowed-roles-disclosure`.
+
+#### Scenario: Reader inspects an anonymous operation's example
+
+- **WHEN** a reader opens the response example of an operation with no security requirement
+- **THEN** the example carries a top-level `allowed_roles` object keyed by the module's declared `create`, `edit` and `delete` actions
+
+#### Scenario: Module outside the authentication handler
+
+- **WHEN** a reader opens the response example of an operation whose module declares no `$accepted_methods` (for example `POST /access/login`)
+- **THEN** the example carries no `allowed_roles` key
+
 ### Requirement: Operations carry stable unique operation ids
 
 Every operation SHALL declare a unique `operationId`, and the value SHALL remain stable across regenerations as long as the module, path, and method do not change.
