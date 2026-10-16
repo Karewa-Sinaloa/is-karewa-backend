@@ -32,6 +32,23 @@ abstract class DBGet {
         $qry_str = 'SELECT ' . $fields . ' FROM ' . $table . ' ' . $joins . $where;
       }
       break;
+    case 'sum':
+      // Agregados del conjunto completo filtrado, sin LIMIT. 'sums' es un mapa
+      // alias => expresion (p. ej. ['amount_with_iva' => 'c.total_amount']) y
+      // group_by son expresiones fijas declaradas por el modulo; el resultado
+      // siempre incluye COUNT(*) de los registros que cumplieron la consulta.
+      $_sums     = (array_key_exists('sums', $params) && is_array($params['sums'])) ? $params['sums'] : [];
+      $fields    = 'COUNT(*) results';
+      foreach ($_sums as $alias => $expr) {
+        $fields .= ', ROUND(SUM(' . $expr . '), 2) AS ' . self::alias_key($alias);
+      }
+      foreach ((array) $_group_by as $expr) {
+        $fields .= ', ' . $expr . ' AS ' . self::alias_key($expr);
+      }
+      $group     = self::get_group_by($_group_by);
+      $order     = !empty($_group_by) ? 'ORDER BY ' . $_group_by[0] . ' ASC ' : '';
+      $qry_str   = 'SELECT ' . $fields . ' FROM ' . $table . ' ' . $joins . $where . $group . $order;
+      break;
     case 'list':
       $fields    = self::getFields($_fields);
       $limits    = self::get_limits($_max_results, $_page);
@@ -45,14 +62,18 @@ abstract class DBGet {
       $qry_str = 'SELECT ' . $fields . ' FROM ' . $table . ' ' . $joins . $where . 'LIMIT 1';
       break;
 		}
-    return self::get_bind_data($_filters, $qry_str, $_max_results, $limit_inf, $_action);
+    $results = self::get_bind_data($_filters, $qry_str, $_max_results, $limit_inf, $_action);
+    if ($_action === 'sum') {
+      return self::sum_rows($results, $_sums, (array) $_group_by);
+    }
+    return $results;
   }
 
   private static function get_joins(array $joins) {
     $join_qry = '';
     if (!empty($joins)) {
       foreach ($joins as $value) {
-        switch ($value['match'][2]) {
+        switch ($value['match'][2] ?? 'LEFT') {
         case 'LEFT':
           $join_type = 'LEFT JOIN';
           break;
@@ -192,6 +213,50 @@ abstract class DBGet {
     return $order;
   }
 
+  /** Alias SQL seguro (letras, digitos y guion bajo) para un campo o expresion. */
+  private static function alias_key(string $key) : string {
+    return preg_replace('/[^a-zA-Z0-9_]+/', '_', $key);
+  }
+
+  /**
+   * Normaliza el resultado de la accion 'sum': una fila sin group_by (suma
+   * general + conteo) o una lista de filas con group (una por grupo),
+   * conservando las sums y el conteo por grupo.
+   */
+  private static function sum_rows(array|null $rows, array $sums, array $group_by) : array {
+    $aliases = [];
+    foreach ($sums as $alias => $expr) {
+      $aliases[$alias] = self::alias_key($alias);
+    }
+    $sum_values = function(array $row) use ($aliases) : array {
+      $values = [];
+      foreach ($aliases as $alias => $key) {
+        $values[$alias] = $row[$key] ?? null;
+      }
+      return $values;
+    };
+    if (empty($group_by)) {
+      $row = is_array($rows) ? array_shift($rows) : [];
+      return [
+        'results' => (int) ($row['results'] ?? 0),
+        'sums'    => $sum_values($row ?? []),
+      ];
+    }
+    $groups = [];
+    foreach ((array) $rows as $row) {
+      $group = [];
+      foreach ($group_by as $expr) {
+        $group[$expr] = $row[self::alias_key($expr)] ?? null;
+      }
+      $groups[] = [
+        'results' => (int) ($row['results'] ?? 0),
+        'group'   => $group,
+        'sums'    => $sum_values($row),
+      ];
+    }
+    return $groups;
+  }
+
   private static function get_bind_data(array $filters, string $qry_str, int $max_results, int $limit_inf, ?string $action = NULL) :array|null {
 	$dbconn     = DB::connection();
     $db_results = [];
@@ -237,7 +302,7 @@ abstract class DBGet {
 			$qry->bindParam(':maxResults', $max_results, PDO::PARAM_INT);
 		}
 		$qry->execute();
-		if ($action == 'list') {
+		if (in_array($action, ['list', 'sum'], true)) {
 			while ($row = $qry->fetch(PDO::FETCH_ASSOC)) {
 				$db_results[] = $row;
 			}
@@ -255,4 +320,3 @@ abstract class DBGet {
     return $db_results;
   }
 }
-?>

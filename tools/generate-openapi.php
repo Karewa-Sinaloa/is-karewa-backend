@@ -138,6 +138,104 @@ function parse_search_fields(string $block): array {
     return [];
 }
 
+/** First-level keys of a flat `'name' => ...` map block. */
+function quoted_keys(?string $block): array {
+    if ($block === null) return [];
+    preg_match_all("/'([^']+)'\s*=>/", $block, $m);
+    return $m[1];
+}
+
+/**
+ * Parse a module's `totals` declaration inside `$get_params`:
+ * 'totals' => ['sums' => [alias => expr], 'groups' => [key => ['group_by' => [...], 'fields' => [...], 'sums' => [...]]]].
+ *
+ * A group may declare 'nest' => ['into' => parent, 'by' => field, 'as' => name]:
+ * its rows are not a top-level key but are folded under the parent entries.
+ *
+ * Returns null when the module declares no totals, otherwise
+ * ['sums' => [aliases], 'groups' => [key => ['fields' => [names], 'sums' => [aliases], 'nest' => [...]?]].
+ */
+function parse_totals_declaration(string $getParamsRaw): ?array {
+    $block = extract_property_array($getParamsRaw, "'totals'");
+    if ($block === null) return null;
+    $sums = quoted_keys(extract_property_array($block, "'sums'"));
+    $groups = [];
+    if (preg_match_all("/'([A-Za-z0-9_]+)'\s*=>\s*\[\s*'group_by'/s", $block, $matches, PREG_SET_ORDER | PREG_OFFSET_CAPTURE)) {
+        foreach ($matches as $match) {
+            $key = $match[1][0];
+            $group = extract_property_array($block, "'{$key}'");
+            if ($group === null) continue;
+            $groups[$key] = [
+                'fields' => quoted_keys(extract_property_array($group, "'fields'")),
+                'sums'   => quoted_keys(extract_property_array($group, "'sums'")),
+            ];
+            $nest = [];
+            foreach (['into', 'by', 'as'] as $nestKey) {
+                if (preg_match("/'{$nestKey}'\s*=>\s*'([^']+)'/s", $group, $nestMatch)) {
+                    $nest[$nestKey] = $nestMatch[1];
+                }
+            }
+            if (count($nest) === 3) {
+                $groups[$key]['nest'] = $nest;
+            }
+        }
+    }
+    return ['sums' => $sums, 'groups' => $groups];
+}
+
+/** Illustrative value for one field of the documented totals block. */
+function totals_example_value(string $name, float $amount): mixed {
+    if (str_contains($name, 'amount') || str_contains($name, 'subtotal')) return $amount;
+    if (str_ends_with($name, '_name')) return ucfirst(str_replace('_', ' ', $name));
+    if ($name === 'fiscal_year') return 2025;
+    return 1;
+}
+
+/** Example `totals` block derived from a module's declaration. */
+function totals_example(array $declaration): array {
+    $example = ['results' => 500];
+    foreach ($declaration['sums'] as $alias) {
+        $example[$alias] = totals_example_value($alias, 1250300.50);
+    }
+    $build_entry = function (array $group): array {
+        $entry = [];
+        foreach ($group['fields'] as $field) {
+            $entry[$field] = totals_example_value($field, 625150.25);
+        }
+        foreach ($group['sums'] as $alias) {
+            $entry[$alias] = totals_example_value($alias, 625150.25);
+        }
+        return $entry;
+    };
+    $nested = [];
+    foreach ($declaration['groups'] as $key => $group) {
+        if (isset($group['nest'])) {
+            $nested[$key] = $group;
+            continue;
+        }
+        $example[$key] = [$build_entry($group)];
+    }
+    // Nested groups: never a top-level key; each row folds into the parent
+    // entry whose 'by' field matches (the field is dropped from the child).
+    foreach ($nested as $key => $group) {
+        $nest  = $group['nest'];
+        $into  = $nest['into'];
+        $by    = $nest['by'];
+        $as    = $nest['as'];
+        if (!isset($example[$into])) continue;
+        foreach ($example[$into] as $i => $parent) {
+            $example[$into][$i][$as] = [];
+            $child = $build_entry($group);
+            $same  = isset($child[$by], $parent[$by]) && (string) $child[$by] === (string) $parent[$by];
+            if ($same) {
+                unset($child[$by]);
+                $example[$into][$i][$as][] = $child;
+            }
+        }
+    }
+    return $example;
+}
+
 function parse_rules(string $text): array {
     $block = extract_property_array($text, '$rules');
     if ($block === null) return [];
@@ -398,7 +496,7 @@ function js_literal($value, int $depth): string {
     return json_encode((string) $value, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
 }
 
-function build_query_param_definitions(array $fields, array $searchFields, array $rules = []): array {
+function build_query_param_definitions(array $fields, array $searchFields, array $rules = [], ?array $totals = null): array {
     $params = [];
     $names = array_keys($fields);
     $listedNames = [];
@@ -433,13 +531,23 @@ function build_query_param_definitions(array $fields, array $searchFields, array
         'description' => 'Comma-separated grouping fields. Allowed fields: ' . implode(', ', $names) . '.',
         'example' => $first,
     ];
-    $params[] = [
-        'name' => 'embed',
-        'in' => 'query',
-        'schema' => ['type' => 'string', 'enum' => ['pagination']],
-        'description' => 'Comma-separated embeddings. Supported values: pagination (adds pages, results and current_page to meta).',
-        'example' => 'pagination',
-    ];
+    if ($totals !== null) {
+        $params[] = [
+            'name' => 'embed',
+            'in' => 'query',
+            'schema' => ['type' => 'string', 'enum' => ['pagination', 'totals']],
+            'description' => 'Comma-separated embeddings. Supported values: pagination (adds pages, results and current_page to meta), totals (adds a totals object with the with-IVA and without-IVA sums, the fiscal-year sums each carrying their own nested per-period sums, the with-IVA sums per procedure type, and the matching-result count, computed over the whole filtered result set ignoring pagination).',
+            'example' => 'pagination,totals',
+        ];
+    } else {
+        $params[] = [
+            'name' => 'embed',
+            'in' => 'query',
+            'schema' => ['type' => 'string', 'enum' => ['pagination']],
+            'description' => 'Comma-separated embeddings. Supported values: pagination (adds pages, results and current_page to meta).',
+            'example' => 'pagination',
+        ];
+    }
     $params[] = [
         'name' => 'fields',
         'in' => 'query',
@@ -614,6 +722,7 @@ $tags = ['Docs'];
 $moduleFieldsMap = [];
 $searchFieldsMap = [];
 $moduleRulesMap = [];
+$totalsMap = [];
 $acceptedMethodsMap = [];
 $errorResponses = [];
 $apiCodes = load_api_codes($root . '/app/core/config/api_codes.yml');
@@ -629,6 +738,10 @@ foreach ($controllers as $module => $path) {
     $getParamsRaw = extract_property_array($text, '$get_params');
     if ($getParamsRaw) {
         $searchFieldsMap[$module] = parse_search_fields($getParamsRaw);
+        $totalsDeclaration = parse_totals_declaration($getParamsRaw);
+        if ($totalsDeclaration !== null) {
+            $totalsMap[$module] = $totalsDeclaration;
+        }
     }
     $indexPath = dirname($path) . '/index.php';
     $accepted = is_file($indexPath) ? extract_accepted_methods($indexPath) : null;
@@ -1044,7 +1157,7 @@ foreach ($apiRoutes as $module => $methods) {
         'summary' => 'List ' . str_replace('-', ' ', $module),
         'responses' => ['200' => ['description' => 'List response']],
     ];
-    $collectionOp['parameters'] = build_query_param_definitions($fields, $searchFields, $moduleRulesMap[$module] ?? []);
+    $collectionOp['parameters'] = build_query_param_definitions($fields, $searchFields, $moduleRulesMap[$module] ?? [], $totalsMap[$module] ?? null);
     if (isset($operationDescriptions[$module]['index'])) {
         $collectionOp['description'] = $operationDescriptions[$module]['index'];
     }
@@ -1055,6 +1168,9 @@ foreach ($apiRoutes as $module => $methods) {
         'data' => [],
         'meta' => ['session_id' => 'uuid'],
     ]]];
+    if (isset($totalsMap[$module])) {
+        $collectionOp['responses']['200']['content']['application/json']['example']['totals'] = totals_example($totalsMap[$module]);
+    }
     apply_security($collectionOp, $acceptedMethodsMap[$module] ?? [], 'index');
     add_error_responses($collectionOp, $apiCodes, error_kind_for($module, 'index'), ['404000']);
     if (isset($methods['index'])) {

@@ -105,6 +105,58 @@ class contractsComponent extends BaseModel
             ],
         ],
         'search' => ['c.work_description', 'c.contract_number', 'c.area_in_charge', 'c.notes', 'c.organization_notes', 'pr.name', 'au1.name', 'au2.name', 'ut.name', 'ct.name', 'per.name', 'p.name', 'm.name', 'pt.name', 's.name'],
+        // Totales embebibles con embed=totals: agregados sobre el conjunto
+        // completo filtrado (sin paginar), calculados por el ORM.
+        'totals' => [
+            'sums' => [
+                'total_amount' => 'c.total_amount',
+                'subtotal' => 'c.subtotal',
+            ],
+            'groups' => [
+                'by_fiscal_year' => [
+                    'group_by' => ['c.fiscal_year'],
+                    'fields' => [
+                        'fiscal_year' => 'c.fiscal_year',
+                    ],
+                    'sums' => [
+                        'total_amount' => 'c.total_amount',
+                        'subtotal' => 'c.subtotal',
+                    ],
+                ],
+                // (año, periodo): cada fila se anida dentro del año fiscal
+                // padre declarado en 'nest' (no se emite como clave top-level).
+                'by_fiscal_year_period' => [
+                    'group_by' => ['c.fiscal_year', 'c.period_id', 'per.name'],
+                    'fields' => [
+                        'fiscal_year' => 'c.fiscal_year',
+                        'period_id' => 'c.period_id',
+                        'period_name' => 'per.name',
+                    ],
+                    'sums' => [
+                        'total_amount' => 'c.total_amount',
+                        'subtotal' => 'c.subtotal',
+                    ],
+                    'nest' => [
+                        'into' => 'by_fiscal_year',
+                        'by'   => 'fiscal_year',
+                        'as'   => 'periods',
+                    ],
+                ],
+                // Tipo de procedimiento (licitacion, adjudicacion directa, ...):
+                // una entrada por tipo presente en los resultados filtrados,
+                // solo con IVA (total_amount), sin paginar.
+                'by_procedure' => [
+                    'group_by' => ['c.procedure_id', 'p.name'],
+                    'fields' => [
+                        'procedure_id' => 'c.procedure_id',
+                        'procedure_name' => 'p.name',
+                    ],
+                    'sums' => [
+                        'total_amount' => 'c.total_amount',
+                    ],
+                ],
+            ],
+        ],
     ];
 
     protected $rules = [

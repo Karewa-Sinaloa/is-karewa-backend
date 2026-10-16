@@ -143,6 +143,7 @@ class BaseModel {
       'page'        => $get_page,
       'group_by'    => $get_group_by,
       'max_results' => $get_max_results,
+      'totals'      => !empty($params->totals) ? $params->totals : null,
     ];
   }
   /**
@@ -316,10 +317,23 @@ class BaseModel {
     $data = [
       'data' => []
     ];
+    $this->embeded = $this->getEmbed();
+    // Totales embebidos (embed=totals): solo en listados, solo si el modulo
+    // los declara, y siempre sobre el conjunto completo filtrado (sin paginar).
+    $wants_totals = $result_type === 'list'
+      && in_array('totals', $this->embeded)
+      && !empty($get_params['totals']);
     try {
       $data['data'] = DBGet::Get($get_params, $result_type);
     } catch(\AppException $e) {
 	  ApiResponse::Set($e->errorCode());
+    }
+    if ($wants_totals) {
+      try {
+        $data['totals'] = $this->getTotals($get_params);
+      } catch(\AppException $e) {
+        ApiResponse::Set($e->errorCode());
+      }
     }
     if (!$data['data']) {
       if ($result_type === 'list') {
@@ -335,7 +349,6 @@ class BaseModel {
         ApiResponse::Set(404000);
       }
     } else {
-      $this->embeded = $this->getEmbed();
       if (in_array('pagination', $this->embeded)) {
         $count = NULL;
         $pagination_params = [
@@ -362,6 +375,91 @@ class BaseModel {
     } else {
       ApiResponse::Set('SUCCESS', $data);
     }
+  }
+
+  /**
+   * Calcula el bloque de totales del listado con los mismos filtros, joins y
+   * busqueda del listado (sin paginar) a partir de la declaracion del modulo
+   * en $get_params['totals']:
+   *   'sums'   => [alias => expresion]        (totales generales)
+   *   'groups' => [clave => ['group_by' => [...], 'fields' => [nombre => expresion], 'sums' => [...]]]
+   * Devuelve conteo de resultados, los totales generales y un renglon por
+   * grupo de cada agrupacion declarada.
+   *
+   * Un grupo puede declarar 'nest' => ['into' => clavePadre, 'by' => campo,
+   * 'as' => nombre]: sus renglones no se emiten como clave top-level; cada
+   * renglon se anida bajo la entrada padre cuyo valor de 'by' coincide con el
+   * suyo (el campo 'by' se elimina del renglon hijo), en el arreglo 'as'.
+   */
+  private function getTotals(array $get_params) : array {
+    $config  = (array) $get_params['totals'];
+    $sums    = !empty($config['sums']) ? $config['sums'] : [];
+    $base    = [
+      'table'   => $get_params['table'],
+      'filters' => $get_params['filters'],
+      'joins'   => $get_params['joins'],
+    ];
+    $summary  = DBGet::Get(array_merge($base, ['sums' => $sums]), 'sum');
+    $totals   = ['results' => (int) ($summary['results'] ?? 0)];
+    foreach (array_keys($sums) as $alias) {
+      $value   = $summary['sums'][$alias] ?? null;
+      $totals[$alias] = $value ?? '0.00';
+    }
+    $run_group = function (array $group) use ($base) : array {
+      $group_sums = !empty($group['sums']) ? $group['sums'] : [];
+      $rows = DBGet::Get(array_merge($base, [
+        'sums'     => $group_sums,
+        'group_by' => array_values((array) ($group['group_by'] ?? [])),
+      ]), 'sum');
+      $entries = [];
+      foreach ((array) $rows as $row) {
+        $entry = [];
+        foreach (($group['fields'] ?? []) as $name => $expr) {
+          $entry[$name] = $row['group'][$expr] ?? null;
+        }
+        foreach (array_keys($group_sums) as $alias) {
+          $value = $row['sums'][$alias] ?? null;
+          $entry[$alias] = $value ?? '0.00';
+        }
+        $entries[] = $entry;
+      }
+      return $entries;
+    };
+    $nested = [];
+    foreach (($config['groups'] ?? []) as $key => $group) {
+      if (!empty($group['nest'])) {
+        $nested[$key] = $group;
+        continue;
+      }
+      $totals[$key] = $run_group($group);
+    }
+    // Grupos anidados: se calculan despues de sus padres y se pliegan dentro
+    // de la entrada padre cuyo valor coincide; nunca se emiten top-level.
+    foreach ($nested as $key => $group) {
+      $nest    = (array) $group['nest'];
+      $into    = (string) ($nest['into'] ?? '');
+      $by      = (string) ($nest['by'] ?? '');
+      $as      = (string) ($nest['as'] ?? 'children');
+      $children = $run_group($group);
+      if ($into === '' || $by === '' || !isset($totals[$into])) {
+        continue;
+      }
+      foreach ($totals[$into] as $i => $parent) {
+        $totals[$into][$i][$as] = [];
+        foreach ($children as $child) {
+          $parent_value = $parent[$by] ?? null;
+          $child_value  = $child[$by] ?? null;
+          $same = $parent_value === $child_value
+            || ($parent_value !== null && $child_value !== null
+                && (string) $parent_value === (string) $child_value);
+          if ($same) {
+            unset($child[$by]);
+            $totals[$into][$i][$as][] = $child;
+          }
+        }
+      }
+    }
+    return $totals;
   }
 
   public function post() {
